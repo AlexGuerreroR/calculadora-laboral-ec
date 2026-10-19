@@ -24,7 +24,7 @@ Las fuentes incluidas deben:
 
 | N.º | Documento | Institución / Fuente normativa | Fecha | Vigencia | Archivo local |
 |---|---|---|---|---|---|
-| 1 | Código del Trabajo | Registro Oficial / legislación ecuatoriana | 16-12-2005 | Vigente. Última reforma identificada: 18-05-2026 | `data/raw/codigo_trabajo_ecuador_2026.pdf` |
+| 1 | Código del Trabajo | Ministerio del Trabajo / Registro Oficial | 16-12-2005 | Versión consultada indica normativa vigente y última reforma 12-05-2023 | No almacenado en el repositorio |
 | 2 | Acuerdo Ministerial MDT-2025-195 | Ministerio del Trabajo | 15-12-2025 / publicado 18-12-2025 | Aplicable al SBU 2026 | `data/raw/acuerdo_sbu_2026_mdt-2025-195.pdf` |
 | 3 | Acuerdo Ministerial MDT-2023-140 | Ministerio del Trabajo | 14-11-2023 | Vigente como norma aplicable a obligaciones del empleador, décimos, utilidades, actas de finiquito e inspecciones | `data/raw/mdt-2023-140_obligaciones_empleador.pdf` |
 
@@ -37,12 +37,13 @@ Las fuentes incluidas deben:
 **Institución normativa:** H. Congreso Nacional – Comisión de Legislación y Codificación  
 **Publicación:** Suplemento del Registro Oficial No. 167  
 **Fecha de publicación:** 16 de diciembre de 2005  
-**Estado normativo indicado en el documento:** Vigente  
-**Última reforma indicada:** Suplemento del Registro Oficial No. 286, 18 de mayo de 2026  
+**Estado normativo indicado en el documento consultado:** Vigente  
+**Última reforma indicada en esta versión:** Suplemento del Registro Oficial No. 309, 12 de mayo de 2023  
 **Fecha de consulta:** 17 de octubre de 2026  
 **Formato:** PDF  
-**Archivo local:** `data/raw/codigo_trabajo_ecuador_2026.pdf`  
-**URL de procedencia:** https://biblioteca.defensoria.gob.ec/bitstream/37000/3819/12/C%c3%93DIGO%20DEL%20TRABAJO.%20ACTUALIZADO.pdf
+**Archivo local:** No incluido en el repositorio por restricciones de reproducción y redistribución.  
+**Fuente de consulta:** Ministerio del Trabajo del Ecuador  
+**URL de procedencia:** https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf
 
 El documento consultado identifica expresamente la normativa como vigente y registra como última reforma el 18 de mayo de 2026. 
 
@@ -733,10 +734,10 @@ Fragmentos inicialmente identificados:
 
 | Documento | Estado registrado | Acción |
 |---|---|---|
-| Código del Trabajo | Vigente. Última reforma indicada: 18-05-2026 | Utilizable |
+| Código del Trabajo | La versión publicada por el Ministerio consultada indica normativa vigente y última reforma 12-05-2023 | Utilizar como fuente base y contrastar reformas posteriores |
 | Acuerdo MDT-2025-195 | Aplicable al SBU 2026 | Utilizable |
-| Acuerdo MDT-2023-140 | Norma aplicable a obligaciones del empleador, décimos, actas de finiquito e inspecciones | Utilizable |
-| Acuerdo MDT-2019-199 | Derogado expresamente por MDT-2023-140 | No utilizar como fuente normativa vigente |
+| Acuerdo MDT-2023-140 | Aplicable a obligaciones del empleador, décimos, finiquitos e inspecciones | Utilizable |
+| Acuerdo MDT-2019-199 | Derogado por MDT-2023-140 | No utilizar como fuente vigente |
 
 Cuando no exista evidencia suficiente para confirmar el estado de una norma, se utilizará expresamente:
 
