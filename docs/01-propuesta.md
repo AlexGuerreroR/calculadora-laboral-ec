@@ -76,7 +76,7 @@ La selección se contrasta con el levantamiento de preguntas reales.
 - Es el stack base recomendado por la guía del seminario y no requiere tarjeta de crédito.
 - La tarea del modelo es acotada (redactar una explicación a partir de un resultado y un artículo), así que un modelo rápido y económico es suficiente.
 - El mismo proveedor ofrece embeddings para el RAG.
--  En el backend se configurará una temperatura baja porque la salida debe ser fiel a los datos; en la prueba de AI Studio el modelo gemini-3.8-flash no permitió ajustarla.
+- **Temperatura:** la salida debe ser fiel a los datos, por lo que se intentará fijar una temperatura baja desde el backend (API). En la prueba en AI Studio, el modelo gemini-3.8-flash no permitió ajustarla; en la Semana 2 se verificará si la API lo acepta y se documentará el valor final. Si no es configurable, se mantiene el valor por defecto y la fidelidad se garantiza por diseño: cálculos en código, explicación limitada al resultado y al artículo recuperado, cita obligatoria y abstención sin fuente.
 
 **Prueba inicial (18-oct-2026):** al preguntarle sin búsqueda web por el salario básico 2026, el modelo respondió que no lo conocía y dio un valor incorrecto para 2025. Esto confirma la decisión de no confiar en su memoria: los valores van en configuración y la normativa se recupera de fuentes oficiales.
 
