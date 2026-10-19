@@ -32,20 +32,29 @@ decimo_cuarto:
   observacion: "1 SBU por período anual completo; aplicar proporcionalidad cuando corresponda. Fechas para pago acumulado."
   verificado: true
 
-horas:                     # Código del Trabajo, art. 55
-  divisor_hora_ordinaria: 240   # remuneración mensual / 240 horas
+horas:
+  divisor_hora_ordinaria: 240
   recargo_suplementaria: 0.50
   recargo_extraordinaria: 1.00
-  verificado: false
+  fuente: "Código del Trabajo, art. 55; Resolución INEC 021-DIREJ-DIJU-NI-2026, art. 24"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Divisor para jornada completa con remuneración mensual. Aplicar los recargos según horario y condiciones legales; no confundir con jornada nocturna ordinaria."
+  verificado: true
 
-vacaciones:                # Código del Trabajo, arts. 69 y 71
+vacaciones:
   dias_base: 15
-  dia_adicional_desde_anio: 6   # un día adicional por cada año excedente de 5
+  dia_adicional_desde_anio: 6
   max_dias_adicionales: 15
-  verificado: false
+  fuente: "Código del Trabajo, arts. 69, 70 y 71"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Régimen general para adultos. Adicionales por años de servicio excedentes de cinco; admite mejora contractual. El pago se calcula según el art. 71."
+  verificado: true
 
 liquidacion:
-  desahucio_porcentaje_por_anio: 0.25   # art. 185
-  despido_minimo_remuneraciones: 3      # art. 188, hasta 3 años de servicio
-  despido_tope_remuneraciones: 25       # art. 188
-  verificado: false
+  desahucio_porcentaje_por_anio: 0.25
+  despido_minimo_remuneraciones: 3
+  despido_tope_remuneraciones: 25
+  fuente: "Código del Trabajo, arts. 184, 185 y 188"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Desahucio solo cuando legalmente corresponda. Despido: tres remuneraciones hasta tres años; después, una por año, contando la fracción como año completo, con tope de 25."
+  verificado: true
