@@ -58,33 +58,22 @@ Principales necesidades:
 
 ---
 
-# 4. Preguntas de levantamiento relacionadas con los requisitos
+# 4. Trazabilidad con el levantamiento real
 
-Para mantener la trazabilidad de los requisitos se identifican las siguientes preguntas de levantamiento:
+Las historias de usuario definidas en este documento se relacionan con las necesidades identificadas en el levantamiento de información realizado durante la Semana 1.
 
-**P01.** ¿Qué beneficios laborales necesitan consultar con mayor frecuencia los trabajadores?
+Las respuestas originales se encuentran documentadas en:
 
-**P02.** ¿Qué cálculos necesita realizar un empleador para conocer sus obligaciones laborales?
+`docs/evidencias/semana-1/levantamiento.md`
 
-**P03.** ¿Qué información debe ingresar el usuario para calcular la décima tercera remuneración?
+Para mantener la trazabilidad, se utilizan los identificadores P01–P15 definidos en dicho documento.
 
-**P04.** ¿Qué información se necesita para calcular la décima cuarta remuneración y cómo influye la región?
+Las historias HU-08 y HU-09 no provienen directamente de una pregunta de la encuesta:
 
-**P05.** ¿Cómo se debe calcular y presentar el valor correspondiente a vacaciones?
+- **HU-08** se deriva del objetivo del caso oficial, que requiere generar un resumen descargable.
+- **HU-09** se deriva de la Fase 1 del caso oficial, que establece que parámetros como el Salario Básico Unificado deben mantenerse configurables.
 
-**P06.** ¿Qué datos son necesarios para calcular horas suplementarias y extraordinarias?
-
-**P07.** ¿Qué información debe considerarse para realizar una estimación de liquidación laboral?
-
-**P08.** ¿El usuario necesita conocer la norma que justifica cada cálculo?
-
-**P09.** ¿Qué debe hacer el sistema cuando los datos ingresados sean incorrectos o incompletos?
-
-**P10.** ¿Qué debe hacer la aplicación cuando una consulta requiera interpretación o asesoría jurídica?
-
-**P11.** ¿El usuario necesita conservar o descargar el resultado obtenido?
-
-**P12.** ¿Qué parámetros del sistema pueden cambiar con el tiempo, como el Salario Básico Unificado?
+No se crean nuevos identificadores Pxx dentro de este documento para evitar conflictos con las respuestas reales del levantamiento.
 
 ---
 
@@ -96,7 +85,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** ingresar mis remuneraciones correspondientes al período de cálculo,  
 **para** conocer el valor estimado de mi décima tercera remuneración.
 
-**Preguntas relacionadas:** P01, P03, P08 y P09.
+**Preguntas relacionadas:** P10, P11, P14 y P15.
 
 ### Criterios de aceptación
 
@@ -128,7 +117,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** calcular mi décima cuarta remuneración según mi región y período laboral,  
 **para** conocer el valor que me corresponde recibir.
 
-**Preguntas relacionadas:** P01, P04, P08, P09 y P12.
+**Preguntas relacionadas:** P10, P11, P14 y P15.
 
 ### Criterios de aceptación
 
@@ -160,7 +149,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** ingresar mi fecha de ingreso y remuneración,  
 **para** conocer el valor estimado correspondiente a mis vacaciones.
 
-**Preguntas relacionadas:** P01, P05, P08 y P09.
+**Preguntas relacionadas:** P03, P05 y P07.
 
 ### Criterios de aceptación
 
@@ -188,17 +177,17 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 
 ## HU-04. Calcular horas suplementarias
 
-**Como** trabajador,  
-**quiero** registrar mi remuneración y las horas adicionales trabajadas,  
-**para** conocer el valor correspondiente a horas suplementarias.
+**Como** pequeño empleador,  
+**quiero** registrar la remuneración y las horas adicionales trabajadas por un trabajador,  
+**para** estimar correctamente el valor correspondiente a horas suplementarias.
 
-**Preguntas relacionadas:** P01, P06, P08 y P09.
+**Preguntas relacionadas:** P12 y P13.
 
 ### Criterios de aceptación
 
 **CA-04.1**  
-**Dado** que se ingresan una remuneración válida y una cantidad válida de horas suplementarias,  
-**cuando** se ejecute el cálculo,  
+**Dado** que el empleador ingresa una remuneración válida y una cantidad válida de horas suplementarias,  
+**cuando** ejecute el cálculo,  
 **entonces** el sistema deberá aplicar el recargo correspondiente.
 
 **CA-04.2**  
@@ -219,7 +208,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** registrar las horas extraordinarias que he trabajado,  
 **para** conocer el valor adicional que me corresponde recibir.
 
-**Preguntas relacionadas:** P01, P06, P08 y P09.
+**Preguntas relacionadas:** P12 y P13.
 
 ### Criterios de aceptación
 
@@ -246,7 +235,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** ingresar los datos relacionados con la terminación de mi relación laboral,  
 **para** obtener una estimación de los valores que podrían formar parte de mi liquidación.
 
-**Preguntas relacionadas:** P01, P07, P08, P09 y P10.
+**Preguntas relacionadas:** P01, P06 y P08.
 
 ### Criterios de aceptación
 
@@ -278,7 +267,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** conocer cómo se obtuvo el resultado y qué norma lo respalda,  
 **para** comprender el cálculo presentado por el sistema.
 
-**Preguntas relacionadas:** P08 y P10.
+**Preguntas relacionadas:** P02 y P03.
 
 ### Criterios de aceptación
 
@@ -305,7 +294,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** descargar un resumen del cálculo realizado,  
 **para** conservar la información obtenida y revisarla posteriormente.
 
-**Preguntas relacionadas:** P11.
+**Origen:** Caso oficial del proyecto – generación de resumen descargable.
 
 ### Criterios de aceptación
 
@@ -332,7 +321,7 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **quiero** mantener configurables los parámetros laborales que cambian con el tiempo,  
 **para** actualizar la aplicación sin modificar las fórmulas internas.
 
-**Preguntas relacionadas:** P12.
+**Origen:** Caso oficial del proyecto – Fase 1, parámetros configurables.
 
 ### Criterios de aceptación
 
@@ -355,16 +344,16 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 
 ## HU-10. Rechazar consultas fuera del alcance
 
-**Como** usuario,  
+**Como** trabajador en conflicto con su empleador,  
 **quiero** recibir una indicación clara cuando mi consulta no pueda ser resuelta por la aplicación,  
-**para** saber cuándo necesito acudir a una fuente oficial o asesoría especializada.
+**para** saber cuándo debo acudir a una autoridad o asesoría especializada.
 
-**Preguntas relacionadas:** P10.
+**Preguntas relacionadas:** P04, P06 y P09.
 
 ### Criterios de aceptación
 
 **CA-10.1**  
-**Dado** que el usuario solicita una interpretación jurídica sobre un conflicto laboral,  
+**Dado** que el trabajador solicita una interpretación jurídica sobre un conflicto laboral,  
 **cuando** el sistema identifique que la consulta supera su alcance,  
 **entonces** deberá abstenerse de emitir un dictamen.
 
@@ -378,22 +367,27 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 **cuando** el usuario la realice,  
 **entonces** el sistema deberá permitir continuar con el flujo correspondiente.
 
+**CA-10.4**  
+**Dado** que un empleador solicita instrucciones para evitar el pago de un beneficio u obligación laboral,  
+**cuando** envíe la consulta,  
+**entonces** el sistema deberá negarse a proporcionar instrucciones para incumplir la normativa y deberá explicar que la obligación debe cumplirse conforme a la legislación aplicable.
+
 ---
 
 # 6. Matriz de trazabilidad
 
-| Historia | Perfil | Preguntas relacionadas | Funcionalidad |
+| Historia | Perfil | Fuente / preguntas relacionadas | Funcionalidad |
 |---|---|---|---|
-| HU-01 | Trabajador | P01, P03, P08, P09 | Décima tercera remuneración |
-| HU-02 | Trabajador | P01, P04, P08, P09, P12 | Décima cuarta remuneración |
-| HU-03 | Trabajador | P01, P05, P08, P09 | Vacaciones |
-| HU-04 | Trabajador | P01, P06, P08, P09 | Horas suplementarias |
-| HU-05 | Trabajador | P01, P06, P08, P09 | Horas extraordinarias |
-| HU-06 | Trabajador | P01, P07, P08, P09, P10 | Liquidación laboral |
-| HU-07 | Trabajador / Empleador | P08, P10 | Explicación normativa |
-| HU-08 | Trabajador / Empleador | P11 | Resumen descargable |
-| HU-09 | Administrador | P12 | Parámetros configurables |
-| HU-10 | Trabajador / Empleador | P10 | Control de alcance |
+| HU-01 | Trabajador | P10, P11, P14, P15 | Décima tercera remuneración |
+| HU-02 | Trabajador | P10, P11, P14, P15 | Décima cuarta remuneración |
+| HU-03 | Trabajador | P03, P05, P07 | Vacaciones |
+| HU-04 | Pequeño empleador | P12, P13 | Horas suplementarias |
+| HU-05 | Trabajador | P12, P13 | Horas extraordinarias |
+| HU-06 | Trabajador | P01, P06, P08 | Liquidación laboral |
+| HU-07 | Trabajador / Empleador | P02, P03 | Explicación normativa |
+| HU-08 | Trabajador / Empleador | Caso oficial del proyecto | Resumen descargable |
+| HU-09 | Administrador | Caso oficial – Fase 1 | Parámetros configurables |
+| HU-10 | Trabajador en conflicto | P04, P06, P09 | Control de alcance y derivación |
 
 ---
 
@@ -423,17 +417,20 @@ Para mantener la trazabilidad de los requisitos se identifican las siguientes pr
 ### Flujos alternativos
 
 **A1. Datos incompletos**
+
 1. El usuario deja uno o más campos obligatorios vacíos.
 2. El sistema identifica los campos faltantes.
 3. El cálculo no se ejecuta.
 4. El usuario corrige la información.
 
 **A2. Valor inválido**
+
 1. El usuario ingresa una remuneración negativa o dato fuera del rango permitido.
 2. El sistema rechaza la entrada.
 3. Se informa el motivo de la validación.
 
 **A3. Fecha inválida**
+
 1. El usuario ingresa una fecha futura no permitida o una fecha de salida anterior a la fecha de ingreso.
 2. El sistema rechaza la solicitud.
 3. Se solicita corregir la información.
@@ -556,9 +553,17 @@ Las credenciales, tokens y claves utilizadas por servicios externos deberán man
 
 ---
 
-## RNF-04. Disponibilidad
+## RNF-04. Disponibilidad para revisión
 
-Durante el período de demostración y validación, la aplicación deberá mantener una disponibilidad objetivo mínima del **99 %**, exceptuando mantenimientos programados o indisponibilidad de servicios externos.
+Durante la revisión y demostración del proyecto, el backend desplegado deberá encontrarse accesible mediante la URL documentada.
+
+El endpoint:
+
+`GET /health`
+
+deberá responder con código HTTP 200 y una respuesta válida mientras el servicio se encuentre desplegado para revisión.
+
+La disponibilidad continua fuera del período de evaluación dependerá de las condiciones y limitaciones del proveedor de alojamiento utilizado.
 
 ---
 
@@ -622,6 +627,7 @@ La aplicación tendrá los siguientes límites:
 - No utilizará información normativa sin identificar su fuente.
 - No permitirá que el modelo generativo modifique los resultados obtenidos por las herramientas deterministas.
 - No responderá como conclusión jurídica definitiva cuando la información disponible sea insuficiente.
+- No proporcionará instrucciones destinadas a evadir o incumplir obligaciones laborales.
 
 ---
 
@@ -639,4 +645,3 @@ La aplicación tendrá los siguientes límites:
 | Validaciones | RF-07 |
 
 ---
-
