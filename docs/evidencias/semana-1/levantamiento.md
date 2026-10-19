@@ -11,23 +11,25 @@
 
 ## Respuestas recibidas (15)
 
+La columna *Historia relacionada* usa la numeración de `docs/02-requisitos.md`.
+
 | ID | Pregunta (textual) | Perfil | Tema | Historia relacionada |
 |---|---|---|---|---|
-| P01 | Si trabajé 8 meses siendo afiliada cuánto sería mi liquidación? | Trabajadora | Liquidación | HU-01 |
-| P02 | Que tal, actualmente llevo 9 meses laborando afiliado, como se que estoy recibiendo mi remuneración económica correctamente? | Trabajador | Verificación de pagos | HU-02 |
-| P03 | ¿En qué momento del año puedo pedir mis vacaciones? | Trabajador | Vacaciones (normativa) | HU-06 |
-| P04 | En mi caso estos parámetros no aplican ya que yo trabajo de forma independiente | Trabajador independiente | Fuera de alcance | Alcance negativo |
-| P05 | Buenas noches, como se cuanto deben pagarme por mis vacaciones? | Trabajador | Vacaciones | HU-06 |
-| P06 | trabajé 6 meses en un trabajo, me aseguraron por 3 meses y me despidieron cuanto debo recibir de liquidacion ? | Trabajador | Liquidación + afiliación irregular | HU-01, HU-09 |
-| P07 | cuantas vacaciones me toca recibir, llevo 3 años de trabajo ? | Trabajador | Vacaciones | HU-06 |
-| P08 | trabaje 3 meses en una empresa, cuanto recibio de liquidacion, yo renuncie. | Trabajador | Liquidación | HU-01 |
-| P09 | yo no estoy asegurado en mi trabajo. | Trabajador | Afiliación (derivación) | HU-09 |
-| P10 | si renuncio al año , recibo decimos? | Trabajador | Décimos | HU-04, HU-05 |
-| P11 | cuanto recibo de decimo. | Trabajador | Décimos | HU-04, HU-05 |
-| P12 | trabajo los feriados, como me pagan las horas extra. | Trabajador | Horas extra | HU-07 |
-| P13 | hago 3 horas extras en la noche, cuanto me deben pagar? | Trabajador | Horas extra | HU-07 |
-| P14 | trabaje 1 año, recibo decimos? | Trabajador | Décimos | HU-04, HU-05 |
-| P15 | cuanto recibo de decimos ? | Trabajador | Décimos | HU-04, HU-05 |
+| P01 | Si trabajé 8 meses siendo afiliada cuánto sería mi liquidación? | Trabajadora | Liquidación | HU-06 |
+| P02 | Que tal, actualmente llevo 9 meses laborando afiliado, como se que estoy recibiendo mi remuneración económica correctamente? | Trabajador | Verificación de pagos | HU-07 |
+| P03 | ¿En qué momento del año puedo pedir mis vacaciones? | Trabajador | Vacaciones (normativa) | HU-03, HU-07 |
+| P04 | En mi caso estos parámetros no aplican ya que yo trabajo de forma independiente | Trabajador independiente | Fuera de alcance | HU-10 |
+| P05 | Buenas noches, como se cuanto deben pagarme por mis vacaciones? | Trabajador | Vacaciones | HU-03 |
+| P06 | trabajé 6 meses en un trabajo, me aseguraron por 3 meses y me despidieron cuanto debo recibir de liquidacion ? | Trabajador | Liquidación + afiliación irregular | HU-06, HU-10 |
+| P07 | cuantas vacaciones me toca recibir, llevo 3 años de trabajo ? | Trabajador | Vacaciones | HU-03 |
+| P08 | trabaje 3 meses en una empresa, cuanto recibio de liquidacion, yo renuncie. | Trabajador | Liquidación | HU-06 |
+| P09 | yo no estoy asegurado en mi trabajo. | Trabajador | Afiliación (derivación) | HU-10 |
+| P10 | si renuncio al año , recibo decimos? | Trabajador | Décimos | HU-01, HU-02 |
+| P11 | cuanto recibo de decimo. | Trabajador | Décimos | HU-01, HU-02 |
+| P12 | trabajo los feriados, como me pagan las horas extra. | Trabajador | Horas extra | HU-04, HU-05 |
+| P13 | hago 3 horas extras en la noche, cuanto me deben pagar? | Trabajador | Horas extra | HU-04, HU-05 |
+| P14 | trabaje 1 año, recibo decimos? | Trabajador | Décimos | HU-01, HU-02 |
+| P15 | cuanto recibo de decimos ? | Trabajador | Décimos | HU-01, HU-02 |
 
 ### Nota metodológica sobre P04 y P09
 
