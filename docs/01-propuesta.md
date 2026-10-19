@@ -85,3 +85,16 @@ La selección se contrasta con el levantamiento de preguntas reales.
 - 100 % de los 10 cálculos de referencia coincide con el cálculo manual (±0,01 USD).
 - 100 % de las entradas inválidas se rechaza antes de llegar al modelo.
 - Al menos 80 % de las explicaciones cita el artículo correcto del Código del Trabajo.
+
+## 8. Datos y privacidad
+
+Se aplica minimización de datos (Ley Orgánica de Protección de Datos Personales, 2021).
+
+| Aspecto | Decisión |
+|---|---|
+| **Datos que pide el sistema** | Fechas de ingreso y salida, remuneraciones mensuales, horas suplementarias y extraordinarias, región y motivo de salida. **No** pide nombre, cédula, correo, teléfono ni empresa. |
+| **Qué se envía al modelo (Gemini)** | Solo el tipo de cálculo, los montos ya calculados, el número de meses o años considerados y el fragmento del artículo recuperado. **No** se envían fechas exactas ni ningún dato que identifique a la persona. |
+| **Qué se registra (logs)** | Por solicitud: tipo de cálculo, tiempo de respuesta, tokens consumidos y código de resultado (correcto, error de validación, derivación). **No** se registran fechas, montos ni texto escrito por el usuario. |
+| **Qué se almacena** | Nada. Las entradas y los resultados se procesan en memoria y se descartan al responder; el PDF se genera en memoria y se entrega al usuario sin guardarse en el servidor. |
+| **Proveedor externo** | La capa gratuita de Gemini puede usar lo que recibe para mejorar sus productos; por eso solo recibe datos ya minimizados. |
+| **Aviso al usuario** | La interfaz indica que interactúa con IA, que el resultado es orientativo y no asesoría legal, y que no se guardan sus datos. |
