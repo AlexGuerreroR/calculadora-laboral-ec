@@ -7,12 +7,13 @@ Arquitectura en capas: un backend FastAPI expone la API y sirve un frontend HTML
 ```mermaid
 flowchart LR
     U[Usuario] --> F[Frontend HTML/JS<br/>formularios paso a paso]
-    F -->|HTTP / JSON| API[FastAPI]
+    F -->|Paso 1: solicitud HTTP / JSON| API[FastAPI]
     subgraph Backend
-      API --> VAL{Pydantic}
-      VAL -->|inválido| ERR[Error 422<br/>no llega al modelo]
-      VAL -->|válido| AG[Agente]
-      AG --> GR[Guardrail<br/>litigio / fuera de ámbito / incumplir la ley]
+      API --> VAL{Paso 2: Pydantic<br/>¿datos válidos?}
+      VAL -->|no| ERR[Error 422<br/>no llega al modelo]
+      VAL -->|sí| GR{Paso 3: Control de alcance<br/>¿litigio, incumplir la ley<br/>o fuera de dominio?}
+      GR -->|sí| DER[Respuesta de derivación<br/>al Ministerio del Trabajo]
+      GR -->|no| AG[Paso 4: Agente]
       AG --> T1[calcular_decimos]
       AG --> T2[calcular_vacaciones]
       AG --> T3[estimar_liquidacion]
@@ -20,11 +21,14 @@ flowchart LR
       AG --> T5[generar_resumen]
       CFG[(config/parametros.yaml)] --> T1 & T2 & T3
       T4 --> RET[Retriever]
+      T1 & T2 & T3 & T4 & T5 --> RESP[Paso 5: Respuesta: resultado desglosado,<br/>explicación, cita y PDF]
     end
     RET --> VDB[(ChromaDB<br/>artículos del Código)]
     SRC[Fuentes oficiales<br/>data/raw] -->|scripts/ingest.py| VDB
     T4 --> LLM[API Gemini<br/>clave en variable de entorno]
-    T5 --> PDF[Resumen PDF]
+    ERR -->|mensaje de validación| F
+    DER -->|orientación| F
+    RESP -->|Paso 6: JSON + PDF descargable| F
 ```
 
 ## 2. Flujo de una consulta de principio a fin
@@ -33,7 +37,7 @@ Ejemplo: un trabajador quiere saber su décimo tercero.
 
 1. Completa el formulario (remuneraciones del período) y lo envía.
 2. FastAPI valida la entrada con Pydantic. Si hay un salario negativo o una fecha futura, responde **422** y el modelo nunca se llama.
-3. El agente revisa con el guardrail si la consulta está dentro del ámbito. Si es litigiosa o pide incumplir la ley, responde con la derivación al Ministerio del Trabajo.
+3. **Antes de ejecutar cualquier herramienta**, el control de alcance (guardrail) revisa la consulta. Si es litigiosa, pide incumplir la ley o está fuera del dominio, el flujo termina con una respuesta de derivación al Ministerio del Trabajo y ninguna herramienta se ejecuta.
 4. El agente llama a `calcular_decimos`, que lee el salario básico y los períodos de `config/parametros.yaml` y devuelve el resultado desglosado.
 5. `explicar_resultado` pide al retriever el artículo aplicable (art. 111) a ChromaDB, filtrando por metadatos.
 6. Se arma el prompt con el resultado numérico ya calculado y el fragmento del artículo **delimitado como datos**. Gemini redacta la explicación y cita el artículo. Si no se recuperó ningún artículo, el sistema dice que no tiene fuente verificable.
