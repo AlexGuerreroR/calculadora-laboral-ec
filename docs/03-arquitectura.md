@@ -6,29 +6,39 @@ Arquitectura en capas: un backend FastAPI expone la API y sirve un frontend HTML
 
 ```mermaid
 flowchart LR
-    U[Usuario] --> F[Frontend HTML/JS<br/>formularios paso a paso]
-    F -->|Paso 1: solicitud HTTP / JSON| API[FastAPI]
+    U[Usuario] -->|completa el formulario| F[Frontend HTML/JS<br/>formularios paso a paso]
+    F -->|Paso 1: JSON con fechas, remuneraciones,<br/>horas, región y motivo de salida| API[FastAPI]
     subgraph Backend
-      API --> VAL{Paso 2: Pydantic<br/>¿datos válidos?}
-      VAL -->|no| ERR[Error 422<br/>no llega al modelo]
-      VAL -->|sí| GR{Paso 3: Control de alcance<br/>¿litigio, incumplir la ley<br/>o fuera de dominio?}
+      API -->|datos del formulario| VAL{Paso 2: Pydantic<br/>¿datos válidos?}
+      VAL -->|no: campos inválidos| ERR[Error 422<br/>no llega al modelo]
+      VAL -->|sí: datos validados| GR{Paso 3: Control de alcance<br/>¿litigio, incumplir la ley<br/>o fuera de dominio?}
       GR -->|sí| DER[Respuesta de derivación<br/>al Ministerio del Trabajo]
-      GR -->|no| AG[Paso 4: Agente]
-      AG --> T1[calcular_decimos]
-      AG --> T2[calcular_vacaciones]
-      AG --> T3[estimar_liquidacion]
-      AG --> T4[explicar_resultado]
-      AG --> T5[generar_resumen]
-      CFG[(config/parametros.yaml)] --> T1 & T2 & T3
-      T4 --> RET[Retriever]
-      T1 & T2 & T3 & T4 & T5 --> RESP[Paso 5: Respuesta: resultado desglosado,<br/>explicación, cita y PDF]
+      GR -->|no: consulta permitida| AG[Paso 4: Agente]
+      AG -->|remuneraciones y período| T1[calcular_decimos]
+      AG -->|fecha de ingreso y remuneración| T2[calcular_vacaciones]
+      AG -->|datos de la relación laboral| T3[estimar_liquidacion]
+      AG -->|resultado ya calculado| T4[explicar_resultado]
+      AG -->|entradas y resultados| T5[generar_resumen]
+      CFG[(config/parametros.yaml)] -->|SBU y períodos| T1
+      CFG -->|reglas de vacaciones| T2
+      CFG -->|recargos, desahucio y topes| T3
+      T4 -->|tipo de cálculo| RET[Retriever]
+      RET -->|artículo recuperado| T4
+      T1 -->|rubros calculados| RESP[Paso 5: Respuesta<br/>desglose, explicación, cita y PDF]
+      T2 -->|días y valor| RESP
+      T3 -->|rubros y total| RESP
+      T4 -->|explicación con cita| RESP
+      T5 -->|archivo PDF| RESP
     end
-    RET --> VDB[(ChromaDB<br/>artículos del Código)]
-    SRC[Fuentes oficiales<br/>data/raw] -->|scripts/ingest.py| VDB
-    T4 --> LLM[API Gemini<br/>clave en variable de entorno]
+    RET -->|consulta + filtro de metadatos| VDB[(ChromaDB<br/>artículos del Código)]
+    VDB -->|fragmentos con artículo y vigencia| RET
+    SRC[Fuentes oficiales<br/>data/raw] -->|scripts/ingest.py: fragmentos<br/>por artículo + embeddings| VDB
+    T4 -->|resultado + artículo,<br/>sin datos personales| LLM[API Gemini<br/>clave en variable de entorno]
+    LLM -->|explicación en lenguaje sencillo| T4
     ERR -->|mensaje de validación| F
-    DER -->|orientación| F
+    DER -->|orientación y derivación| F
     RESP -->|Paso 6: JSON + PDF descargable| F
+    F -->|muestra desglose, explicación,<br/>fuente y PDF| U
 ```
 
 ## 2. Flujo de una consulta de principio a fin
