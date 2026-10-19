@@ -1,0 +1,60 @@
+# Parámetros variables del cálculo. Se cambian aquí, nunca en el código ni en el prompt.
+# verificado: false  -> confirmar contra el texto oficial antes de programar (Semana 2).
+
+anio_vigencia: 2026
+
+salario_basico_unificado:
+  valor: 482.00
+  fuente: "Acuerdo Ministerial MDT-2025-195 (15-dic-2025), vigente desde 1-ene-2026"
+  verificado: true
+
+decimo_tercero:
+  periodo_inicio: "01-12"
+  periodo_fin: "30-11"
+  divisor: 12
+  fecha_maxima_pago: "24-12"
+  fuente: "Código del Trabajo, art. 111; MDT-2023-140, arts. 9 y 10"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Fecha máxima para pago acumulado; también existe pago mensual."
+  verificado: true
+
+decimo_cuarto:
+  valor_anual: "1 SBU"
+  regiones:
+    costa_galapagos:
+      periodo: "1 de marzo al último día de febrero"
+      fecha_maxima_pago: "15-03"
+    sierra_amazonia:
+      periodo: "1 de agosto al 31 de julio"
+      fecha_maxima_pago: "15-08"
+  fuente: "Código del Trabajo, art. 113; MDT-2023-140, arts. 9 y 10"
+  fecha_verificacion: "2026-10-19"
+  observacion: "1 SBU por período anual completo; aplicar proporcionalidad cuando corresponda. Fechas para pago acumulado."
+  verificado: true
+
+horas:
+  divisor_hora_ordinaria: 240
+  recargo_suplementaria: 0.50
+  recargo_extraordinaria: 1.00
+  fuente: "Código del Trabajo, art. 55; Resolución INEC 021-DIREJ-DIJU-NI-2026, art. 24"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Divisor para jornada completa con remuneración mensual. Aplicar los recargos según horario y condiciones legales; no confundir con jornada nocturna ordinaria."
+  verificado: true
+
+vacaciones:
+  dias_base: 15
+  dia_adicional_desde_anio: 6
+  max_dias_adicionales: 15
+  fuente: "Código del Trabajo, arts. 69, 70 y 71"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Régimen general para adultos. Adicionales por años de servicio excedentes de cinco; admite mejora contractual. El pago se calcula según el art. 71."
+  verificado: true
+
+liquidacion:
+  desahucio_porcentaje_por_anio: 0.25
+  despido_minimo_remuneraciones: 3
+  despido_tope_remuneraciones: 25
+  fuente: "Código del Trabajo, arts. 184, 185 y 188"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Desahucio solo cuando legalmente corresponda. Despido: tres remuneraciones hasta tres años; después, una por año, contando la fracción como año completo, con tope de 25."
+  verificado: true
