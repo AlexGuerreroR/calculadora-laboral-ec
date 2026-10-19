@@ -7,7 +7,7 @@
 > Hola, estamos haciendo un proyecto universitario sobre beneficios laborales. ¿Qué duda tienes o has tenido sobre tu décimo tercero, décimo cuarto, vacaciones, horas extra o liquidación? Escríbeme tu pregunta tal como te la harías. (No necesito tu nombre ni datos personales.)
 
 **Privacidad:** no se registran nombres, teléfonos ni datos que identifiquen a las personas (LOPDP). Las respuestas se copian textualmente, con su ortografía original.
-**Respaldo:** las capturas originales las conserva el grupo fuera del repositorio, disponibles para el docente si las solicita. Las versiones anonimizadas (sin nombres, teléfonos ni fotos) se agregarán en `docs/evidencias/semana-1/encuesta/` en un PR posterior.
+**Respaldo:** ver la sección *Respaldo anonimizado* al final de este documento.
 
 ## Respuestas recibidas (15)
 
@@ -61,3 +61,18 @@
 ## Conclusión
 
 Los temas más consultados fueron los décimos (4), seguidos de liquidación y vacaciones (3 cada uno), lo que confirma los cinco cálculos elegidos. Las respuestas reales llegan con datos incompletos y, en algunos casos, esconden conflictos laborales o situaciones fuera del alcance; por eso el sistema necesita formularios guiados, validación y derivación al Ministerio del Trabajo.
+
+## Respaldo anonimizado
+
+**Por qué existe:** demuestra que las 15 respuestas son reales y no fueron inventadas, sin exponer a las personas que respondieron.
+
+| Aspecto | Cómo se maneja |
+|---|---|
+| **Qué se respalda** | Una captura de pantalla de cada respuesta de WhatsApp (15 capturas). |
+| **Originales** | Las capturas sin editar las conserva el responsable del levantamiento en su dispositivo, **fuera del repositorio**. Se muestran al docente solo si las solicita y no se comparten con terceros. |
+| **Cómo se anonimizan** | Antes de publicarlas se cubren con un rectángulo opaco: nombre o apodo del contacto, número de teléfono, foto de perfil y cualquier dato que identifique a la persona (empresa, ciudad, nombres de terceros). Se conservan el texto de la respuesta y la hora. |
+| **Dónde se publican** | En `docs/evidencias/semana-1/encuesta/`, con nombres neutros: `respuesta-01.png` … `respuesta-15.png`, en el mismo orden que P01 … P15. |
+| **Verificación** | Antes del commit, otro integrante revisa cada captura para confirmar que no queda ningún dato personal visible. |
+| **Consentimiento** | El mensaje enviado aclaraba el propósito académico y que no se requerían datos personales; quien respondió lo hizo de forma voluntaria. |
+| **Conservación** | Las capturas originales se eliminan al finalizar el seminario (después de la sustentación); en el repositorio solo permanecen las versiones anonimizadas. |
+| **Estado** | Pendiente: las capturas anonimizadas se agregarán en un PR posterior de la Semana 1. |
