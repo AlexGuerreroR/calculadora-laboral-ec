@@ -27,7 +27,7 @@ Las fuentes incluidas deben:
 | 1 | Código del Trabajo | Ministerio del Trabajo / Registro Oficial | 16-12-2005 | Versión consultada indica normativa vigente y última reforma 12-05-2023 | No almacenado en el repositorio |
 | 2 | Acuerdo Ministerial MDT-2025-195 | Ministerio del Trabajo | 15-12-2025 / publicado 18-12-2025 | Aplicable al SBU 2026 | `data/raw/acuerdo_sbu_2026_mdt-2025-195.pdf` |
 | 3 | Acuerdo Ministerial MDT-2023-140 | Ministerio del Trabajo | 14-11-2023 | Vigente como norma aplicable a obligaciones del empleador, décimos, utilidades, actas de finiquito e inspecciones | `data/raw/mdt-2023-140_obligaciones_empleador.pdf` |
-
+| 4 | Acuerdo Ministerial MDT-2025-053 | Ministerio del Trabajo | 05-05-2025 / publicado 15-05-2025 | Vigente como reforma del MDT-2023-140 | `data/raw/mdt-2025-053_reforma_mdt-2023-140.pdf` |
 ---
 
 # 1. Código del Trabajo
@@ -590,6 +590,68 @@ El Acuerdo MDT-2023-140 será utilizado para:
 
 ---
 
+# 4. Acuerdo Ministerial MDT-2025-053
+
+**Título:** Reforma al Acuerdo Ministerial Nro. MDT-2023-140  
+**Institución:** Ministerio del Trabajo del Ecuador  
+**Número:** MDT-2025-053  
+**Fecha:** 5 de mayo de 2025  
+**Publicación:** Cuarto Suplemento No. 39 del Registro Oficial  
+**Fecha de publicación:** 15 de mayo de 2025  
+**Estado:** Vigente como reforma del MDT-2023-140  
+**Formato:** PDF  
+**Archivo local:** `data/raw/mdt-2025-053_reforma_mdt-2023-140.pdf`  
+**URL de procedencia:** https://www.trabajo.gob.ec/wp-content/uploads/2025/06/ACUERDO-MINISTERIAL-MDT-2025-053.pdf
+
+## Objeto
+
+El Acuerdo Ministerial MDT-2025-053 reforma disposiciones del Acuerdo Ministerial MDT-2023-140 relacionadas con las obligaciones del empleador y los procedimientos de control.
+
+## Uso dentro del sistema
+
+Esta reforma será utilizada para mantener actualizadas las reglas relacionadas con:
+
+- actas de finiquito;
+- registro de información laboral;
+- obligaciones del empleador;
+- procedimientos de control;
+- documentación requerida para la terminación de la relación laboral.
+
+## Relación con MDT-2023-140
+
+El MDT-2023-140 se mantiene como norma base, pero las disposiciones modificadas por el MDT-2025-053 deberán interpretarse utilizando el texto reformado más reciente.
+
+## Actas de finiquito
+
+La reforma establece que el empleador deberá elaborar y registrar la información del extrabajador en el sistema dispuesto por el Ministerio del Trabajo.
+
+El acta de finiquito deberá:
+
+- estar debidamente suscrita por las partes;
+- cargarse junto con el comprobante de pago en formato PDF;
+- generar el código HASH correspondiente;
+- completar el proceso de legalización en la plataforma;
+- registrarse dentro del plazo máximo de 15 días desde la terminación de la relación laboral.
+
+## Fragmentación prevista
+
+- `mdt_2025_053_reforma_finiquito`
+- `mdt_2025_053_obligaciones_empleador`
+
+### Metadatos
+
+- `documento`
+- `numero_acuerdo`
+- `norma_reformada`
+- `articulo_reformado`
+- `institucion`
+- `fecha_publicacion`
+- `vigencia`
+- `url`
+- `fecha_consulta`
+
+---
+
 # Estrategia de fragmentación para RAG
 
 ## 1. Código del Trabajo
@@ -752,7 +814,8 @@ Fragmentos inicialmente identificados:
 | Código del Trabajo | La versión publicada por el Ministerio consultada indica normativa vigente y última reforma 12-05-2023 | Utilizar como fuente base y contrastar reformas posteriores |
 | Acuerdo MDT-2025-195 | Aplicable al SBU 2026 | Utilizable |
 | Acuerdo MDT-2023-140 | Aplicable a obligaciones del empleador, décimos, finiquitos e inspecciones | Utilizable |
-| Acuerdo MDT-2019-199 | Derogado por MDT-2023-140 | No utilizar como fuente vigente |
+| Liquidación laboral | Código del Trabajo + MDT-2023-140 + MDT-2025-053 | Arts. 169, 184, 185, 188, 191 y normativa reformada sobre finiquito | Cubierto |
+| Acta de finiquito | MDT-2023-140 reformado por MDT-2025-053 | Disposiciones reformadas sobre registro y legalización | Cubierto |
 
 Cuando no exista evidencia suficiente para confirmar el estado de una norma, se utilizará expresamente:
 
