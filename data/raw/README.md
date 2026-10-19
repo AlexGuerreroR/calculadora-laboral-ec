@@ -1,6 +1,3 @@
-# calculadora-laboral-ec
-Proyecto de titulación UNIANDES: calculadora de beneficios y liquidaciones laborales en Ecuador con explicaciones fundamentadas en normativa.
-
 # Fuentes normativas
 
 Esta carpeta contiene los documentos oficiales que pueden ser almacenados directamente como parte del proyecto.

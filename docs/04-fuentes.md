@@ -45,7 +45,23 @@ Las fuentes incluidas deben:
 **Fuente de consulta:** Ministerio del Trabajo del Ecuador  
 **URL de procedencia:** https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf
 
-El documento consultado identifica expresamente la normativa como vigente y registra como última reforma el 18 de mayo de 2026. 
+El documento consultado identifica expresamente la normativa como vigente y registra como última reforma el 12 de mayo de 2023.
+
+### Limitación de la fuente consultada
+
+La versión del Código del Trabajo publicada por el Ministerio del Trabajo y utilizada como fuente base en este inventario registra reformas hasta el 12 de mayo de 2023.
+
+Por esta razón, antes de realizar la ingesta definitiva para el sistema RAG se deberá contrastar el contenido normativo con una versión actualizada a 2026, especialmente los artículos utilizados directamente en los cálculos:
+
+- Art. 55: remuneración por horas suplementarias y extraordinarias;
+- Art. 69: vacaciones anuales;
+- Art. 71: liquidación para pago de vacaciones;
+- Art. 111: décima tercera remuneración;
+- Art. 113: décima cuarta remuneración;
+- Art. 185: bonificación por desahucio;
+- Art. 188: indemnización por despido intempestivo.
+
+La versión publicada por el Ministerio se conservará como fuente oficial de referencia, pero la vigencia y contenido de estos artículos deberán verificarse nuevamente antes de incorporarlos a la base de conocimiento definitiva.
 
 ## Uso dentro del proyecto
 
@@ -285,7 +301,6 @@ Las reglas identificadas son:
 
 Estas reglas constan en el artículo 188. 
 
-El documento también incorpora una nota de 2025 respecto a la remuneración aplicable para el cálculo de indemnizaciones por despido intempestivo. 
 
 ### Uso previsto
 
