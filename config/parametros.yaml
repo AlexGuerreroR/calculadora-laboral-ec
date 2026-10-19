@@ -8,14 +8,17 @@ salario_basico_unificado:
   fuente: "Acuerdo Ministerial MDT-2025-195 (15-dic-2025), vigente desde 1-ene-2026"
   verificado: true
 
-decimo_tercero:            # Código del Trabajo, art. 111
-  periodo_inicio: "01-12"  # 1 de diciembre del año anterior
-  periodo_fin: "30-11"     # 30 de noviembre del año en curso
-  divisor: 12              # doceava parte de lo percibido
+decimo_tercero:
+  periodo_inicio: "01-12"
+  periodo_fin: "30-11"
+  divisor: 12
   fecha_maxima_pago: "24-12"
-  verificado: false
+  fuente: "Código del Trabajo, art. 111; MDT-2023-140, arts. 9 y 10"
+  fecha_verificacion: "2026-10-19"
+  observacion: "Fecha máxima para pago acumulado; también existe pago mensual."
+  verificado: true
 
-decimo_cuarto:             # Código del Trabajo, art. 113
+decimo_cuarto:
   valor_anual: "1 SBU"
   regiones:
     costa_galapagos:
@@ -24,7 +27,10 @@ decimo_cuarto:             # Código del Trabajo, art. 113
     sierra_amazonia:
       periodo: "1 de agosto al 31 de julio"
       fecha_maxima_pago: "15-08"
-  verificado: false
+  fuente: "Código del Trabajo, art. 113; MDT-2023-140, arts. 9 y 10"
+  fecha_verificacion: "2026-10-19"
+  observacion: "1 SBU por período anual completo; aplicar proporcionalidad cuando corresponda. Fechas para pago acumulado."
+  verificado: true
 
 horas:                     # Código del Trabajo, art. 55
   divisor_hora_ordinaria: 240   # remuneración mensual / 240 horas
