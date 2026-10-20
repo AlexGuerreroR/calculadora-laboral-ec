@@ -38,3 +38,59 @@ Se registra su aporte a requisitos, fuentes y revisiones mediante PR. La herrami
 El backend actual contiene el endpoint `/health`. La integración del motor de cálculo, la interfaz, el modelo de lenguaje y la recuperación documental permanecen pendientes.
 
 Los presentes documentos fueron preparados con asistencia de IA a partir de los archivos del repositorio y de la información aportada por Alexander. Corresponde al responsable Dorian revisar su contenido y a Alexander verificar las instrucciones y enlaces antes de aprobar el PR de D4. Esta verificación final no se registra como realizada anticipadamente.
+
+## ADR-001: Proveedor y modelo generativo
+
+- **Estado:** Aceptado
+- **Fecha:** 2026-10-19
+- **Responsables:** Propuso: Bladimir Velasco · Revisaron: Alexander Guerrero y Dorian Zambrano
+
+### Contexto
+
+El caso pide un endpoint que explique en lenguaje sencillo un resultado ya calculado. El modelo no conversa ni calcula: recibe un resultado y devuelve una explicación en JSON con esquema. Ningún integrante debe pagar ni registrar tarjeta, y en niveles gratuitos el proveedor puede usar los datos enviados. Límites gratuitos consultados el 19/10/2026: Google AI Studio, Gemini 3.8 Flash: 5 solicitudes por minuto, unos 250 000 tokens de entrada por minuto y 20 solicitudes por día. Groq Console, openai/gpt-oss-120b: 30 solicitudes por minuto, 1 000 por día y 8 000 tokens por minuto. El modelo llama-3.1-8b-instant, previsto al inicio, ya no aparece disponible en Groq.
+
+### Opciones consideradas
+
+1. Gemini 3.8 Flash (Google AI Studio): ventaja: gratuito sin tarjeta, buen español, salida JSON con esquema y embeddings para la semana 3 / desventaja: solo 20 solicitudes por día y 5 por minuto.
+2. Groq con openai/gpt-oss-120b: ventaja: gratuito, rápido y con 1 000 solicitudes por día / desventaja: no ofrece los embeddings que usaremos en la semana 3; su calidad en español se comprobará al comparar prompts (miércoles 21).
+3. OpenAI: ventaja: alta calidad / desventaja: requiere pago, descartado por la guía.
+
+### Decisión
+
+Usaremos Gemini 3.8 Flash como proveedor principal y Groq (openai/gpt-oss-120b) como respaldo, porque ambos son gratuitos sin tarjeta y el modelo solo redacta una explicación corta, tarea que no exige un modelo grande. El proveedor se cambia con LLM_PROVIDER en el .env, sin tocar el código; durante el desarrollo usaremos Groq para reservar la cuota de Gemini.
+
+### Consecuencias
+
+**Positivas:** Costo cero; si Gemini devuelve 429 o se agota su cuota diaria, Groq responde; el mismo proveedor principal servirá para los embeddings de la semana 3.
+
+**Negativas y riesgos:** Con 20 solicitudes diarias, las pruebas reales y la demo deben planificarse, y cada integrante usa su propia clave; las cuotas y los modelos gratuitos cambian sin aviso (como ocurrió con llama-3.1-8b-instant); los datos viajan a un tercero, por eso solo enviamos montos ya calculados, sin datos personales (ver ADR-003).
+
+---
+
+## ADR-002: Workflow o agente
+
+- **Estado:** Aceptado
+- **Fecha:** 2026-10-19
+- **Responsables:** Propuso: Alexander Guerrero · Revisó: Bladimir Velasco
+
+### Contexto
+
+Los montos de décimos, vacaciones, horas y liquidación tienen efectos legales y económicos para el trabajador. El caso exige que el 100 % de los 10 cálculos de referencia coincida con el cálculo manual (tolerancia ±0,01 USD) y que el 100 % de las entradas inválidas se rechace antes de llegar al modelo. La guía indica que en la semana 2 todavía no hay agente ni base de conocimiento. Además, la cuota gratuita de Gemini es de solo 20 solicitudes por día, por lo que cada llamada al modelo debe justificarse.
+
+### Opciones consideradas
+
+1. Workflow "cálculo en código + IA que explica": ventaja: montos exactos y probados con pytest; el código decide el orden de los pasos (validar, calcular, explicar); los cálculos no gastan cuota y, si la IA falla, igual se muestra el resultado / desventaja: no responde preguntas en lenguaje libre y cada cálculo nuevo exige programar su función.
+2. Agente con herramientas desde la semana 2: ventaja: conversación flexible, el modelo elige qué herramienta usar / desventaja: no determinista, consume más tokens y solicitudes por las iteraciones, es más difícil de probar y la guía lo deja para la semana 3.
+3. Llamada única donde el modelo calcula y explica: ventaja: implementación simple / desventaja: el modelo puede equivocarse en los montos y no se puede garantizar el ±0,01 USD; inaceptable para un resultado con efectos legales.
+
+### Decisión
+
+Usaremos un workflow determinista con el patrón "cálculo en código + IA que explica" porque los montos tienen efectos legales y deben coincidir al 100 % con el cálculo manual. Pydantic valida la entrada, las funciones de cálculo leen los parámetros de config/parametros.yaml y el modelo solo recibe el resultado ya calculado para explicarlo en lenguaje sencillo. En la semana 3 evaluaremos el agente, que usará estas mismas funciones como herramientas.
+
+### Consecuencias
+
+**Positivas:** Cálculos reproducibles y verificables con pruebas unitarias; el modelo no puede alterar montos; solo el endpoint /explicar consume cuota, los de cálculo no; la demo resiste fallas del proveedor porque el resultado se muestra aunque la explicación no esté disponible.
+
+**Negativas y riesgos:** No hay consulta en lenguaje libre hasta la semana 3; hay más código que mantener y probar; si una situación no está prevista en los formularios (por ejemplo, jornada nocturna o trabajo en feriados, preguntas P12 y P13 del levantamiento), el sistema no la calcula y debe indicarlo.
+
+---
