@@ -1,5 +1,7 @@
 # Secretos
 .env
+.env.*
+!.env.example
 *.key
 
 # Python
@@ -9,7 +11,11 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Base vectorial local y archivos generados
+# Node
+node_modules/
+
+# Bases de datos locales, base vectorial y archivos generados
+*.db
 data/chroma/
 output/
 
