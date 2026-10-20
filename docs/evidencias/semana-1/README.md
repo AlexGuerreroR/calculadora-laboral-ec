@@ -23,7 +23,7 @@ Integrantes: Alexander Guerrero, Bladimir y Dorian Zambrano.
 | Integrante | Aporte | Pull requests |
 |---|---|---|
 | Alexander Guerrero | Estructura inicial, configuración de parámetros, endpoint de salud y publicación de los diez casos de referencia. | [#34](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/34), [#36](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/36), [#39](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/39), [#41](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/41) |
-| Bladimir | Levantamiento de información, propuesta, arquitectura y aportación de los casos reales utilizados como referencia. | [#37](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/37) |
+| Bladimir | Levantamiento de información, propuesta, arquitectura, resolución independiente de los diez casos de referencia (A) y revisión de PR | [#37](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/37) |
 | Dorian Zambrano | Requisitos, inventario de fuentes y revisión de entregables del equipo. La documentación D4 se entrega mediante su propio PR. | [#38](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/38), [#40](https://github.com/AlexGuerreroR/calculadora-laboral-ec/pull/40) |
 
 Cada PR contiene una pestaña **Commits** que permite consultar los cambios y su autoría. El historial general está disponible en [commits de main](https://github.com/AlexGuerreroR/calculadora-laboral-ec/commits/main/).
