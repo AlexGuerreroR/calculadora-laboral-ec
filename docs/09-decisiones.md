@@ -27,7 +27,7 @@ Este registro distingue la asistencia al desarrollo del comportamiento previsto 
 
 ### Bladimir
 
-Se registra su aporte al levantamiento, propuesta, arquitectura y obtención de los casos reales. La herramienta de IA utilizada, sus usos específicos y las correcciones efectuadas no han sido confirmados para este registro. Bladimir debe aportar su declaración antes de marcar como completo el criterio de declaración individual de D4; no se atribuye una herramienta sin su confirmación.
+Levantamiento de información, propuesta, arquitectura, resolución independiente de los diez casos de referencia (A) y revisión de PR. La herramienta de IA utilizada, sus usos específicos y las correcciones efectuadas no han sido confirmados para este registro. Bladimir debe aportar su declaración antes de marcar como completo el criterio de declaración individual de D4; no se atribuye una herramienta sin su confirmación.
 
 ### Dorian Zambrano
 
