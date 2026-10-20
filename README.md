@@ -16,7 +16,7 @@ El alcance contempla décimo tercero, décimo cuarto, horas suplementarias y ext
 
 Se dispone de propuesta, requisitos, arquitectura, inventario de fuentes, levantamiento de información, parámetros laborales configurables y diez casos de referencia con desarrollo. El backend implementa un endpoint de salud. La calculadora, la interfaz de usuario y la recuperación de documentos con IA permanecen pendientes de implementación e integración.
 
-Los casos de referencia corresponden a situaciones reales aportadas por el equipo. Según lo informado por Alexander, un contador revisó individualmente los cálculos y confirmó verbalmente sus resultados. Esta revisión no constituye una certificación firmada. El uso de asistencia de IA se registra en [decisiones y metodología](docs/09-decisiones.md).
+Los casos de referencia fueron construidos por el equipo a partir de las situaciones más consultadas en el levantamiento (décimos, vacaciones, horas y liquidación); no corresponden a personas reales. Según lo informado por Alexander, un contador revisó individualmente los cálculos y confirmó verbalmente sus resultados. Esta revisión no constituye una certificación firmada. El uso de asistencia de IA se registra en [decisiones y metodología](docs/09-decisiones.md).
 
 ## Documentación
 
