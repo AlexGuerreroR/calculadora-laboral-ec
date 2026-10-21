@@ -79,8 +79,8 @@ Los temas más consultados fueron los décimos (5), seguidos de liquidación y v
 | **Qué se respalda** | Una captura de pantalla de cada respuesta de WhatsApp (17 capturas). |
 | **Originales** | Las capturas sin editar las conserva el responsable del levantamiento en su dispositivo, **fuera del repositorio**. Se muestran al docente solo si las solicita y no se comparten con terceros. |
 | **Cómo se anonimizan** | Antes de publicarlas se cubren con un rectángulo opaco: nombre o apodo del contacto, número de teléfono, foto de perfil y cualquier dato que identifique a la persona (empresa, ciudad, nombres de terceros). Se conservan el texto de la respuesta y la hora. |
-| **Dónde se publican** | En `docs/evidencias/semana-1/encuesta/`, con nombres neutros: `respuesta-01.png` … `respuesta-17.png`, en el mismo orden que P01 … P17. |
+| **Dónde se publican** | [PDF de evidencias del levantamiento](evidencias-levantamiento.pdf). |
 | **Verificación** | Antes del commit, otro integrante revisa cada captura para confirmar que no queda ningún dato personal visible. |
 | **Consentimiento** | El mensaje enviado aclaraba el propósito académico y que no se requerían datos personales; quien respondió lo hizo de forma voluntaria. |
 | **Conservación** | Las capturas originales se eliminan al finalizar el seminario (después de la sustentación); en el repositorio solo permanecen las versiones anonimizadas. |
-| **Estado** | Pendiente: las capturas anonimizadas se agregarán en un PR posterior de la Semana 1. |
+| **Estado** | Documento de evidencias incorporado al repositorio. |
