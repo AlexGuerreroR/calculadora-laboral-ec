@@ -93,10 +93,10 @@ Patrón: **cálculo en código + IA que explica** (ADR-002). El orden de los pas
 
 1. El usuario llena el formulario (por ejemplo, remuneraciones del período para el décimo tercero).
 2. El frontend envía JSON a `POST /calculos/decimos`.
-3. FastAPI valida la entrada con Pydantic. Si es inválida (salario negativo, fecha futura, período incompleto), responde **422** y el modelo nunca se llama.
+3. FastAPI valida la entrada con Pydantic. Si faltan datos obligatorios o son inválidos (salario negativo, fecha futura, fecha de salida anterior a la de ingreso), responde **422** y el modelo nunca se llama. Los períodos parciales sí se aceptan, porque permiten calcular valores proporcionales..
 4. La función de cálculo lee los parámetros de `config/parametros.yaml` y devuelve el valor con su desglose. **Este paso no consume cuota del modelo.**
 5. El frontend muestra el resultado y, si el usuario pide la explicación, envía ese resultado ya calculado a `POST /explicar`.
-6. `llm.py` llama a Gemini con el prompt `app/prompts/system_v1.md`, temperatura 0.2 y un máximo de 600 tokens. Ante un 429, un 5xx o un tiempo agotado, reintenta con esperas de 1, 2 y 4 s y luego pasa a Groq.
+6. `llm.py` llama a Gemini con el prompt `app/prompts/system_v1.md`, temperatura 0.2 y un máximo de 600 tokens. Ante un 429, un 5xx o un tiempo agotado, reintenta con esperas de 1, 2 y 4 s y luego pasa a Groq. Todo el proceso (intentos, esperas y respaldo) tiene un límite total de 20 s: cada intento usa solo el tiempo que queda de ese presupuesto.
 7. El modelo devuelve la explicación en JSON con esquema. Si ambos proveedores fallan, el usuario igual ve el cálculo, con el aviso «La explicación no está disponible por ahora».
 8. Cada llamada registra fecha, endpoint, proveedor, modelo, tokens de entrada y salida, milisegundos y resultado, sin sueldos ni datos personales.
 
@@ -136,7 +136,8 @@ Las versiones v2 y v3 y su comparación se documentan en `docs/05-prompts.md` (m
 
 | Requisito | Presupuesto | Justificación |
 |---|---|---|
-| Tiempo de respuesta | ≤ 8 s | La explicación es corta; el tiempo límite del gateway es de 20 s. Se ajustará con tiempos medidos |
+| Tiempo de respuesta normal (objetivo) | ≤ 8 s | La explicación es corta. Es una meta por comprobar en las pruebas con tiempos medidos |
+| Tiempo máximo total de `/explicar` | 20 s | Incluye intentos, esperas de reintento y proveedor de respaldo (`LLM_TIMEOUT_SECONDS`). Si se supera, se muestra el cálculo y se informa que la explicación no está disponible |
 | Tokens máximos de salida | 600 | Un párrafo con el desglose; limita costo y divagación |
 | Temperatura | 0.2 | Tarea de explicación fiel, no creativa |
 | Caracteres máximos de entrada | 2000 | Al modelo solo llega el resultado ya calculado |
