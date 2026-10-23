@@ -142,7 +142,7 @@ Valores definidos en `.env` (el código del kit no se modifica) y contrastados c
 | --- | --- | --- | --- |
 | Tiempo de respuesta normal (objetivo) | ≤ 8 s | — | Medido el 22/10: Groq respondió en 0,8 s. Gemini no pudo medirse ese día (503 y sin conexión del proveedor); se completará con la comparación de prompts |
 | Tiempo límite por intento | 15 s | `LLM_TIMEOUT_S` | Una explicación corta no necesita más; corta la espera si el proveedor se cuelga |
-| Intentos por proveedor | 2 | `LLM_REINTENTOS` | Con 2 intentos por proveedor y respaldo, el peor caso queda acotado (≈ 1 min) y la cuota gratuita no se agota en reintentos |
+| Intentos por proveedor | 2 | `LLM_REINTENTOS` | Dos intentos por proveedor limitan los reintentos. La duración total incluye llamadas, esperas y proveedor de respaldo; no se establece un límite global. |
 | Tokens máximos de salida | 2048 | `LLM_MAX_TOKENS` | Medido el 22/10: de 95 tokens de salida, 50 fueron de razonamiento. Un tope bajo (600) podría cortar la respuesta en un modelo de razonamiento |
 | Temperatura | No aplica · razonamiento `low` | `LLM_RAZONAMIENTO` | `gemini-3.8-flash` no admite temperatura; se controla el razonamiento. `low`: la tarea es explicar un resultado ya calculado, no deducir |
 | Caracteres máximos de entrada | 2000 | `MAX_INPUT_CHARS` | Al modelo solo llega el resultado ya calculado; si se supera, 422 sin llamar al modelo |
