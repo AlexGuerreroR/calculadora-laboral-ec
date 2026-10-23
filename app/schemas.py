@@ -15,7 +15,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 SUELDO_MAXIMO = 100_000  # tope de cordura para rechazar errores de digitación
 
@@ -94,3 +94,34 @@ class Explicacion(Estricto):
         if len(v) > 1200:
             raise ValueError("la explicación debe tener máximo 1200 caracteres")
         return v
+
+
+# ======================================================================
+# 4. SOLICITUD del endpoint POST /calculos/decimos
+#    Un solo endpoint para los dos décimos (como define docs/03-arquitectura.md):
+#    el campo «tipo» indica cuál calcular y qué datos son obligatorios.
+# ======================================================================
+class SolicitudDecimos(Estricto):
+    tipo: Literal["decimo_tercero", "decimo_cuarto"]
+    remuneraciones: list[float] | None = Field(default=None, description="Solo para el décimo tercero")
+    meses_trabajados: int | None = Field(default=None, description="Solo para el décimo cuarto")
+    region: Literal["costa_galapagos", "sierra_amazonia"] | None = Field(default=None, description="Solo para el décimo cuarto")
+
+    @model_validator(mode="after")
+    def datos_segun_tipo(self) -> "SolicitudDecimos":
+        try:
+            if self.tipo == "decimo_tercero":
+                if self.remuneraciones is None:
+                    raise ValueError("para el décimo tercero envíe 'remuneraciones'")
+                if self.meses_trabajados is not None or self.region is not None:
+                    raise ValueError("'meses_trabajados' y 'region' solo aplican al décimo cuarto")
+                EntradaDecimoTercero(remuneraciones=self.remuneraciones)
+            else:
+                if self.meses_trabajados is None or self.region is None:
+                    raise ValueError("para el décimo cuarto envíe 'meses_trabajados' y 'region'")
+                if self.remuneraciones is not None:
+                    raise ValueError("'remuneraciones' solo aplica al décimo tercero")
+                EntradaDecimoCuarto(meses_trabajados=self.meses_trabajados, region=self.region)
+        except ValidationError as e:  # se devuelve como 422 con el detalle del campo
+            raise ValueError("; ".join(f"{'.'.join(map(str, x['loc']))}: {x['msg']}" for x in e.errors())) from None
+        return self
