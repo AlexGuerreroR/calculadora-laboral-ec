@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()  # lee el .env local (la clave nunca está en el código)
 
 from app.errores import registrar_manejadores  # noqa: E402
-from app.routers import calculos  # noqa: E402
+from app.routers import calculos, explicar  # noqa: E402
 
 app = FastAPI(
     title="Calculadora Laboral EC",
@@ -21,11 +21,11 @@ app = FastAPI(
 
 # CORS cerrado: solo el origen del frontend, nunca «*»
 origenes = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:8000").split(",") if o.strip()]
-app.add_middleware(CORSMiddleware, allow_origins=origenes, allow_methods=["GET", "POST"],
-                   allow_headers=["Content-Type"])
+app.add_middleware(CORSMiddleware, allow_origins=origenes, allow_methods=["GET", "POST"], allow_headers=["Content-Type"])
 
 registrar_manejadores(app)
 app.include_router(calculos.router)
+app.include_router(explicar.router)
 
 
 @app.get("/health")
