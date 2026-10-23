@@ -76,6 +76,7 @@ document.querySelectorAll('input[name="tipo"]').forEach((radio) => {
       bloque.hidden = bloque.dataset.para !== tipoElegido();
     });
     ocultar($("resultado"), $("explicacion"), $("errorCalculo"));
+    $("estadoVacio").hidden = false;
   });
 });
 
@@ -104,6 +105,7 @@ function armarSolicitud() {
 // ---------------------------------------------------------------- 1) calcular (sin IA)
 $("formulario").addEventListener("submit", async (evento) => {
   evento.preventDefault();
+  $("estadoVacio").hidden = false;
   ocultar($("errorCalculo"), $("resultado"), $("explicacion"), $("errorExplicar"));
   try {
     // Esta validación solo ayuda al usuario; la que cuenta es la del backend (Pydantic).
@@ -116,6 +118,7 @@ $("formulario").addEventListener("submit", async (evento) => {
     llenarLista($("desglose"), r.desglose);
     $("fundamento").textContent = r.fundamento;
     $("resultado").hidden = false;
+    $("estadoVacio").hidden = true;
   } catch (e) {
     mostrarError($("errorCalculo"), e.message);
   }

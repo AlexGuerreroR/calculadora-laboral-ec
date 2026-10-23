@@ -8,31 +8,31 @@
 </head>
 <body>
   <header class="cabecera">
-    <h1>Calculadora Laboral EC</h1>
-    <p class="lema">El código calcula; la inteligencia artificial explica.</p>
+    <div class="marca">Calculadora Laboral <span>EC</span></div><span class="etiqueta-cabecera">Beneficios laborales · Ecuador</span>
+
   </header>
 
-  <main>
+  <main><div class="introduccion"><p class="sobre-titulo">SUS DERECHOS, EN NÚMEROS CLAROS</p><h1>Sus beneficios laborales,<br>más claros y a su alcance.</h1><p>Calcule sus beneficios y conozca el detalle de cada resultado, paso a paso.</p></div>
     <!-- Bienvenida: alcance y aviso de IA (guía, semana 2) -->
-    <section class="aviso" aria-label="Alcance y aviso">
+    <details class="aviso"><summary>Antes de empezar · Alcance, privacidad y uso de IA</summary>
       <p><strong>¿Qué hace?</strong> Calcula su décimo tercero, décimo cuarto y vacaciones con las reglas del Código del Trabajo y le explica el resultado en lenguaje sencillo.</p>
       <p><strong>¿Qué no hace?</strong> No calcula todavía horas extra ni liquidaciones, no resuelve conflictos laborales y no reemplaza a un abogado. Ante un conflicto, acuda al Ministerio del Trabajo.</p>
-      <p><strong>Inteligencia artificial y datos:</strong> la explicación la redacta una IA a partir de un cálculo hecho por el sistema. No le pedimos nombre ni cédula y no guardamos sus datos.</p>
-    </section>
+      <p><strong>Inteligencia artificial y datos:</strong> la explicación la redacta una IA a partir de un cálculo hecho por el sistema. Los datos necesarios se envían al proveedor al solicitar la explicación. No ingrese nombres, cédulas ni otros datos personales.</p>
+    </details>
 
     <!-- Paso 1: elegir el cálculo -->
-    <section class="tarjeta">
-      <h2>1. ¿Qué quiere calcular?</h2>
-      <div class="opciones" role="radiogroup">
-        <label><input type="radio" name="tipo" value="decimo_tercero" checked> Décimo tercero</label>
-        <label><input type="radio" name="tipo" value="decimo_cuarto"> Décimo cuarto</label>
-        <label><input type="radio" name="tipo" value="vacaciones"> Vacaciones</label>
+    <section class="seleccion">
+      <h2>1. ¿Qué desea calcular?</h2>
+      <div class="opciones" role="radiogroup" aria-label="Tipo de cálculo">
+        <label><input type="radio" name="tipo" value="decimo_tercero" checked> <span><strong>Décimo tercero</strong><small>Sus remuneraciones del período</small></span></label>
+        <label><input type="radio" name="tipo" value="decimo_cuarto"> <span><strong>Décimo cuarto</strong><small>Según su región y meses trabajados</small></span></label>
+        <label><input type="radio" name="tipo" value="vacaciones"> <span><strong>Vacaciones</strong><small>Días y valor de su descanso</small></span></label>
       </div>
     </section>
 
-    <!-- Paso 2: datos -->
+    <div class="espacio-calculo"><!-- Paso 2: datos -->
     <section class="tarjeta">
-      <h2>2. Sus datos</h2>
+      <h2>2. Complete sus datos</h2>
       <form id="formulario" novalidate>
         <div data-para="decimo_tercero">
           <label for="sueldo13">Sueldo mensual (USD)</label>
@@ -61,25 +61,27 @@
           <input id="corte" type="date">
         </div>
 
-        <button id="btnCalcular" type="submit">Calcular</button>
+        <button id="btnCalcular" type="submit">Calcular mi beneficio</button>
       </form>
       <p id="errorCalculo" class="error" role="alert" hidden></p>
     </section>
 
-    <!-- Paso 3: resultado desglosado -->
+    <div class="columna-resultado"><section id="estadoVacio" class="estado-vacio"><div class="icono-vacio" aria-hidden="true">＝</div><p class="sobre-titulo">SU RESULTADO, AQUÍ</p><h2>Un cálculo claro.<br>Sin adivinanzas.</h2><p>Complete el formulario para ver el monto y su desglose. Después puede pedir una explicación con IA.</p><small>No necesita crear una cuenta</small></section><!-- Paso 3: resultado desglosado -->
     <section id="resultado" class="tarjeta" hidden aria-live="polite">
       <h2>3. Resultado</h2>
-      <p class="total">Total: <span id="total"></span></p>
+      <div class="resumen-total"><span class="etiqueta-total">BENEFICIO CALCULADO · USD</span><p class="total"><span id="total"></span></p><small>Revise cómo se obtuvo este valor</small></div>
       <p id="dias" hidden></p>
-      <ol id="desglose"></ol>
+      <h3 class="titulo-detalle">Detalle del cálculo</h3><ol id="desglose"></ol>
       <p class="fundamento">Fundamento: <span id="fundamento"></span></p>
-      <button id="btnExplicar" type="button">Explicar con IA</button>
+      <button id="btnExplicar" class="boton-ia" type="button">Explicar con IA</button>
       <p id="errorExplicar" class="error" role="alert" hidden></p>
     </section>
 
+    </div>
+    </div>
     <!-- Paso 4: explicación con IA -->
     <section id="explicacion" class="tarjeta" hidden aria-live="polite">
-      <h2>4. Explicación</h2>
+      <h2>4. En palabras sencillas <span class="insignia-ia">IA</span></h2>
       <p id="textoExplicacion"></p>
       <ol id="pasos"></ol>
       <ul id="advertencias" class="advertencias"></ul>
