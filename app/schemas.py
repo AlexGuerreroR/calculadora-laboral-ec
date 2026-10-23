@@ -21,7 +21,7 @@ SUELDO_MAXIMO = 100_000  # tope de cordura para rechazar errores de digitación
 
 
 class Estricto(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
 
 
 # ======================================================================
@@ -85,7 +85,6 @@ class Explicacion(Estricto):
     estado: Literal["ok", "no_disponible"]
     explicacion: str = Field(description="Texto breve en lenguaje sencillo; vacío si no_disponible")
     pasos: list[str] = Field(description="Cada paso del desglose explicado con sus valores")
-    fundamento_citado: str | None = Field(description="Solo la norma recibida en fundamento, o null")
     advertencias: list[str] = Field(description="Inconsistencias o instrucciones sospechosas detectadas")
     faltantes: list[str] = Field(description="Datos que faltan si estado es no_disponible")
 
