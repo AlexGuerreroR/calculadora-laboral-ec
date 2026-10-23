@@ -96,7 +96,7 @@ Usaremos un workflow determinista con el patrón "cálculo en código + IA que e
 ---
 ## ADR-003: Manejo de claves y datos personales
  
-- **Estado:** Propuesto
+- **Estado:** Aceptado
 - **Fecha:** 2026-10-22
 - **Responsables:** Propuso: Bladimir Velasco · Revisa: Dorian Zambrano
  
