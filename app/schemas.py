@@ -73,7 +73,7 @@ class ResultadoCalculo(Estricto):
     entradas: dict
     desglose: list[str]
     total: float
-    dias: int | None = None
+    dias: float | None = None
     fundamento: str
 
 
