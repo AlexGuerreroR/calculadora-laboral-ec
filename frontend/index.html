@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculadora Laboral EC</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="cabecera">
+    <h1>Calculadora Laboral EC</h1>
+    <p class="lema">El código calcula; la inteligencia artificial explica.</p>
+  </header>
+
+  <main>
+    <!-- Bienvenida: alcance y aviso de IA (guía, semana 2) -->
+    <section class="aviso" aria-label="Alcance y aviso">
+      <p><strong>¿Qué hace?</strong> Calcula su décimo tercero, décimo cuarto y vacaciones con las reglas del Código del Trabajo y le explica el resultado en lenguaje sencillo.</p>
+      <p><strong>¿Qué no hace?</strong> No calcula todavía horas extra ni liquidaciones, no resuelve conflictos laborales y no reemplaza a un abogado. Ante un conflicto, acuda al Ministerio del Trabajo.</p>
+      <p><strong>Inteligencia artificial y datos:</strong> la explicación la redacta una IA a partir de un cálculo hecho por el sistema. No le pedimos nombre ni cédula y no guardamos sus datos.</p>
+    </section>
+
+    <!-- Paso 1: elegir el cálculo -->
+    <section class="tarjeta">
+      <h2>1. ¿Qué quiere calcular?</h2>
+      <div class="opciones" role="radiogroup">
+        <label><input type="radio" name="tipo" value="decimo_tercero" checked> Décimo tercero</label>
+        <label><input type="radio" name="tipo" value="decimo_cuarto"> Décimo cuarto</label>
+        <label><input type="radio" name="tipo" value="vacaciones"> Vacaciones</label>
+      </div>
+    </section>
+
+    <!-- Paso 2: datos -->
+    <section class="tarjeta">
+      <h2>2. Sus datos</h2>
+      <form id="formulario" novalidate>
+        <div data-para="decimo_tercero">
+          <label for="sueldo13">Sueldo mensual (USD)</label>
+          <input id="sueldo13" type="number" min="0.01" step="0.01" placeholder="Ej.: 600">
+          <label for="meses13">Meses trabajados del 1 de diciembre al 30 de noviembre</label>
+          <input id="meses13" type="number" min="1" max="12" step="1" value="12">
+          <p class="ayuda">Si su sueldo cambió durante el año, use el promedio o consulte el desglose con su empleador.</p>
+        </div>
+
+        <div data-para="decimo_cuarto" hidden>
+          <label for="region">Región</label>
+          <select id="region">
+            <option value="sierra_amazonia">Sierra o Amazonía (período agosto–julio)</option>
+            <option value="costa_galapagos">Costa o Galápagos (período marzo–febrero)</option>
+          </select>
+          <label for="meses14">Meses trabajados en el período</label>
+          <input id="meses14" type="number" min="1" max="12" step="1" value="12">
+        </div>
+
+        <div data-para="vacaciones" hidden>
+          <label for="sueldoVac">Sueldo mensual (USD)</label>
+          <input id="sueldoVac" type="number" min="0.01" step="0.01" placeholder="Ej.: 900">
+          <label for="ingreso">Fecha de ingreso</label>
+          <input id="ingreso" type="date">
+          <label for="corte">Fecha del cálculo (si la deja vacía, se usa la de hoy)</label>
+          <input id="corte" type="date">
+        </div>
+
+        <button id="btnCalcular" type="submit">Calcular</button>
+      </form>
+      <p id="errorCalculo" class="error" role="alert" hidden></p>
+    </section>
+
+    <!-- Paso 3: resultado desglosado -->
+    <section id="resultado" class="tarjeta" hidden aria-live="polite">
+      <h2>3. Resultado</h2>
+      <p class="total">Total: <span id="total"></span></p>
+      <p id="dias" hidden></p>
+      <ol id="desglose"></ol>
+      <p class="fundamento">Fundamento: <span id="fundamento"></span></p>
+      <button id="btnExplicar" type="button">Explicar con IA</button>
+      <p id="errorExplicar" class="error" role="alert" hidden></p>
+    </section>
+
+    <!-- Paso 4: explicación con IA -->
+    <section id="explicacion" class="tarjeta" hidden aria-live="polite">
+      <h2>4. Explicación</h2>
+      <p id="textoExplicacion"></p>
+      <ol id="pasos"></ol>
+      <ul id="advertencias" class="advertencias"></ul>
+      <p id="avisoIA" class="aviso-ia"></p>
+    </section>
+  </main>
+
+  <footer>Caso 07 · Grupo 7 · Seminario de Ingeniería de Software con IA Generativa · UNIANDES</footer>
+  <script src="app.js"></script>
+</body>
+</html>
