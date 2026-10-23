@@ -1,35 +1,46 @@
-"""POST /explicar · El modelo explica en lenguaje sencillo un resultado YA calculado por el código.
+"""POST /explicar · El modelo explica en lenguaje sencillo un resultado calculado por el código.
 
 Flujo (el orden lo decide el código, no el modelo · ADR-002):
-  1. FastAPI valida la entrada con Pydantic (ResultadoCalculo). Si es inválida: 422 y el
-     modelo nunca se llama.
+  1. FastAPI valida la forma de la entrada con Pydantic (ResultadoCalculo). Si es inválida: 422.
   2. Límites del backend: tamaño máximo de la entrada y solicitudes por minuto (429 propio).
-  3. llm.py llama al modelo con el prompt versionado, reintentos y respaldo.
-  4. El modelo devuelve JSON con el esquema Explicacion.
-  5. El CÓDIGO agrega el fundamento (la norma) desde el resultado del cálculo; el modelo
-     nunca la escribe (aviso del docente del 22/10: si se la pide, la puede inventar).
+  3. El backend NO confía en el resultado que envía el cliente (el navegador no es confiable):
+     lo RECALCULA desde `entradas` con las mismas herramientas de cálculo. Si el total enviado
+     no coincide, responde 422. El desglose, el total y el fundamento que se usan son los del
+     servidor (el fundamento sale de config/parametros.yaml).
+  4. Recién entonces se crea el cliente del modelo: si falta la configuración (.env), el
+     usuario recibe un 503 claro, no un 500.
+  5. llm.py llama al modelo con el prompt versionado, reintentos y respaldo; el modelo
+     devuelve JSON con el esquema Explicacion y nunca escribe la norma.
 """
 from __future__ import annotations
 
+import logging
 import os
 import threading
 import time
 from collections import defaultdict, deque
 from functools import lru_cache
+from typing import Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
-from app.schemas import Explicacion, ResultadoCalculo
+from app.config import ErrorConfiguracion
+from app.schemas import (EntradaDecimoCuarto, EntradaDecimoTercero, EntradaVacaciones, Explicacion,
+                         ResultadoCalculo)
 from app.services.llm import ClienteLLM, ProveedorNoDisponible, SalidaInvalida, cargar_prompt
+from app.tools.decimos import calcular_decimo_cuarto, calcular_decimo_tercero
+from app.tools.vacaciones import calcular_vacaciones
 
 router = APIRouter(tags=["explicación con IA"])
+log = logging.getLogger("api")
 
 PROMPT = os.getenv("PROMPT_VERSION", "system_v3")  # la versión ganadora de docs/05-prompts.md
 AVISO_IA = ("Explicación generada con inteligencia artificial a partir de un cálculo hecho por el sistema. "
             "Es una orientación: el valor oficial lo determina el empleador conforme a la ley. "
             "Ante un conflicto laboral, acuda al Ministerio del Trabajo.")
 SIN_EXPLICACION = "La explicación no está disponible por ahora. El cálculo de arriba sigue siendo válido."
+TOLERANCIA = 0.01  # indicador del caso 07: ±0,01 USD
 
 
 def _entero(nombre: str, defecto: int) -> int:
@@ -40,21 +51,36 @@ def _entero(nombre: str, defecto: int) -> int:
 MAX_INPUT_CHARS = _entero("MAX_INPUT_CHARS", 2000)
 RATE_LIMIT_POR_MINUTO = _entero("RATE_LIMIT_POR_MINUTO", 4)
 
+# Cada tipo de cálculo con su esquema de entrada y su herramienta (las mismas de /calculos).
+CALCULOS = {
+    "decimo_tercero": (EntradaDecimoTercero, calcular_decimo_tercero),
+    "decimo_cuarto": (EntradaDecimoCuarto, calcular_decimo_cuarto),
+    "vacaciones": (EntradaVacaciones, calcular_vacaciones),
+}
+
 
 class RespuestaExplicar(BaseModel):
     explicacion: Explicacion | None
-    fundamento: str            # lo pone el código, no el modelo
-    total: float               # el monto calculado por el código, sin cambios
+    fundamento: str            # lo pone el servidor, desde la configuración
+    total: float               # el monto recalculado por el servidor
     aviso: str
     mensaje: str
     proveedor: str | None = None
 
 
+# ---------------------------------------------------------------- cliente del modelo (perezoso)
 @lru_cache
-def obtener_llm() -> ClienteLLM:
+def _crear_llm() -> ClienteLLM:
     return ClienteLLM()
 
 
+def obtener_llm() -> Callable[[], ClienteLLM]:
+    """Devuelve una FÁBRICA, no el cliente: así el cliente se crea después de las validaciones
+    y un .env incompleto no rompe la solicitud con un 500. En las pruebas se reemplaza."""
+    return _crear_llm
+
+
+# ---------------------------------------------------------------- límite por minuto
 class LimitadorPorMinuto:
     """Ventana deslizante de 60 s por cliente. Protege la cuota gratuita (OWASP LLM10)."""
 
@@ -83,16 +109,35 @@ def _cliente(request: Request) -> str:
     return request.client.host if request.client else "desconocido"
 
 
+# ---------------------------------------------------------------- recálculo en el servidor
+def recalcular(resultado: ResultadoCalculo) -> ResultadoCalculo:
+    """Vuelve a calcular desde `entradas`. Lo que mande el cliente en total, desglose o
+    fundamento no se usa: solo se comprueba que el total coincida."""
+    esquema, calcular = CALCULOS[resultado.tipo]
+    datos = {k: v for k, v in resultado.entradas.items() if k in esquema.model_fields}
+    try:
+        servidor = calcular(esquema(**datos))
+    except ValidationError as e:
+        campos = ", ".join(".".join(map(str, x["loc"])) for x in e.errors())
+        raise HTTPException(422, f"Las entradas del cálculo no son válidas ({campos}).")
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    if abs(servidor.total - resultado.total) > TOLERANCIA:
+        raise HTTPException(422, "El resultado enviado no coincide con el cálculo del sistema. "
+                                 "Vuelva a calcular antes de pedir la explicación.")
+    return servidor
+
+
 @router.post(
     "/explicar",
     response_model=RespuestaExplicar,
-    responses={422: {"description": "Entrada no válida (no se llama al modelo)"},
+    responses={422: {"description": "Entrada no válida o resultado manipulado (no se llama al modelo)"},
                429: {"description": "Límite de solicitudes por minuto alcanzado"},
-               503: {"description": "Ningún proveedor de IA respondió"}},
+               503: {"description": "Servicio de IA no configurado o ningún proveedor respondió"}},
 )
-def explicar(resultado: ResultadoCalculo, request: Request, llm: ClienteLLM = Depends(obtener_llm)):
-    datos = resultado.model_dump_json()
-    if len(datos) > MAX_INPUT_CHARS:
+def explicar(resultado: ResultadoCalculo, request: Request,
+             fabrica_llm: Callable[[], ClienteLLM] = Depends(obtener_llm)):
+    if len(resultado.model_dump_json()) > MAX_INPUT_CHARS:
         raise HTTPException(422, f"La entrada supera el máximo de {MAX_INPUT_CHARS} caracteres.")
 
     espera = limitador.permitir(_cliente(request))
@@ -100,16 +145,26 @@ def explicar(resultado: ResultadoCalculo, request: Request, llm: ClienteLLM = De
         raise HTTPException(429, f"Hizo demasiadas solicitudes. Espere {espera} segundos e intente de nuevo.",
                             headers={"Retry-After": str(espera)})
 
+    confiable = recalcular(resultado)  # desde aquí solo se usan datos del servidor
+
     try:
-        r = llm.generar_json(cargar_prompt(PROMPT), f"<resultado>{datos}</resultado>", Explicacion)
+        llm = fabrica_llm()
+    except ErrorConfiguracion as e:
+        log.error("configuración del servicio de IA incompleta: %s", e)
+        raise HTTPException(503, "El servicio de explicación no está configurado. El cálculo sigue siendo válido.")
+
+    try:
+        r = llm.generar_json(cargar_prompt(PROMPT), f"<resultado>{confiable.model_dump_json()}</resultado>",
+                             Explicacion)
     except ProveedorNoDisponible as e:
         raise HTTPException(503, e.mensaje_usuario, headers={"Retry-After": "60"})
     except SalidaInvalida:
         # No es un error HTTP: el servicio decidió no mostrar una explicación dudosa.
-        return RespuestaExplicar(explicacion=None, fundamento=resultado.fundamento, total=resultado.total,
+        return RespuestaExplicar(explicacion=None, fundamento=confiable.fundamento, total=confiable.total,
                                  aviso=AVISO_IA, mensaje=SIN_EXPLICACION)
 
     exp: Explicacion = r.datos
-    mensaje = "Explicación generada." if exp.estado == "ok" else "El asistente no tiene datos suficientes para explicar este resultado."
-    return RespuestaExplicar(explicacion=exp, fundamento=resultado.fundamento, total=resultado.total,
+    mensaje = ("Explicación generada." if exp.estado == "ok"
+               else "El asistente no tiene datos suficientes para explicar este resultado.")
+    return RespuestaExplicar(explicacion=exp, fundamento=confiable.fundamento, total=confiable.total,
                              aviso=AVISO_IA, mensaje=mensaje, proveedor=r.proveedor)
