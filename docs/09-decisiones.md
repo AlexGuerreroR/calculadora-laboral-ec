@@ -94,3 +94,40 @@ Usaremos un workflow determinista con el patrón "cálculo en código + IA que e
 **Negativas y riesgos:** No hay consulta en lenguaje libre hasta la semana 3; hay más código que mantener y probar; si una situación no está prevista en los formularios (por ejemplo, jornada nocturna o trabajo en feriados, preguntas P12 y P13 del levantamiento), el sistema no la calcula y debe indicarlo.
 
 ---
+## ADR-003: Manejo de claves y datos personales
+ 
+- **Estado:** Aceptado
+- **Fecha:** 2026-10-22
+- **Responsables:** Propuso: Bladimir Velasco · Revisa: Dorian Zambrano
+ 
+### Contexto
+ 
+El backend necesita las claves de Gemini y Groq para llamar al modelo, y el repositorio es público. La guía indica que una clave en el repositorio deja en 0 el criterio de integración y obliga a revocarla, porque borrarla en un commit posterior no la saca del historial. Una clave escrita en el system prompt puede filtrarse en una respuesta (OWASP LLM07:2025, System Prompt Leakage). Además, el usuario ingresa datos de su relación laboral (remuneraciones, fechas, región), la LOPDP (2021) exige un inventario de los datos personales que el sistema recibe, almacena o envía al modelo, y en los niveles gratuitos el proveedor puede usar los datos enviados.
+ 
+### Opciones consideradas
+ 
+1. Claves en variables de entorno (`.env` local incluido en `.gitignore`; panel de variables de Render en producción) y minimización de datos: ventaja: la clave nunca entra al repositorio, al prompt ni al navegador, y al proveedor solo sale lo necesario / desventaja: cada integrante debe configurar su propio `.env` y, si alguien sube el `.env` por error, hay que revocar la clave.
+2. Clave escrita en el código o en el system prompt: ventaja: configuración inmediata / desventaja: queda en el historial público de Git y puede filtrarse en una respuesta del modelo; criterio de integración en 0.
+3. Llamar al modelo desde el frontend (JavaScript) con la clave en el navegador: ventaja: no requiere backend para la IA / desventaja: cualquier usuario puede ver la clave en las herramientas del navegador y gastar la cuota.
+ 
+### Decisión
+ 
+Usaremos variables de entorno porque es la única opción en la que la clave no queda en el repositorio, en el prompt ni en el navegador. Cada integrante guarda sus claves en un `.env` local, ignorado por `.gitignore`; el repositorio solo contiene `.env.example` sin valores, y en Render las claves irán en el panel de variables. Las claves no se comparten por chat ni por WhatsApp. Aplicaremos minimización de datos según este inventario:
+ 
+| Dato | Se recibe | Se almacena | Se envía al modelo | Finalidad |
+| --- | --- | --- | --- | --- |
+| Remuneraciones mensuales | Sí | No (solo en memoria durante la solicitud) | Sí, como parte del resultado ya calculado, sin datos que identifiquen a la persona | Calcular y explicar el beneficio |
+| Fechas de ingreso y de corte | Sí | No | Sí, dentro del resultado | Calcular días, meses y años de servicio |
+| Región (Costa/Galápagos o Sierra/Amazonía) | Sí | No | Sí, dentro del resultado | Determinar el período del décimo cuarto |
+| Nombre, cédula, empresa, teléfono o correo | **No se piden** | No | No | — |
+| Registro técnico (`logs/llm.jsonl`) | — | Sí, local y fuera del repositorio | No | Medir proveedor, modelo, intento, tokens y tiempo; nunca guarda el texto del usuario ni los montos |
+ 
+El frontend mostrará un aviso visible: que la explicación la genera una IA, que es una orientación, que no se guardan sus datos y que ante un conflicto debe acudir al Ministerio del Trabajo.
+ 
+### Consecuencias
+ 
+**Positivas:** La clave nunca aparece en el repositorio ni en el historial; si un prompt se filtra, no expone credenciales; se cumple el inventario y el aviso que exige la guía (LOPDP); si el proveedor usa los datos del nivel gratuito, solo recibe montos sin identificar a nadie.
+ 
+**Negativas y riesgos:** Cada integrante debe configurar su `.env` y la aplicación no funciona sin él; al no guardar nada, no hay historial de consultas para auditar errores; si una clave llega a un commit hay que revocarla de inmediato y avisar al docente; el formulario solo tiene campos con formato validado para que el usuario no escriba datos personales en texto libre.
+ 
+---
