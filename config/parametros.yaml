@@ -1,7 +1,13 @@
 # Parámetros variables del cálculo. Se cambian aquí, nunca en el código ni en el prompt.
-# verificado: false  -> confirmar contra el texto oficial antes de programar (Semana 2).
+# verificado: true  -> valor contrastado con la norma citada en "fuente".
 
 anio_vigencia: 2026
+
+calendario:
+  dias_mes: 30
+  dias_anio: 360
+  fuente: "Acuerdo Ministerial MDT-2023-140, Disposición General Quinta"
+  verificado: true
 
 salario_basico_unificado:
   valor: 482.00
@@ -45,6 +51,7 @@ vacaciones:
   dias_base: 15
   dia_adicional_desde_anio: 6
   max_dias_adicionales: 15
+  divisor_valor: 24          # art. 71: la veinticuatroava parte de lo percibido en un año completo
   fuente: "Código del Trabajo, arts. 69, 70 y 71"
   fecha_verificacion: "2026-10-19"
   observacion: "Régimen general para adultos. Adicionales por años de servicio excedentes de cinco; admite mejora contractual. El pago se calcula según el art. 71."
