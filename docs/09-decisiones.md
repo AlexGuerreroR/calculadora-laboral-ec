@@ -27,6 +27,7 @@ Este registro distingue la asistencia al desarrollo del comportamiento previsto 
 
 ### Bladimir Velasco
 
+- **Aportes:** levantamiento de información, propuesta, arquitectura C4, resolución independiente de los diez casos de referencia (A), endpoint `/explicar`, prompts y comparación, evidencias de la semana 2 y revisión de PR.
 - **Asistente utilizado:** Claude (Anthropic).
 - **Usos:** análisis de la guía, la plantilla y el material de clase; borradores de documentación (propuesta, arquitectura C4, requisitos no funcionales, ADR, evidencias); borradores de los system prompts v1–v3 y de las 10 entradas de comparación; borradores de código del endpoint `/explicar` y de sus pruebas; adaptación del kit de integración al caso 07; revisión de los pull requests del equipo.
 - **Verificación y correcciones:** todo el código se ejecutó en mi computadora (`pytest -q`, `uvicorn` y pruebas en `/docs` con el proveedor real). Se corrigieron, entre otros: la cita de la norma pedida al modelo (se quitó tras el aviso del docente del 22/10), los requisitos no funcionales (temperatura reemplazada por razonamiento y tokens ajustados con mediciones reales) y, a partir de la revisión de Alexander en el PR #55, el recálculo del resultado en el servidor y el manejo de la configuración ausente.
