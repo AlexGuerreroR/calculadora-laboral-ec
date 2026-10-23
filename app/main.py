@@ -3,10 +3,12 @@
 Ejecutar:  uvicorn app.main:app --reload     y abrir http://127.0.0.1:8000/docs
 """
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv()  # lee el .env local (la clave nunca está en el código)
 
@@ -32,3 +34,9 @@ app.include_router(explicar.router)
 def health() -> dict:
     """Permite comprobar que el servicio está en línea."""
     return {"status": "ok"}
+
+
+# Frontend propio (HTML + JavaScript), servido por el mismo backend: una sola URL y sin CORS
+# abierto. Se monta al final para que /calculos, /explicar, /health y /docs tengan prioridad.
+FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
+app.mount("/", StaticFiles(directory=FRONTEND, html=True), name="frontend")

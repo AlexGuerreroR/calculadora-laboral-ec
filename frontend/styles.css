@@ -1,0 +1,90 @@
+:root {
+  --fondo: #f4f6f8;
+  --tarjeta: #ffffff;
+  --texto: #1d2733;
+  --suave: #5b6b7c;
+  --primario: #145c80;
+  --primario-oscuro: #0e4460;
+  --borde: #d6dde4;
+  --error-fondo: #fbebeb;
+  --error-texto: #8a1f1f;
+  --aviso-fondo: #e7f1fb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  line-height: 1.5;
+}
+
+.cabecera {
+  background: var(--primario);
+  color: #fff;
+  padding: 24px 16px;
+  text-align: center;
+}
+.cabecera h1 { margin: 0; font-size: 1.6rem; }
+.lema { margin: 4px 0 0; opacity: 0.9; }
+
+main { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+.aviso, .tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.aviso { background: var(--aviso-fondo); font-size: 0.95rem; }
+.aviso p { margin: 6px 0; }
+
+h2 { margin-top: 0; font-size: 1.15rem; }
+
+.opciones { display: flex; flex-wrap: wrap; gap: 12px; }
+.opciones label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+label { display: block; margin-top: 12px; font-weight: 600; }
+input[type="number"], input[type="date"], select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 4px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.ayuda { color: var(--suave); font-size: 0.85rem; margin: 6px 0 0; }
+
+button {
+  margin-top: 16px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--primario);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--primario-oscuro); }
+button:disabled { opacity: 0.6; cursor: wait; }
+
+.error {
+  background: var(--error-fondo);
+  color: var(--error-texto);
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.total { font-size: 1.4rem; font-weight: 700; margin: 0 0 8px; }
+.fundamento, .aviso-ia { color: var(--suave); font-size: 0.9rem; }
+.advertencias { color: var(--error-texto); }
+
+footer { text-align: center; color: var(--suave); font-size: 0.8rem; padding: 24px 16px; }
+
+@media (max-width: 480px) {
+  .opciones { flex-direction: column; }
+  button { width: 100%; }
+}
