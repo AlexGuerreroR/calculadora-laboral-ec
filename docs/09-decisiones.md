@@ -25,9 +25,14 @@ Este registro distingue la asistencia al desarrollo del comportamiento previsto 
 - Ajustes documentados: aclaración de periodos de décimos, modalidad acumulada, sueldo del mes de salida ya pagado, vacaciones previamente gozadas y redondeo de cada rubro final a dos decimales. Se incorporaron fuentes y observaciones de aplicación a los parámetros.
 - Límite de la evidencia: la revisión verbal de resultados no acredita por sí misma que cada operación haya sido realizada manualmente. El equipo debe poder explicar el desarrollo de cada caso.
 
-### Bladimir
+### Bladimir Velasco
 
-Levantamiento de información, propuesta, arquitectura, resolución independiente de los diez casos de referencia (A) y revisión de PR. La herramienta de IA utilizada, sus usos específicos y las correcciones efectuadas no han sido confirmados para este registro. Bladimir debe aportar su declaración antes de marcar como completo el criterio de declaración individual de D4; no se atribuye una herramienta sin su confirmación.
+- **Aportes:** levantamiento de información, propuesta, arquitectura C4, resolución independiente de los diez casos de referencia (A), endpoint `/explicar`, prompts y comparación, evidencias de la semana 2 y revisión de PR.
+- **Asistente utilizado:** Claude (Anthropic).
+- **Usos:** análisis de la guía, la plantilla y el material de clase; borradores de documentación (propuesta, arquitectura C4, requisitos no funcionales, ADR, evidencias); borradores de los system prompts v1–v3 y de las 10 entradas de comparación; borradores de código del endpoint `/explicar` y de sus pruebas; adaptación del kit de integración al caso 07; revisión de los pull requests del equipo.
+- **Verificación y correcciones:** todo el código se ejecutó en mi computadora (`pytest -q`, `uvicorn` y pruebas en `/docs` con el proveedor real). Se corrigieron, entre otros: la cita de la norma pedida al modelo (se quitó tras el aviso del docente del 22/10), los requisitos no funcionales (temperatura reemplazada por razonamiento y tokens ajustados con mediciones reales) y, a partir de la revisión de Alexander en el PR #55, el recálculo del resultado en el servidor y el manejo de la configuración ausente.
+- **Límite:** las respuestas del asistente no se usaron como fuente normativa; los valores legales provienen de las fuentes oficiales registradas en `docs/04-fuentes.md` y `config/parametros.yaml`.
+
 
 ### Dorian Zambrano
 
