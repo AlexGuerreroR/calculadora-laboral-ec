@@ -17,7 +17,7 @@ Los trabajadores consultados (12 de 15 en nuestro levantamiento) no saben cómo 
 
 ## Arquitectura
 
-El frontend (HTML + JavaScript) habla solo con el backend FastAPI. El backend valida con Pydantic, calcula con `app/tools/` usando `config/parametros.yaml` y, para la explicación, llama al modelo mediante `app/services/llm.py` (Gemini 3.8 Flash; respaldo Groq), con reintentos, tiempo límite y registro de tokens. Diagramas C4 y flujo completo en [docs/03-arquitectura.md](docs/03-arquitectura.md); decisiones en [docs/09-decisiones.md](docs/09-decisiones.md) (ADR-001 a ADR-003).
+El frontend (HTML + JavaScript) habla solo con el backend FastAPI. El backend valida con Pydantic, calcula con `app/tools/` usando `config/parametros.yaml` y, para la explicación, llama al modelo mediante `app/services/llm.py` (Groq `openai/gpt-oss-120b`; respaldo Gemini 3.6 Flash), con reintentos, tiempo límite y registro de tokens. Diagramas C4 y flujo completo en [docs/03-arquitectura.md](docs/03-arquitectura.md); decisiones en [docs/09-decisiones.md](docs/09-decisiones.md) (ADR-001 a ADR-003).
 
 | Endpoint | Qué hace | ¿Usa IA? |
 | --- | --- | --- |
@@ -66,7 +66,7 @@ Plantilla: [.env.example](.env.example). Nunca se sube el `.env` con valores.
 | `LLM_TIMEOUT_S` | Tiempo límite por intento (s) |
 | `LLM_REINTENTOS` | Intentos por proveedor |
 | `LLM_MAX_TOKENS` | Tokens máximos de salida |
-| `LLM_RAZONAMIENTO` | Nivel de razonamiento (`low`, `medium`, `high`); reemplaza a la temperatura en Gemini 3.8 Flash |
+| `LLM_RAZONAMIENTO` | Nivel de razonamiento (`low`, `medium`, `high`); se usa en lugar de la temperatura |
 | `MAX_INPUT_CHARS` | Tamaño máximo de la entrada de `/explicar` |
 | `RATE_LIMIT_POR_MINUTO` | Solicitudes por minuto por usuario en `/explicar` |
 | `ALLOWED_ORIGINS` | Orígenes permitidos (CORS) |
