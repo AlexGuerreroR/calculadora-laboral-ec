@@ -25,3 +25,6 @@ output/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Fuente con restricción de redistribución: se descarga localmente (ver data/raw/README.md)
+data/raw/CODIGO_DEL_TRABAJO.pdf
