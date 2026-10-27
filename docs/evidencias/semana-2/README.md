@@ -29,7 +29,7 @@ Las capturas están en `capturas/`. No muestran claves ni datos personales.
 Tabla completa y conclusión del grupo en [docs/05-prompts.md](../../05-prompts.md), generada con `scripts/comparar_prompts.py` sobre las 10 entradas de `eval/entradas_prompts.csv` (7 normales, 2 no procesables y 1 fuera de dominio) y calificada por los tres integrantes.
 
 - Proveedor usado en la corrida: Groq · `openai/gpt-oss-120b` (Gemini no respondía el 22 y 23/10).
-- Versión elegida: _(completar después de calificar)_
+- Versión elegida: system_v3 (0 de 10 respuestas inventan; ver conclusión en `docs/05-prompts.md`).
 
 ## 3. Decisiones tomadas en la semana
 

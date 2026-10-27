@@ -70,6 +70,22 @@ Usaremos Gemini 3.8 Flash como proveedor principal y Groq (openai/gpt-oss-120b) 
 
 **Negativas y riesgos:** Con 20 solicitudes diarias, las pruebas reales y la demo deben planificarse, y cada integrante usa su propia clave; las cuotas y los modelos gratuitos cambian sin aviso (como ocurrió con llama-3.1-8b-instant); los datos viajan a un tercero, por eso solo enviamos montos ya calculados, sin datos personales (ver ADR-003).
 
+### Actualización 2026-10-26: Groq pasa a principal y Gemini 3.6 Flash a respaldo
+
+En la revisión 2 (23/10) el docente observó que Gemini no funcionaba en el proyecto y señaló la versión del modelo. El 26/10 probamos los modelos Flash con la misma clave, primero con una llamada simple y luego con `/explicar` (razonamiento `low` y salida JSON con esquema):
+
+| Modelo | Estado según Google | Resultado medido |
+| --- | --- | --- |
+| `gemini-3.8-flash` | Estable | 503 en la llamada simple (igual que el 22/10) |
+| `gemini-3.6-flash` | Estable | Funciona; buena redacción, pero `/explicar` tardó 14,2 · 2,3 · 15,0 s (dos llamadas a menos de 1 s del límite de 15 s) |
+| `gemini-3.5-flash` | Obsoleto (Google lo redirige a 3.6) | Funciona; descartado por obsoleto |
+| `gemini-3.5-flash-lite` | Estable | Rápido (1,2 a 2,0 s), pero rompe las tildes («d3cimo», «orientacicn»); descartado |
+| Groq `openai/gpt-oss-120b` | — | 0,6 a 1,5 s, buena redacción; ganó la comparación de prompts (`docs/05-prompts.md`) |
+
+**Decisión:** Groq `openai/gpt-oss-120b` pasa a ser el proveedor principal y `gemini-3.6-flash` el respaldo (`LLM_PRINCIPAL=groq`, `LLM_RESPALDO=gemini`, `GEMINI_MODEL=gemini-3.6-flash`). Es la única combinación medida que cumple a la vez la meta de ≤ 8 s y la calidad del texto. El cambio se hizo solo en la configuración, sin tocar el código, como prevé la decisión original.
+
+**Consecuencias:** Gemini sigue funcionando y se puede demostrar con `LLM_PRINCIPAL=gemini`; si Groq falla, la respuesta puede tardar hasta unos 15 s. Groq ofrece 1 000 solicitudes diarias frente a 20 de Gemini, lo que facilita la demo y la evaluación. La clave de Gemini se sigue usando en la semana 3 para los embeddings del RAG, que son otro modelo. Fuente: [modelos de Gemini API](https://ai.google.dev/gemini-api/docs/models), consultada el 26/10/2026.
+
 ---
 
 ## ADR-002: Workflow o agente
@@ -103,7 +119,7 @@ Usaremos un workflow determinista con el patrón "cálculo en código + IA que e
  
 - **Estado:** Aceptado
 - **Fecha:** 2026-10-22
-- **Responsables:** Propuso: Bladimir Velasco · Revisa: Dorian Zambrano
+- **Responsables:** Propuso: Bladimir Velasco · Revisó: Dorian Zambrano
  
 ### Contexto
  

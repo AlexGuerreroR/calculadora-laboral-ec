@@ -32,8 +32,8 @@ flowchart LR
   U0(["Trabajador"])
   U1(["Pequeño Empleador"])
   SYS["<b>Calculadora Laboral EC</b><br/>Sistema de software"]
-  P1["Google Gemini (AI Studio)<br/>Gemini 3.8 Flash"]
-  P2["Groq<br/>openai/gpt-oss-120b"]
+  P1["Groq<br/>openai/gpt-oss-120b"]
+  P2["Google Gemini (AI Studio)<br/>Gemini 3.6 Flash"]
   U0 -- usa --> SYS
   U1 -- usa --> SYS
   SYS -- "genera texto" --> P1
@@ -65,8 +65,8 @@ flowchart LR
     VEC[("Base vectorial RAG<br/>semana 3")]
     AG["Agente y herramientas<br/>semana 3"]
   end
-  P1["Google Gemini (AI Studio)<br/>Gemini 3.8 Flash"]
-  P2["Groq<br/>openai/gpt-oss-120b"]
+  P1["Groq<br/>openai/gpt-oss-120b"]
+  P2["Google Gemini (AI Studio)<br/>Gemini 3.6 Flash"]
   U0 --> FE
   U1 --> FE
   FE -- "HTTPS / JSON" --> BE
@@ -108,8 +108,8 @@ Patrón: **cálculo en código + IA que explica** (ADR-002). El orden de los pas
 | Backend | FastAPI (Python) con Pydantic |
 | Datos | Solo memoria de sesión (no se guarda nada del usuario) |
 | Configuración | `config/parametros.yaml` |
-| Modelo principal | Google Gemini (AI Studio) · Gemini 3.8 Flash |
-| Modelo de respaldo | Groq · openai/gpt-oss-120b |
+| Modelo principal | Groq · openai/gpt-oss-120b (desde el 26/10; ver ADR-001) |
+| Modelo de respaldo | Google Gemini (AI Studio) · Gemini 3.6 Flash |
 | Patrón de integración | Cálculo en código + IA que explica |
 | Registro | Logs estructurados sin datos personales |
 | Pruebas | pytest, con un doble del modelo (sin internet ni cuota) |
@@ -140,14 +140,14 @@ Valores definidos en `.env` (el código del kit no se modifica) y contrastados c
 
 | Requisito | Valor | Variable | Justificación |
 | --- | --- | --- | --- |
-| Tiempo de respuesta normal (objetivo) | ≤ 8 s | — | Medido el 22/10: Groq respondió en 0,8 s. Gemini no pudo medirse ese día (503 y sin conexión del proveedor); se completará con la comparación de prompts |
+| Tiempo de respuesta normal (objetivo) | ≤ 8 s | — | Medido con `/explicar` el 26/10: Groq 0,6 a 1,5 s; Gemini 3.6 Flash (respaldo) 2,3 a 15,0 s. Por eso Groq pasó a ser el principal (ver ADR-001) |
 | Tiempo límite por intento | 15 s | `LLM_TIMEOUT_S` | Una explicación corta no necesita más; corta la espera si el proveedor se cuelga |
 | Intentos por proveedor | 2 | `LLM_REINTENTOS` | Dos intentos por proveedor limitan los reintentos. La duración total incluye llamadas, esperas y proveedor de respaldo; no se establece un límite global. |
 | Tokens máximos de salida | 2048 | `LLM_MAX_TOKENS` | Medido el 22/10: de 95 tokens de salida, 50 fueron de razonamiento. Un tope bajo (600) podría cortar la respuesta en un modelo de razonamiento |
-| Temperatura | No aplica · razonamiento `low` | `LLM_RAZONAMIENTO` | `gemini-3.8-flash` no admite temperatura; se controla el razonamiento. `low`: la tarea es explicar un resultado ya calculado, no deducir |
+| Temperatura | No aplica · razonamiento `low` | `LLM_RAZONAMIENTO` | Gemini 3.8 Flash, el modelo elegido al inicio, no admitía temperatura; se mantiene el control por razonamiento, que aceptan Groq `gpt-oss-120b` y Gemini 3.6 Flash. `low`: la tarea es explicar un resultado ya calculado, no deducir |
 | Caracteres máximos de entrada | 2000 | `MAX_INPUT_CHARS` | Al modelo solo llega el resultado ya calculado; si se supera, 422 sin llamar al modelo |
 | Solicitudes por minuto por usuario | 4 | `RATE_LIMIT_POR_MINUTO` | Gemini permite 5 por minuto por proyecto (consultado el 19/10/2026); el backend responde su propio 429 antes de agotar el cupo |
-| Si el proveedor falla | Reintentos con espera exponencial → Groq → mensaje claro (503) | — | La explicación es una llamada separada del cálculo: el usuario ya tiene su resultado en pantalla aunque la IA no responda |
+| Si el proveedor falla | Reintentos con espera exponencial → Gemini 3.6 Flash → mensaje claro (503) | — | La explicación es una llamada separada del cálculo: el usuario ya tiene su resultado en pantalla aunque la IA no responda |
 
 ## Alcance del MVP de la semana 2
 
