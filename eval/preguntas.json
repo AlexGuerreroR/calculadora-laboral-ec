@@ -65,7 +65,7 @@
   },
   {
     "id": "P09",
-    "pregunta": "Si me dan el desahucio, ¿también me pagan la parte del décimo tercero que llevo?",
+    "pregunta": "Pedí acumular mi décimo tercero y ahora me dan el desahucio, ¿también me pagan la parte que llevo?",
     "esperado": "Art. 185; Art. 111",
     "debe_abstenerse": false,
     "tipo": "combinada",

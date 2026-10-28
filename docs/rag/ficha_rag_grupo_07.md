@@ -4,6 +4,12 @@ Integrantes: Alexander Guerrero, Bladimir Velasco, Dorian Zambrano
 Fecha: 2026-10-27
 Avance: 100 % (Fuentes, Corte, Etiquetas, Preguntas reales, Regla de silencio)
 
+> **Notas del grupo (agregadas después de exportar la ficha, 27/10/2026)**
+>
+> - **Alcance del avance:** el 100 % mide las cinco misiones de la guía de clase; no significa que el RAG esté implementado.
+> - **Fuentes pendientes:** las guías del Ministerio del Trabajo siguen sin descargar. El Código del Trabajo consultado registra reformas hasta el 12-05-2023; la vigencia de los artículos usados debe verificarse con una versión actualizada a 2026 antes de la ingesta (ver «Limitación de la fuente consultada» en `docs/04-fuentes.md`). Hasta entonces, `vigente: true` significa «vigente según esa versión, verificación pendiente».
+> - **Preguntas:** las 10 preguntas y el JSON del final son el mínimo pedido en clase. El conjunto oficial de evaluación es `eval/preguntas.csv` (20 preguntas, formato de la guía del proyecto), con su copia `eval/preguntas.json`. No reemplazar `eval/preguntas.json` con el JSON de esta ficha.
+
 ## Objetivo del RAG
 Explicar derechos laborales citando el artículo del Código del Trabajo, calcular décimos, vacaciones y liquidaciones en código, y abstenerse de dictaminar casos litigiosos.
 
