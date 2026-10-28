@@ -28,7 +28,7 @@ Si el PDF del Código no está, `scripts/ingest.py` lo descarga de la URL oficia
 | Artículos innumerados (`Art. ...-`, `Art. (...).-`) | Se identifican por el último artículo con número: «s/n tras 42 (1)» |
 | Cortar al llegar a «DISPOSICIONES …» | El texto de las disposiciones generales y transitorias no se pega al último artículo |
 
-**Resultado con el PDF real:** 690 artículos detectados: 608 vigentes y 82 derogados. Los artículos de nuestras preguntas quedan completos y con su ubicación; por ejemplo, el Art. 188 en «Capítulo X · Del desahucio y del despido». El corte se prueba sin internet en `tests/test_normativa.py`.
+**Resultado con el PDF real (28/10/2026, PyMuPDF):** 692 artículos detectados: 610 vigentes y 82 derogados. Los artículos de nuestras preguntas quedan completos y con su ubicación; por ejemplo, el Art. 188 en «Capítulo X · Del desahucio y del despido». El corte se prueba sin internet en `tests/test_normativa.py`.
 
 **Límite conocido:** el modelo de embeddings lee como máximo 512 tokens. Los artículos muy largos (el Art. 438 tiene unos 18 700 caracteres) se representan solo por su inicio; ninguno de los artículos de nuestros cálculos supera unos 2 200 caracteres.
 
@@ -62,7 +62,19 @@ Si el PDF del Código no está, `scripts/ingest.py` lo descarga de la URL oficia
 
 | Fecha | Modelo | hit@5 | Observaciones |
 | --- | --- | --- | --- |
-| (completar con la primera corrida) | multilingual-e5-small | | |
+| 28/10/2026 (línea base) | multilingual-e5-small, sin filtro de tema | **12/13 = 92 %** | Único fallo: P07 (combinada, despido + vacaciones) |
+
+### Diagnóstico de la línea base
+
+| Pregunta | Resultado | Diagnóstico |
+| --- | --- | --- |
+| P07 · «Me despidieron después de 4 años y nunca tomé vacaciones» | ✗ Esperaba Arts. 188 y 71; recuperó 75, 190, 72, 69 y 74 | **Falla de recuperación** en una pregunta combinada: la parte de vacaciones domina la dirección de la pregunta y desplaza al Art. 188 |
+| P11 · «Me botaron sin visto bueno después de 3 años» | ✓ Art. 188 en el puesto 3 | Encuentra el artículo sin compartir palabras con él; el Art. 172 (visto bueno) queda antes |
+| P12 · vacaciones no gozadas | ✓ Art. 71 en el puesto 5 | Recuperado al límite: los Arts. 72, 77, 75 y 74 (también de vacaciones) quedan antes |
+
+**Umbral de silencio.** En las preguntas que deben abstenerse (P13–P19), el mejor resultado quedó a una distancia de 0,126 a 0,186, igual o más cerca que muchas preguntas con respuesta. El modelo E5 produce distancias muy juntas, por lo que **un umbral de distancia no basta para decidir el silencio**: la abstención se decidirá en la generación (el modelo indica si los fragmentos responden la pregunta) y con la verificación de que el artículo citado esté entre los recuperados.
+
+**Mejoras previstas (jueves 29), una por una y medidas:** 1) quitar del texto que se convierte en vector las anotaciones de reforma («(Sustituido por el Art. 21 de la Ley s/n…)») y anteponer el capítulo; 2) filtrar por el alcance del producto (jornada, vacaciones, remuneración, décimos, despido) antes del top-k.
 
 ## Cómo reconstruir
 
