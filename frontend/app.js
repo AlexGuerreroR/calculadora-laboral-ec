@@ -145,3 +145,92 @@ $("btnExplicar").addEventListener("click", async () => {
     mostrarError($("errorExplicar"), e.message);
   }
 });
+
+// ---------------------------------------------------------------- 3) consulta libre (agente)
+// El usuario escribe con sus palabras. El backend decide las herramientas; aquí solo se
+// muestra lo que vuelve: texto del agente, cálculos del sistema y fuentes recuperadas.
+let sesionPendiente = null;
+const ESTADOS = {
+  ok: "RESPUESTA",
+  falta: "NECESITO UN DATO MÁS",
+  abstencion: "SIN FUENTE SUFICIENTE",
+  pendiente_confirmacion: "NECESITA SU CONFIRMACIÓN",
+  derivado: "CASO DERIVADO",
+  rechazado: "NO SE DERIVÓ",
+  tope: "CONSULTA DEMASIADO LARGA",
+};
+const NOMBRES = {
+  decimo_tercero: "Décimo tercero", decimo_cuarto: "Décimo cuarto", vacaciones: "Vacaciones",
+  horas_extra: "Horas extra", liquidacion: "Liquidación estimada",
+};
+
+$("pregunta").addEventListener("input", () => { $("contador").textContent = $("pregunta").value.length; });
+
+function mostrarCalculos(calculos) {
+  $("calculosAgente").replaceChildren(...calculos.map((c) => {
+    const caja = document.createElement("div");
+    caja.className = "calculo-agente";
+    const titulo = document.createElement("p");
+    titulo.textContent = `${NOMBRES[c.tipo] || c.tipo}: `;
+    const monto = document.createElement("strong");
+    monto.textContent = usd(c.total);
+    titulo.append(monto);
+    const lista = document.createElement("ol");
+    llenarLista(lista, c.desglose);
+    const fund = document.createElement("p");
+    fund.className = "fundamento";
+    fund.textContent = `Fundamento: ${c.fundamento}`;
+    caja.append(titulo, lista, fund);
+    return caja;
+  }));
+  $("bloqueCalculos").hidden = calculos.length === 0;
+}
+
+function mostrarFuentes(fuentes) {
+  $("fuentesAgente").replaceChildren(...fuentes.map((f) => {
+    const d = document.createElement("details");
+    d.className = "fuente";
+    const s = document.createElement("summary");
+    s.textContent = `Art. ${f.articulo}${f.capitulo ? " · " + f.capitulo : ""}`;
+    const p = document.createElement("p");
+    p.textContent = f.texto;
+    d.append(s, p);
+    return d;
+  }));
+  $("bloqueFuentes").hidden = fuentes.length === 0;
+}
+
+function mostrarRespuesta(r) {
+  $("estadoAgente").textContent = ESTADOS[r.estado] || r.estado.toUpperCase();
+  $("textoAgente").textContent = r.respuesta;
+  sesionPendiente = r.estado === "pendiente_confirmacion" ? r.sesion : null;
+  $("confirmacion").hidden = !sesionPendiente;
+  mostrarCalculos(r.calculos || []);
+  mostrarFuentes(r.fuentes || []);
+  $("avisoAgente").textContent = r.aviso;
+  $("respuestaConsulta").hidden = false;
+}
+
+$("formConsulta").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  ocultar($("errorConsulta"), $("respuestaConsulta"));
+  const pregunta = $("pregunta").value.trim();
+  if (pregunta.length < 3) return mostrarError($("errorConsulta"), "Escriba su pregunta (mínimo 3 caracteres).");
+  try {
+    mostrarRespuesta(await enviar("/consultar", { pregunta }, $("btnConsultar"), "El asistente está usando sus herramientas…"));
+  } catch (e) {
+    mostrarError($("errorConsulta"), e.message);
+  }
+});
+
+async function decidir(aprobar, boton) {
+  if (!sesionPendiente) return;
+  ocultar($("errorConsulta"));
+  try {
+    mostrarRespuesta(await enviar("/consultar/confirmar", { sesion: sesionPendiente, aprobar }, boton, "Procesando…"));
+  } catch (e) {
+    mostrarError($("errorConsulta"), e.message);
+  }
+}
+$("btnAprobar").addEventListener("click", () => decidir(true, $("btnAprobar")));
+$("btnRechazar").addEventListener("click", () => decidir(false, $("btnRechazar")));

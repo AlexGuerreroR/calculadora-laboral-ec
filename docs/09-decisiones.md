@@ -152,3 +152,43 @@ El frontend mostrará un aviso visible: que la explicación la genera una IA, qu
 **Negativas y riesgos:** Cada integrante debe configurar su `.env` y la aplicación no funciona sin él; al no guardar nada, no hay historial de consultas para auditar errores; si una clave llega a un commit hay que revocarla de inmediato y avisar al docente; el formulario solo tiene campos con formato validado para que el usuario no escriba datos personales en texto libre.
  
 ---
+
+## ADR-004: Agente con herramientas para la consulta libre
+
+- **Estado:** Propuesto (se revisa con el docente en la revisión 3)
+- **Fecha:** 2026-10-29
+- **Responsables:** Propuso: Bladimir Velasco · Revisa: pendiente
+
+### Contexto
+
+En la revisión 2 el docente pidió que el usuario pueda escribir lo que necesita con sus palabras (por ejemplo, «si me despidieron sin visto bueno y trabajé 3 años, cuánto recibo»). Un formulario por cálculo no resuelve esa pregunta: el sistema tiene que entender el caso, elegir el cálculo, pedir los datos que faltan y citar la norma. El ADR-002 dejó el agente para la semana 3 y fijó que los montos nunca los calcula el modelo. La guía de la semana 3 pide un agente con herramientas de una lista cerrada, parámetros en `config/`, confirmación humana para lo que tiene efecto fuera de la conversación y pruebas de las herramientas.
+
+### Opciones consideradas
+
+1. Agente con lista cerrada de herramientas (el modelo pide, el servidor ejecuta): ventaja: entiende texto libre y reutiliza las mismas funciones de cálculo ya probadas; el código conserva el control (lista cerrada, tope de vueltas, validación de argumentos, verificación final) / desventaja: varias llamadas al modelo por consulta (más cuota y más tiempo) y respuestas menos predecibles que un workflow.
+2. Workflow fijo «clasificar la pregunta → un solo cálculo → explicar»: ventaja: menos llamadas y más predecible / desventaja: no resuelve preguntas combinadas (P07: despido + vacaciones) ni puede pedir el dato que falta.
+3. Solo el formulario guiado: ventaja: cero cuota / desventaja: no atiende la observación del docente.
+
+### Decisión
+
+Usaremos un agente con herramientas (opción 1), sin quitar el formulario guiado: los dos conviven y usan las mismas funciones. Diseño:
+
+| Elemento | Decisión |
+| --- | --- |
+| Meta | Calcular lo que le corresponde al trabajador, explicarlo con el artículo y derivar cuando hay disputa |
+| Herramientas libres | `consultar_articulo` (RAG), `calcular_decimo_tercero`, `calcular_decimo_cuarto`, `calcular_vacaciones`, `calcular_horas_extra`, `estimar_liquidacion` |
+| Con confirmación | `derivar_al_ministerio`: el ciclo se pausa y solo se ejecuta si el usuario pulsa «Sí, derivar» (sesión de un solo uso, 15 minutos) |
+| Fuera de la lista | Dictaminar si un despido fue legal, contactar al empleador, modificar sueldos o parámetros. Si el modelo pide otra herramienta, el servidor no la ejecuta |
+| Tope | 6 vueltas (`agente.max_iteraciones`) |
+| `config/` | SBU, recargos, divisores, porcentajes, tope de vueltas, fragmentos por consulta y texto de la derivación (`config/parametros.yaml`) |
+| Argumentos | Cada herramienta valida con su esquema Pydantic antes de ejecutarse; si faltan datos, el error vuelve al modelo para que los pida («FALTA:») |
+| Verificación final (código) | Toda respuesta debe citar al menos un artículo; cada artículo citado debe estar entre los recuperados o en el fundamento de un cálculo, y cada monto debe salir de una herramienta. Si no, el sistema se abstiene |
+| Datos no confiables | La pregunta va en `<pregunta>` y cada fragmento en `<fragmento>`: son datos, nunca instrucciones |
+
+### Consecuencias
+
+**Positivas:** Atiende la observación de la revisión 2; los montos siguen saliendo del código (C08, C09 y C10 coinciden con ±0,01 USD en `tests/test_herramientas_nuevas.py`); una cita inventada o un monto calculado por el modelo se detectan y producen abstención; la derivación nunca ocurre sin el usuario; todo se prueba sin API con dobles del modelo (`tests/test_agente.py`, `tests/test_consultar.py`).
+
+**Negativas y riesgos:** Cada consulta usa entre 2 y 6 llamadas al modelo, por lo que el límite por minuto y la cuota gratuita se agotan antes; la verificación es estricta y puede abstenerse ante una respuesta correcta mal escrita (preferimos callar a inventar). El texto libre puede traer datos personales que se envían al proveedor: esto cambia lo dicho en el ADR-003 sobre «solo campos con formato», por lo que la caja de consulta pide no escribir datos personales y el registro técnico sigue sin guardar el texto del usuario. Las sesiones pendientes viven en memoria: si el servidor se reinicia, el usuario vuelve a preguntar. La liquidación es una estimación del MVP (sueldo fijo, sin días adicionales de vacaciones ni otros rubros).
+
+---

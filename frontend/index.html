@@ -16,9 +16,36 @@
     <!-- Bienvenida: alcance y aviso de IA (guía, semana 2) -->
     <details class="aviso"><summary>Antes de empezar · Alcance, privacidad y uso de IA</summary>
       <p><strong>¿Qué hace?</strong> Calcula su décimo tercero, décimo cuarto y vacaciones con las reglas del Código del Trabajo y le explica el resultado en lenguaje sencillo.</p>
-      <p><strong>¿Qué no hace?</strong> No calcula todavía horas extra ni liquidaciones, no resuelve conflictos laborales y no reemplaza a un abogado. Ante un conflicto, acuda al Ministerio del Trabajo.</p>
+      <p><strong>Consulta libre:</strong> también puede escribir su caso con sus palabras. Un asistente con IA usa las mismas herramientas de cálculo (incluye horas extra y liquidación), busca el artículo del Código del Trabajo y lo muestra como fuente. Si no encuentra una fuente, se lo dice.</p>
+      <p><strong>¿Qué no hace?</strong> No resuelve conflictos laborales ni dictamina si un despido fue legal, y no reemplaza a un abogado. Ante un conflicto, acuda al Ministerio del Trabajo.</p>
       <p><strong>Inteligencia artificial y datos:</strong> la explicación la redacta una IA a partir de un cálculo hecho por el sistema. Los datos necesarios se envían al proveedor al solicitar la explicación. No ingrese nombres, cédulas ni otros datos personales.</p>
     </details>
+
+    <!-- Consulta libre con el agente (observación de la revisión 2 · semana 3) -->
+    <section class="tarjeta consulta" aria-labelledby="tituloConsulta">
+      <h2 id="tituloConsulta">Escriba su caso <span class="insignia-ia">IA</span></h2>
+      <form id="formConsulta" novalidate>
+        <label for="pregunta">Cuéntenos qué necesita saber, sin datos personales</label>
+        <textarea id="pregunta" rows="3" maxlength="600"
+          placeholder="Ej.: Me despidieron sin visto bueno, ganaba 800 USD y trabajé del 1 de marzo de 2023 al 30 de septiembre de 2026 en la Costa. ¿Cuánto me corresponde?"></textarea>
+        <p class="ayuda"><span id="contador">0</span>/600 caracteres</p>
+        <button id="btnConsultar" type="submit">Consultar</button>
+      </form>
+      <p id="errorConsulta" class="error" role="alert" hidden></p>
+      <div id="respuestaConsulta" hidden aria-live="polite">
+        <p id="estadoAgente" class="estado-agente"></p>
+        <p id="textoAgente" class="texto-agente"></p>
+        <div id="confirmacion" class="confirmacion" hidden>
+          <button id="btnAprobar" type="button">Sí, derivar mi caso</button>
+          <button id="btnRechazar" type="button" class="boton-ia">No, gracias</button>
+        </div>
+        <div id="bloqueCalculos" hidden><h3 class="titulo-detalle">Cálculo del sistema</h3><div id="calculosAgente"></div></div>
+        <div id="bloqueFuentes" hidden><h3 class="titulo-detalle">Fuentes del Código del Trabajo</h3><div id="fuentesAgente"></div></div>
+        <p id="avisoAgente" class="aviso-ia"></p>
+      </div>
+    </section>
+
+    <p class="separador">o use el formulario guiado</p>
 
     <!-- Paso 1: elegir el cálculo -->
     <section class="seleccion">

@@ -136,7 +136,9 @@ class ClienteLLM:
                 r = cliente.chat.completions.create(model=p.modelo, messages=mensajes, **opciones)
                 ms = int((time.monotonic() - t0) * 1000)
                 contenido = (r.choices[0].message.content or "") if r.choices else ""
-                if not contenido.strip():
+                # Si el modelo pidió una herramienta, el texto viene vacío y eso es correcto.
+                pide_herramienta = bool(r.choices and getattr(r.choices[0].message, "tool_calls", None))
+                if not contenido.strip() and not pide_herramienta:
                     raise _RespuestaVacia()
                 uso = getattr(r, "usage", None)
                 _registrar(evento="ok", proveedor=p.nombre, modelo=p.modelo, intento=intento, latencia_ms=ms,
@@ -204,6 +206,16 @@ class ClienteLLM:
                 raise SalidaInvalida() from e2
         uso = getattr(r, "usage", None)
         return Resultado(datos, p.nombre, p.modelo, getattr(uso, "prompt_tokens", None),
+                         getattr(uso, "completion_tokens", None), ms, intentos)
+
+    def generar_con_herramientas(self, system: str, mensajes: list[dict], herramientas: list[dict]):
+        """Un turno del agente: el modelo responde con texto o pide herramientas (tool_calls).
+        El modelo solo PIDE; quien ejecuta la herramienta es el servidor (app/services/agent.py)."""
+        p, r, ms, intentos = self._con_respaldo(
+            [{"role": "system", "content": system}, *mensajes],
+            {"tools": herramientas, "tool_choice": "auto"})
+        uso = getattr(r, "usage", None)
+        return Resultado(r.choices[0].message, p.nombre, p.modelo, getattr(uso, "prompt_tokens", None),
                          getattr(uso, "completion_tokens", None), ms, intentos)
 
     def generar_stream(self, system: str, mensajes: list[dict]) -> Iterator[str]:
