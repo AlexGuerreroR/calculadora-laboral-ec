@@ -30,4 +30,5 @@ jobs:
           pip install "pytest-cov>=6,<8"
 
       - name: Pruebas y cobertura
-        run: pytest -q --cov=app --cov-report=term-missing
+        # Meta del plan de calidad: 80 %. Medida el 30/10: 92 % (164 pruebas).
+        run: pytest -q --cov=app --cov-report=term-missing --cov-fail-under=80
