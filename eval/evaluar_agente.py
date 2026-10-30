@@ -42,6 +42,7 @@ retriever.cargar_entorno()
 from app.services import agent  # noqa: E402
 from app.services.llm import ClienteLLM, ErrorLLM  # noqa: E402
 
+MARCA = "<!-- ANÁLISIS DEL EQUIPO: lo de abajo lo escribe el equipo y el script no lo borra -->"
 METAS = {"recuperacion": 0.85, "con_cita": 0.80, "abstencion": 1.0, "rechazo": 1.0, "exactitud": 1.0}
 NOMBRES = {"recuperacion": "Recuperación correcta (hit@5)", "con_cita": "Respuesta correcta con cita",
            "abstencion": "Abstención correcta", "rechazo": "Rechazo fuera de dominio e inyección",
@@ -211,7 +212,10 @@ def main() -> None:
         json.dumps(corrida, ensure_ascii=False, indent=2), encoding="utf-8")
     corridas = sorted((json.loads(p.read_text(encoding="utf-8")) for p in carpeta.glob("*.json")),
                       key=lambda c: (c["fecha"], c["etiqueta"]))
-    (RAIZ / "docs/07-evaluacion.md").write_text(reporte(corridas), encoding="utf-8")
+    destino = RAIZ / "docs/07-evaluacion.md"
+    previo = destino.read_text(encoding="utf-8") if destino.exists() else ""
+    manual = previo[previo.index(MARCA):] if MARCA in previo else f"{MARCA}\n\n## Análisis del equipo\n\n(completar)\n"
+    destino.write_text(reporte(corridas) + "\n" + manual, encoding="utf-8")
     print("\n" + "  ".join(f"{NOMBRES[k]}: {pct(v)}" for k, v in corrida["metricas"].items()))
     print("Detalle en eval/corridas/ y docs/07-evaluacion.md")
 
