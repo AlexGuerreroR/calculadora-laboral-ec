@@ -38,7 +38,7 @@ def _ultimo_aniversario(ingreso: date, anios: int) -> date:
 def estimar_liquidacion(entrada: EntradaLiquidacion) -> ResultadoCalculo:
     params = cargar_parametros()
     p = params["liquidacion"]
-    sueldo = dec(entrada.remuneracion_mensual)
+    sueldo = redondear(dec(entrada.remuneracion_mensual))  # a centavos: 1000 → 1000.00 en el desglose
     ingreso, salida = entrada.fecha_ingreso, entrada.fecha_salida
     anios = anios_completos(ingreso, salida + timedelta(days=1))  # el último día trabajado cuenta
     hay_fraccion = salida + timedelta(days=1) > _ultimo_aniversario(ingreso, anios)  # basta un día de más

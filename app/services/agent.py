@@ -8,7 +8,8 @@ Reglas de diseño (lo que se defiende ante el tribunal):
   1. Lista cerrada (PERMITIDAS). Si el modelo pide otra cosa, no se ejecuta.
   2. Tope de vueltas (agente.max_iteraciones en config/parametros.yaml).
   3. Confirmación humana para lo que tiene efecto fuera de la conversación
-     (REQUIEREN_OK = derivar al Ministerio): el ciclo se pausa hasta que el usuario acepte.
+     (REQUIEREN_OK = derivar al Ministerio y generar el resumen PDF): el ciclo se pausa
+     y el usuario ve qué se hará y con qué datos antes de aceptar.
   4. Cada herramienta valida sus argumentos con Pydantic ANTES de ejecutarse;
      si faltan datos, el error vuelve al modelo para que se los pida al usuario.
   5. Lo que el agente lee (pregunta, fragmentos del Código) es dato NO confiable:
@@ -39,12 +40,16 @@ from app.tools.parametros import cargar_parametros
 from app.tools.vacaciones import calcular_vacaciones
 
 log = logging.getLogger("agente")
+PROMPT_AGENTE = "agente_v2"  # v1: sin PDF ni fuera de dominio · v2: agrega generar_resumen y FUERA_DE_DOMINIO
 
 ABSTENCION = ("No encontré en el Código del Trabajo una fuente que responda su pregunta con seguridad. "
               "Puede reformularla o usar el formulario de cálculo. Si se trata de un conflicto con su "
               "empleador, acuda al Ministerio del Trabajo.")
-TOPE = ("La consulta necesitó más pasos de los permitidos. Escríbala de forma más concreta "
-        "(por ejemplo: sueldo, fecha de ingreso, fecha de salida y motivo).")
+FUERA_DE_DOMINIO = ("Solo puedo orientar sobre décimos, vacaciones, horas extra, jornada y liquidación "
+                    "según el Código del Trabajo de Ecuador. ¿Tiene una consulta sobre esos temas?")
+# Texto del ADR del taller (clase 3): presenta lo obtenido e indica qué falta.
+TOPE = ("No pude completar la consulta. Presento lo obtenido e indico qué falta para continuar: "
+        "escriba su caso con el sueldo, la fecha de ingreso, la fecha de salida y el motivo.")
 NO_PERMITIDA = "Herramienta no permitida. Use solo las herramientas de la lista."
 
 
@@ -63,6 +68,10 @@ class EntradaConsulta(Estricto):
 class EntradaDerivacion(Estricto):
     motivo: str = Field(min_length=3, max_length=300,
                         description="Por qué el caso necesita asesoría humana (conflicto, disputa, litigio)")
+
+
+class EntradaResumen(Estricto):
+    """Sin argumentos del modelo: el PDF se arma con los cálculos y fuentes que tiene el servidor."""
 
 
 # ---------------------------------------------------------------- catálogo (lista cerrada)
@@ -99,6 +108,13 @@ def _derivar(entrada: EntradaDerivacion, ctx: "Contexto") -> dict:
     return {"destino": d["destino"], "sitio": d["sitio"], "mensaje": d["mensaje"]}
 
 
+def _resumen(entrada: EntradaResumen, ctx: "Contexto") -> dict:
+    if not ctx.calculos:
+        raise ValueError("No hay un cálculo para resumir. Primero calcule el beneficio o la liquidación.")
+    ctx.resumen_listo = True  # el PDF se genera al descargarlo (app/services/resumen.py)
+    return {"listo": True, "calculos": [c["tipo"] for c in ctx.calculos]}
+
+
 HERRAMIENTAS: dict[str, Herramienta] = {
     "consultar_articulo": Herramienta(
         EntradaConsulta, _consultar,
@@ -122,6 +138,11 @@ HERRAMIENTAS: dict[str, Herramienta] = {
         EntradaDerivacion, _derivar,
         "Deriva el caso al Ministerio del Trabajo cuando hay conflicto o se pide un dictamen legal. "
         "Requiere que el usuario confirme.", "con_confirmacion"),
+    "generar_resumen": Herramienta(
+        EntradaResumen, _resumen,
+        "Genera el resumen PDF de los cálculos de esta consulta, con su fundamento y aviso. Úsala solo si "
+        "el usuario pide un resumen o PDF y ya hay un cálculo. Requiere que el usuario confirme.",
+        "con_confirmacion"),
 }
 PERMITIDAS = frozenset(HERRAMIENTAS)
 REQUIEREN_OK = frozenset(n for n, h in HERRAMIENTAS.items() if h.nivel == "con_confirmacion")
@@ -152,6 +173,9 @@ class Contexto:
     fuentes: dict[str, dict] = field(default_factory=dict)   # artículos recuperados en ESTA consulta
     calculos: list[dict] = field(default_factory=list)       # resultados de las herramientas de cálculo
     pasos: list[str] = field(default_factory=list)           # herramientas usadas, en orden
+    citados: set[str] = field(default_factory=set)           # artículos que cita la respuesta final
+    resumen_listo: bool = False                              # el usuario aprobó el PDF
+    respuesta_final: str = ""                                # texto ya verificado, para el PDF
 
 
 @dataclass
@@ -164,11 +188,13 @@ class Pendiente:
 
 @dataclass
 class RespuestaAgente:
-    estado: Literal["ok", "falta", "abstencion", "pendiente_confirmacion", "derivado", "tope", "rechazado"]
+    estado: Literal["ok", "falta", "abstencion", "fuera_de_dominio", "pendiente_confirmacion", "derivado",
+                    "resumen_listo", "tope", "rechazado"]
     respuesta: str
-    fuentes: list[dict]
+    fuentes: list[dict]          # SOLO los fragmentos recuperados que la respuesta cita
     calculos: list[dict]
     pasos: list[str]
+    recuperados: list[str] = field(default_factory=list)   # todos los artículos recuperados (para evaluar)
     pendiente: Pendiente | None = None
     proveedor: str | None = None
 
@@ -251,15 +277,40 @@ def _ejecutar(nombre: str, argumentos: str | dict, ctx: Contexto) -> dict:
 
 
 def _respuesta(estado, texto, ctx: Contexto, **extra) -> RespuestaAgente:
+    """Se muestran solo los fragmentos que la respuesta citó: «el fragmento exacto del que salió»."""
     fuentes = [{"articulo": a, "capitulo": f.get("capitulo", ""), "texto": f["texto"]}
-               for a, f in ctx.fuentes.items()]
-    return RespuestaAgente(estado, texto, fuentes, ctx.calculos, ctx.pasos, **extra)
+               for a, f in ctx.fuentes.items() if a in ctx.citados]
+    return RespuestaAgente(estado, texto, fuentes, ctx.calculos, ctx.pasos, list(ctx.fuentes), **extra)
+
+
+def fuentes_del_resumen(ctx: Contexto) -> list[dict]:
+    """Fragmentos para el PDF: los citados en la respuesta verificada; si el usuario pidió el PDF
+    antes de esa respuesta, los recuperados que coinciden con el fundamento de los cálculos."""
+    usar = ctx.citados or {a for c in ctx.calculos for a in articulos_en(c["fundamento"])}
+    return [{"articulo": a, "capitulo": f.get("capitulo", ""), "texto": f["texto"]}
+            for a, f in ctx.fuentes.items() if a in usar]
+
+
+def _pregunta_confirmacion(nombre: str, args: dict, ctx: Contexto) -> str:
+    """La confirmación muestra los argumentos reales: qué se hará, con qué datos y a quién."""
+    if nombre == "derivar_al_ministerio":
+        d = cargar_parametros()["agente"]["derivacion"]
+        motivo = str(args.get("motivo", "")).strip() or "sin motivo indicado"
+        return (f"Se le orientará a acudir al {d['destino']} ({d['sitio']}). Motivo: {motivo}. "
+                "No se envía ningún dato suyo a terceros. ¿Desea continuar?")
+    if nombre == "generar_resumen":
+        from app.services.resumen import NOMBRES
+
+        nombres = ", ".join(NOMBRES.get(c["tipo"], c["tipo"]).lower() for c in ctx.calculos)
+        return (f"Se generará un PDF con: {nombres}, su desglose, fundamento y aviso. "
+                "El archivo se descarga en su equipo; el servidor no lo guarda. ¿Desea generarlo?")
+    return f"Se ejecutará «{nombre}». ¿Desea continuar?"
 
 
 def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None) -> RespuestaAgente:
     """Corre el ciclo desde `mensajes`. Se usa al empezar y al reanudar tras una confirmación."""
     max_iter = max_iter or cargar_parametros()["agente"]["max_iteraciones"]
-    system, herramientas, proveedor = cargar_prompt("agente_v1"), definiciones(), None
+    system, herramientas, proveedor = cargar_prompt(PROMPT_AGENTE), definiciones(), None
     for _ in range(max_iter):
         r = llm.generar_con_herramientas(system, mensajes, herramientas)
         m, proveedor = r.datos, r.proveedor
@@ -267,6 +318,8 @@ def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None)
             texto = (m.content or "").strip()
             if texto.startswith("SIN_FUENTE"):
                 return _respuesta("abstencion", ABSTENCION, ctx, proveedor=proveedor)
+            if texto.startswith("FUERA_DE_DOMINIO"):
+                return _respuesta("fuera_de_dominio", FUERA_DE_DOMINIO, ctx, proveedor=proveedor)
             if texto.startswith("FALTA:"):
                 # El modelo pide un dato al usuario. No puede traer montos ni citas sin verificar.
                 if montos_en(texto) or articulos_en(texto) - set(ctx.fuentes):
@@ -276,10 +329,16 @@ def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None)
             if motivo:
                 log.info("abstención por verificación: %s", motivo)
                 return _respuesta("abstencion", ABSTENCION, ctx, proveedor=proveedor)
+            ctx.citados, ctx.respuesta_final = articulos_en(texto), texto
             return _respuesta("ok", texto, ctx, proveedor=proveedor)
 
         mensajes.append(_mensaje_asistente(m))
         for t in m.tool_calls:
+            if t.function.name == "generar_resumen" and not ctx.calculos:
+                # No se pide confirmación para algo que no se puede hacer: vuelve al modelo como error.
+                mensajes.append({"role": "tool", "tool_call_id": t.id, "content": json.dumps(
+                    {"error": "No hay un cálculo para resumir. Calcule primero."}, ensure_ascii=False)})
+                continue
             if t.function.name in REQUIEREN_OK:
                 # Se pausa: el servidor NO ejecuta hasta que el usuario confirme.
                 try:
@@ -287,8 +346,7 @@ def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None)
                 except json.JSONDecodeError:
                     args = {}
                 return _respuesta("pendiente_confirmacion",
-                                  "Su caso parece necesitar asesoría humana. ¿Desea que lo derivemos al "
-                                  "Ministerio del Trabajo?", ctx,
+                                  _pregunta_confirmacion(t.function.name, args, ctx), ctx,
                                   pendiente=Pendiente(t.id, t.function.name, args), proveedor=proveedor)
             salida = _ejecutar(t.function.name, t.function.arguments, ctx)
             mensajes.append({"role": "tool", "tool_call_id": t.id,
@@ -303,12 +361,14 @@ def iniciar(llm, pregunta: str, buscador: Callable) -> tuple[RespuestaAgente, li
 
 
 def confirmar(pendiente: Pendiente, aprobado: bool, ctx: Contexto) -> RespuestaAgente:
-    """La decisión del usuario. Si acepta, se ejecuta la derivación; si no, no se hace nada."""
+    """La decisión del usuario. Si acepta, se ejecuta la acción; si no, no se hace nada."""
     if not aprobado:
-        return _respuesta("rechazado", "No se derivó el caso. Puede seguir consultando.", ctx)
+        return _respuesta("rechazado", "No se realizó la acción. Puede seguir consultando.", ctx)
     salida = _ejecutar(pendiente.herramienta, pendiente.argumentos, ctx)
     if "error" in salida:
-        return _respuesta("abstencion", ABSTENCION, ctx)
+        return _respuesta("abstencion", salida["error"], ctx)
+    if pendiente.herramienta == "generar_resumen":
+        return _respuesta("resumen_listo", "Su resumen PDF está listo para descargar.", ctx)
     return _respuesta("derivado", f"{salida['mensaje']} Sitio oficial: {salida['sitio']}", ctx)
 
 

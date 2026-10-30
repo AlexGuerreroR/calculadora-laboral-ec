@@ -55,6 +55,22 @@ def test_confirmacion_humana_por_sesion_y_de_un_solo_uso():
     assert otra_vez.status_code == 404
 
 
+def test_resumen_pdf_se_descarga_con_la_sesion():
+    cliente = cliente_con(LLMFalso(llamada("estimar_liquidacion", C10, "c1"),
+                                   llamada("consultar_articulo", {"pregunta": "despido"}, "c2"),
+                                   texto("Su liquidación estimada es de USD 9331,84 (Art. 188). Es una orientación.")))
+    r = cliente.post("/consultar", json={"pregunta": "Me despidieron, ganaba 1000…"}).json()
+    assert r["puede_descargar"] and r["sesion"]
+    pdf = cliente.post("/consultar/resumen", json={"sesion": r["sesion"]})
+    assert pdf.status_code == 200 and pdf.headers["content-type"] == "application/pdf"
+    assert pdf.content.startswith(b"%PDF")
+
+
+def test_resumen_sin_sesion_valida_es_404():
+    r = cliente_con(LLMFalso()).post("/consultar/resumen", json={"sesion": "0" * 32})
+    assert r.status_code == 404
+
+
 def test_limite_por_minuto():
     cliente = cliente_con(LLMFalso(*[texto("SIN_FUENTE")] * 5))
     codigos = [cliente.post("/consultar", json={"pregunta": "hola hola"}).status_code for _ in range(5)]

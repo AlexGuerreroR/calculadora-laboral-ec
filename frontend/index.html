@@ -16,7 +16,7 @@
     <!-- Bienvenida: alcance y aviso de IA (guía, semana 2) -->
     <details class="aviso"><summary>Antes de empezar · Alcance, privacidad y uso de IA</summary>
       <p><strong>¿Qué hace?</strong> Calcula su décimo tercero, décimo cuarto y vacaciones con las reglas del Código del Trabajo y le explica el resultado en lenguaje sencillo.</p>
-      <p><strong>Consulta libre:</strong> también puede escribir su caso con sus palabras. Un asistente con IA usa las mismas herramientas de cálculo (incluye horas extra y liquidación), busca el artículo del Código del Trabajo y lo muestra como fuente. Si no encuentra una fuente, se lo dice.</p>
+      <p><strong>Consulta libre:</strong> también puede escribir su caso con sus palabras. Un asistente con IA usa las mismas herramientas de cálculo (incluye horas extra y liquidación), busca el artículo del Código del Trabajo y lo muestra como fuente. Si no encuentra una fuente, se lo dice. Puede descargar un resumen PDF del cálculo; el servidor no lo guarda.</p>
       <p><strong>¿Qué no hace?</strong> No resuelve conflictos laborales ni dictamina si un despido fue legal, y no reemplaza a un abogado. Ante un conflicto, acuda al Ministerio del Trabajo.</p>
       <p><strong>Inteligencia artificial y datos:</strong> la explicación la redacta una IA a partir de un cálculo hecho por el sistema. Los datos necesarios se envían al proveedor al solicitar la explicación. No ingrese nombres, cédulas ni otros datos personales.</p>
     </details>
@@ -36,9 +36,10 @@
         <p id="estadoAgente" class="estado-agente"></p>
         <p id="textoAgente" class="texto-agente"></p>
         <div id="confirmacion" class="confirmacion" hidden>
-          <button id="btnAprobar" type="button">Sí, derivar mi caso</button>
+          <button id="btnAprobar" type="button">Sí, continuar</button>
           <button id="btnRechazar" type="button" class="boton-ia">No, gracias</button>
         </div>
+        <button id="btnPdf" type="button" class="boton-ia" hidden>Descargar resumen PDF</button>
         <div id="bloqueCalculos" hidden><h3 class="titulo-detalle">Cálculo del sistema</h3><div id="calculosAgente"></div></div>
         <div id="bloqueFuentes" hidden><h3 class="titulo-detalle">Fuentes del Código del Trabajo</h3><div id="fuentesAgente"></div></div>
         <p id="avisoAgente" class="aviso-ia"></p>

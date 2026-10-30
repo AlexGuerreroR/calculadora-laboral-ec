@@ -9,8 +9,11 @@ Flujo:
   2. Límite de solicitudes por minuto (el mismo de /explicar: protege la cuota gratuita).
   3. El agente corre su ciclo (app/services/agent.py). Los montos salen de las herramientas;
      las citas se verifican contra lo recuperado.
-  4. Si el agente quiere derivar al Ministerio, la respuesta queda «pendiente_confirmacion»
-     con un id de sesión; el usuario confirma o rechaza en POST /consultar/confirmar.
+  4. Si el agente quiere derivar al Ministerio o generar el PDF, la respuesta queda
+     «pendiente_confirmacion» con un id de sesión y la descripción de lo que se hará; el usuario
+     confirma o rechaza en POST /consultar/confirmar.
+  5. Si la consulta tiene cálculos, la sesión se guarda 15 minutos para descargar el resumen PDF
+     (POST /consultar/resumen). El PDF se arma con datos del servidor, nunca del navegador.
 """
 from __future__ import annotations
 
@@ -19,12 +22,14 @@ import time
 from typing import Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from app.config import ErrorConfiguracion
 from app.routers import explicar as compartido
 from app.services import agent
 from app.services.llm import ClienteLLM, ErrorLLM
+from app.services.resumen import generar_pdf
 
 router = APIRouter(tags=["consulta libre con agente"])
 
@@ -43,6 +48,10 @@ class SolicitudConfirmar(BaseModel):
     aprobar: bool
 
 
+class SolicitudResumen(BaseModel):
+    sesion: str = Field(min_length=32, max_length=32)
+
+
 class RespuestaConsulta(BaseModel):
     estado: str
     respuesta: str
@@ -51,35 +60,50 @@ class RespuestaConsulta(BaseModel):
     pasos: list[str]
     sesion: str | None = None
     pendiente: dict | None = None
+    puede_descargar: bool = False   # hay cálculos: se ofrece el botón del resumen PDF
     aviso: str = AVISO
 
 
 # ---------------------------------------------------------------- sesiones pendientes (memoria)
 class Sesiones:
-    """Guarda SOLO las consultas que esperan confirmación, por 15 minutos.
-    En memoria: si el servidor se reinicia, el usuario vuelve a preguntar (aceptable en el MVP)."""
+    """Guarda por 15 minutos las consultas que esperan confirmación o que tienen cálculos
+    (para el PDF). En memoria: si el servidor se reinicia, el usuario vuelve a preguntar.
+    El navegador solo recibe el id; el historial y los cálculos nunca salen del servidor."""
 
     def __init__(self):
-        self._datos: dict[str, tuple[float, agent.Pendiente, agent.Contexto]] = {}
+        self._datos: dict[str, list] = {}   # clave → [hora, pendiente | None, ctx]
         self._candado = threading.Lock()
 
-    def guardar(self, pendiente: agent.Pendiente, ctx: agent.Contexto) -> str:
+    def guardar(self, pendiente: agent.Pendiente | None, ctx: agent.Contexto, clave: str | None = None) -> str:
         with self._candado:
             ahora = time.monotonic()
             self._datos = {k: v for k, v in self._datos.items() if ahora - v[0] < SESION_TTL_S}
             if len(self._datos) >= MAX_SESIONES:
                 self._datos.pop(next(iter(self._datos)))
-            clave = agent.nueva_sesion()
-            self._datos[clave] = (ahora, pendiente, ctx)
+            clave = clave or agent.nueva_sesion()
+            self._datos[clave] = [ahora, pendiente, ctx]
             return clave
 
-    def tomar(self, clave: str):
-        """Se usa una sola vez: confirmar dos veces la misma acción no la repite."""
-        with self._candado:
-            v = self._datos.pop(clave, None)
+    def _vigente(self, clave: str):
+        v = self._datos.get(clave)
         if v is None or time.monotonic() - v[0] >= SESION_TTL_S:
+            self._datos.pop(clave, None)
             return None
-        return v[1], v[2]
+        return v
+
+    def tomar_pendiente(self, clave: str):
+        """La acción pendiente se usa una sola vez: confirmar dos veces no la repite."""
+        with self._candado:
+            v = self._vigente(clave)
+            if v is None or v[1] is None:
+                return None
+            pendiente, v[1] = v[1], None
+            return pendiente, v[2]
+
+    def contexto(self, clave: str) -> agent.Contexto | None:
+        with self._candado:
+            v = self._vigente(clave)
+            return v[2] if v else None
 
 
 sesiones = Sesiones()
@@ -96,7 +120,8 @@ def _salida(r: agent.RespuestaAgente, sesion: str | None = None) -> RespuestaCon
     pendiente = ({"herramienta": r.pendiente.herramienta, "argumentos": r.pendiente.argumentos}
                  if r.pendiente else None)
     return RespuestaConsulta(estado=r.estado, respuesta=r.respuesta, fuentes=r.fuentes, calculos=r.calculos,
-                             pasos=r.pasos, sesion=sesion, pendiente=pendiente)
+                             pasos=r.pasos, sesion=sesion, pendiente=pendiente,
+                             puede_descargar=bool(sesion and r.calculos and r.estado in ("ok", "resumen_listo")))
 
 
 @router.post(
@@ -123,15 +148,30 @@ def consultar(solicitud: SolicitudConsulta, request: Request,
         raise HTTPException(503, e.mensaje_usuario, headers={"Retry-After": "60"})
     except agent.BaseNoDisponible:
         raise HTTPException(503, "La base de normativa no está disponible. Puede usar el formulario de cálculo.")
-    sesion = sesiones.guardar(r.pendiente, ctx) if r.estado == "pendiente_confirmacion" else None
+    guardar = r.estado == "pendiente_confirmacion" or (r.estado == "ok" and r.calculos)
+    sesion = sesiones.guardar(r.pendiente, ctx) if guardar else None
     return _salida(r, sesion)
 
 
 @router.post("/consultar/confirmar", response_model=RespuestaConsulta,
              responses={404: {"description": "La sesión no existe, ya se usó o expiró"}})
 def confirmar(solicitud: SolicitudConfirmar):
-    guardado = sesiones.tomar(solicitud.sesion)
+    guardado = sesiones.tomar_pendiente(solicitud.sesion)
     if guardado is None:
         raise HTTPException(404, "La consulta ya no está disponible. Vuelva a escribir su pregunta.")
     pendiente, ctx = guardado
-    return _salida(agent.confirmar(pendiente, solicitud.aprobar, ctx))
+    r = agent.confirmar(pendiente, solicitud.aprobar, ctx)
+    return _salida(r, solicitud.sesion if r.calculos else None)
+
+
+@router.post("/consultar/resumen", response_class=Response,
+             responses={200: {"content": {"application/pdf": {}}, "description": "Resumen PDF"},
+                        404: {"description": "La sesión no existe, expiró o no tiene cálculos"}})
+def resumen(solicitud: SolicitudResumen):
+    """Descarga el PDF. Pulsar «Descargar resumen PDF» es la confirmación del usuario."""
+    ctx = sesiones.contexto(solicitud.sesion)
+    if ctx is None or not ctx.calculos:
+        raise HTTPException(404, "No hay un cálculo disponible para el resumen. Vuelva a consultar.")
+    pdf = generar_pdf(ctx.calculos, agent.fuentes_del_resumen(ctx), ctx.respuesta_final)
+    return Response(pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": 'attachment; filename="resumen-calculadora-laboral.pdf"'})

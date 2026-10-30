@@ -11,7 +11,7 @@ from app.tools.parametros import cargar_parametros, dec, redondear
 
 def calcular_horas_extra(entrada: EntradaHorasExtra) -> ResultadoCalculo:
     p = cargar_parametros()["horas"]
-    sueldo = dec(entrada.remuneracion_mensual)
+    sueldo = redondear(dec(entrada.remuneracion_mensual))  # a centavos: 1000 → 1000.00 en el desglose
     hora = sueldo / dec(p["divisor_hora_ordinaria"])
     factor_s = dec(1) + dec(p["recargo_suplementaria"])
     factor_e = dec(1) + dec(p["recargo_extraordinaria"])

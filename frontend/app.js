@@ -150,13 +150,16 @@ $("btnExplicar").addEventListener("click", async () => {
 // El usuario escribe con sus palabras. El backend decide las herramientas; aquí solo se
 // muestra lo que vuelve: texto del agente, cálculos del sistema y fuentes recuperadas.
 let sesionPendiente = null;
+let sesionResumen = null;
 const ESTADOS = {
   ok: "RESPUESTA",
   falta: "NECESITO UN DATO MÁS",
   abstencion: "SIN FUENTE SUFICIENTE",
+  fuera_de_dominio: "FUERA DEL ALCANCE",
+  resumen_listo: "RESUMEN LISTO",
   pendiente_confirmacion: "NECESITA SU CONFIRMACIÓN",
   derivado: "CASO DERIVADO",
-  rechazado: "NO SE DERIVÓ",
+  rechazado: "ACCIÓN CANCELADA",
   tope: "CONSULTA DEMASIADO LARGA",
 };
 const NOMBRES = {
@@ -205,6 +208,13 @@ function mostrarRespuesta(r) {
   $("textoAgente").textContent = r.respuesta;
   sesionPendiente = r.estado === "pendiente_confirmacion" ? r.sesion : null;
   $("confirmacion").hidden = !sesionPendiente;
+  // El texto de la confirmación (qué se hará y con qué datos) lo arma el servidor.
+  if (sesionPendiente) {
+    $("btnAprobar").textContent = r.pendiente && r.pendiente.herramienta === "generar_resumen"
+      ? "Sí, generar el PDF" : "Sí, derivar mi caso";
+  }
+  sesionResumen = r.puede_descargar ? r.sesion : null;
+  $("btnPdf").hidden = !sesionResumen;
   mostrarCalculos(r.calculos || []);
   mostrarFuentes(r.fuentes || []);
   $("avisoAgente").textContent = r.aviso;
@@ -227,10 +237,39 @@ async function decidir(aprobar, boton) {
   if (!sesionPendiente) return;
   ocultar($("errorConsulta"));
   try {
-    mostrarRespuesta(await enviar("/consultar/confirmar", { sesion: sesionPendiente, aprobar }, boton, "Procesando…"));
+    const r = await enviar("/consultar/confirmar", { sesion: sesionPendiente, aprobar }, boton, "Procesando…");
+    mostrarRespuesta(r);
+    if (r.estado === "resumen_listo") await descargarPdf();
   } catch (e) {
     mostrarError($("errorConsulta"), e.message);
   }
 }
+
+// El PDF lo arma el servidor con sus propios datos; el navegador solo envía el id de la sesión.
+async function descargarPdf() {
+  if (!sesionResumen) return;
+  const boton = $("btnPdf"), original = boton.textContent;
+  boton.disabled = true;
+  boton.textContent = "Generando PDF…";
+  try {
+    const r = await fetch("/consultar/resumen", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sesion: sesionResumen }),
+    });
+    if (!r.ok) throw new Error(await mensajeDeError(r));
+    const url = URL.createObjectURL(await r.blob());
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "resumen-calculadora-laboral.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    mostrarError($("errorConsulta"), e instanceof TypeError ? "No se pudo conectar con el servidor." : e.message);
+  } finally {
+    boton.disabled = false;
+    boton.textContent = original;
+  }
+}
+$("btnPdf").addEventListener("click", descargarPdf);
 $("btnAprobar").addEventListener("click", () => decidir(true, $("btnAprobar")));
 $("btnRechazar").addEventListener("click", () => decidir(false, $("btnRechazar")));

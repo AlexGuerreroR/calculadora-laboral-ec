@@ -74,7 +74,8 @@ textarea { width:100%; margin-top:7px; padding:12px 14px; background:#fafcfb; bo
 .separador { text-align:center; color:var(--suave); font-size:15px; margin:18px 0 24px; }
 .estado-agente { font-size:14px; font-weight:650; color:var(--primario); margin:22px 0 6px; letter-spacing:.5px; }
 .texto-agente { font-size:19px; line-height:1.8; margin:0 0 12px; white-space:pre-line; }
-.confirmacion { display:flex; gap:12px; }
+.confirmacion { display:flex; gap:12px; margin-bottom:22px; }
+#btnPdf { margin:4px 0 22px; }
 .confirmacion button { margin-top:8px; }
 .calculo-agente { border:1px solid var(--borde); border-radius:12px; padding:14px 18px; margin-bottom:12px; }
 .calculo-agente strong { font-size:22px; }
