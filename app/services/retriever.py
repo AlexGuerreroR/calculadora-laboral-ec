@@ -25,6 +25,15 @@ _RAIZ = Path(__file__).resolve().parents[2]
 _CITA = re.compile(r"\b(?:art(?:[íi]culo)?\.?)\s*(\d+(?:\.\d+)?)", re.IGNORECASE)
 
 
+def cargar_entorno(ruta: Path | None = None) -> None:
+    """Lee el .env de la raíz del proyecto. La usan los scripts (ingest.py, run_eval.py), que no
+    pasan por app/config.py: sin esto, ignorarían EMBEDDING_MODEL y CHROMA_PATH del .env y
+    usarían los valores por defecto. Una variable ya definida en la terminal tiene prioridad."""
+    from dotenv import load_dotenv
+
+    load_dotenv(ruta or _RAIZ / ".env", override=False)
+
+
 def modelo_embeddings() -> str:
     return os.getenv("EMBEDDING_MODEL", "").strip() or MODELO_POR_DEFECTO
 

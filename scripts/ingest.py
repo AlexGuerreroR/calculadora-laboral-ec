@@ -18,6 +18,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 
 from app.services import retriever  # noqa: E402
+
+retriever.cargar_entorno()  # respeta EMBEDDING_MODEL y CHROMA_PATH del .env
 from app.services.normativa import cortar  # noqa: E402
 
 PDF = RAIZ / "data/raw/CODIGO_DEL_TRABAJO.pdf"

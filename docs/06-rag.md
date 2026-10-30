@@ -58,7 +58,7 @@ Si el PDF del Código no está, `scripts/ingest.py` lo descarga de la URL oficia
 
 ## 5. Medición
 
-`eval/run_eval.py` mide la **recuperación correcta (hit@5)** con las 20 preguntas de `eval/preguntas.csv` y guarda el detalle en `eval/resultados_recuperacion.json`. Objetivo de la guía: ≥ 85 %. También registra la distancia del mejor resultado en las preguntas que deben abstenerse, para fijar el umbral de silencio.
+`eval/run_eval.py` mide la **recuperación correcta (hit@5)** con las 20 preguntas de `eval/preguntas.csv` y guarda el detalle en `eval/resultados_recuperacion.json`. Objetivo de la guía: ≥ 85 %. Esta cifra mide solo la recuperación: todavía no mide si la respuesta final es correcta, si cita bien ni si resiste una inyección; esas métricas van en `docs/07-evaluacion.md`. También registra la distancia del mejor resultado en las preguntas que deben abstenerse, para fijar el umbral de silencio.
 
 | Fecha | Modelo | hit@5 | Observaciones |
 | --- | --- | --- | --- |
@@ -85,3 +85,5 @@ py eval/run_eval.py
 ```
 
 La primera vez se descarga el modelo de embeddings (unos 470 MB). Hay que volver a correr `ingest.py` si cambia el PDF o el modelo.
+
+Los dos scripts leen `EMBEDDING_MODEL` y `CHROMA_PATH` del `.env` (`retriever.cargar_entorno()`), igual que el servidor. Así se indexa y se busca con el mismo modelo y en la misma carpeta. Una variable definida en la terminal tiene prioridad sobre el `.env`.

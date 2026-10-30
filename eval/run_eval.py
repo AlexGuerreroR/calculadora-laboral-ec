@@ -22,6 +22,8 @@ sys.path.insert(0, str(RAIZ))
 
 from app.services import retriever  # noqa: E402
 
+retriever.cargar_entorno()  # respeta EMBEDDING_MODEL y CHROMA_PATH del .env
+
 K = 5
 
 
