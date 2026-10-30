@@ -1,0 +1,11 @@
+id,concepto,herramienta,entradas,total_esperado,dias_esperados,fuente
+C01,Décimo tercero completo,calcular_decimo_tercero,"{""remuneraciones"": [600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600]}",600.00,,"Código del Trabajo, Art. 111"
+C02,Décimo tercero proporcional,calcular_decimo_tercero,"{""remuneraciones"": [500, 500, 500, 500, 500, 500]}",250.00,,"Código del Trabajo, Art. 111"
+C03,Décimo tercero variable,calcular_decimo_tercero,"{""remuneraciones"": [700, 700, 700, 700, 700, 700, 700, 700, 700, 850, 850, 850]}",737.50,,"Código del Trabajo, Art. 111"
+C04,Décimo cuarto Sierra,calcular_decimo_cuarto,"{""meses_trabajados"": 12, ""region"": ""sierra_amazonia""}",482.00,,"Código del Trabajo, Art. 113"
+C05,Décimo cuarto Costa,calcular_decimo_cuarto,"{""meses_trabajados"": 6, ""region"": ""costa_galapagos""}",241.00,,"Código del Trabajo, Art. 113"
+C06,Vacaciones un año,calcular_vacaciones,"{""remuneracion_mensual"": 600, ""fecha_ingreso"": ""2025-10-01"", ""fecha_corte"": ""2026-10-01""}",300.00,15,"Código del Trabajo, Arts. 69 y 71"
+C07,Vacaciones con antigüedad,calcular_vacaciones,"{""remuneracion_mensual"": 900, ""fecha_ingreso"": ""2019-03-01"", ""fecha_corte"": ""2026-03-01""}",510.00,17,"Código del Trabajo, Arts. 69 y 71"
+C08,Horas suplementarias y extraordinarias,calcular_horas_extra,"{""remuneracion_mensual"": 800, ""horas_suplementarias"": 10, ""horas_extraordinarias"": 4}",76.67,,"Código del Trabajo, Art. 55"
+C09,Renuncia con desahucio,estimar_liquidacion,"{""remuneracion_mensual"": 700, ""fecha_ingreso"": ""2024-06-01"", ""fecha_salida"": ""2026-09-30"", ""motivo"": ""desahucio"", ""region"": ""sierra_amazonia""}",1130.33,,"Código del Trabajo, Arts. 71, 111, 113 y 185"
+C10,Despido intempestivo,estimar_liquidacion,"{""remuneracion_mensual"": 1000, ""fecha_ingreso"": ""2020-08-01"", ""fecha_salida"": ""2026-08-31"", ""motivo"": ""despido_intempestivo"", ""region"": ""sierra_amazonia""}",9331.84,,"Código del Trabajo, Arts. 71, 111, 113, 185 y 188"
