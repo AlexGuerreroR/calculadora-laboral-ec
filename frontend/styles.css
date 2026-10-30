@@ -67,3 +67,33 @@ footer { font-size:14px; }
   #textoExplicacion { font-size:18px; }
   .opciones label { min-height:84px; }
 }
+
+/* Consulta libre con el agente */
+.consulta { margin-bottom:12px; }
+textarea { width:100%; margin-top:7px; padding:12px 14px; background:#fafcfb; border:1px solid #cfdcd4; border-radius:9px; color:var(--texto); font:inherit; font-size:18px; resize:vertical; }
+.separador { text-align:center; color:var(--suave); font-size:15px; margin:18px 0 24px; }
+.estado-agente { font-size:14px; font-weight:650; color:var(--primario); margin:22px 0 6px; letter-spacing:.5px; }
+.texto-agente { font-size:19px; line-height:1.8; margin:0 0 12px; white-space:pre-line; }
+.confirmacion { display:flex; gap:12px; margin-bottom:22px; }
+#btnPdf { margin:4px 0 22px; }
+.confirmacion button { margin-top:8px; }
+.calculo-agente { border:1px solid var(--borde); border-radius:12px; padding:14px 18px; margin-bottom:12px; }
+.calculo-agente strong { font-size:22px; }
+details.fuente { border:1px solid var(--borde); border-radius:10px; padding:10px 14px; margin-bottom:8px; background:#fafcfb; font-size:16px; }
+details.fuente summary { cursor:pointer; font-weight:650; }
+details.fuente p { white-space:pre-line; font-size:15px; color:#3d554d; }
+
+/* Conversación de seguimiento */
+.historial { list-style:none; padding:0; margin:0 0 8px; }
+.historial li { border-left:3px solid var(--borde); padding:6px 0 6px 14px; margin-bottom:10px; font-size:16px; color:#3d554d; white-space:pre-line; }
+.historial .quien { display:block; font-size:12px; font-weight:700; letter-spacing:.5px; color:var(--suave); }
+.pregunta-actual { font-size:16px; color:var(--suave); margin:0 0 4px; }
+.acciones-consulta { display:flex; gap:12px; }
+.acciones-consulta button { margin-top:12px; }
+#btnNueva { flex:0 0 220px; }
+@media(max-width:600px){ .acciones-consulta { flex-direction:column; gap:0; } #btnNueva { flex:auto; } }
+
+/* Cinco opciones de cálculo y casilla */
+.opciones { grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); }
+label.casilla { display:flex; align-items:center; gap:10px; font-weight:500; }
+label.casilla input { width:20px; height:20px; accent-color:var(--primario); }

@@ -152,3 +152,70 @@ El frontend mostrará un aviso visible: que la explicación la genera una IA, qu
 **Negativas y riesgos:** Cada integrante debe configurar su `.env` y la aplicación no funciona sin él; al no guardar nada, no hay historial de consultas para auditar errores; si una clave llega a un commit hay que revocarla de inmediato y avisar al docente; el formulario solo tiene campos con formato validado para que el usuario no escriba datos personales en texto libre.
  
 ---
+
+## ADR-004: Agente de alcance controlado
+
+- **Estado:** Propuesto (se revisa con el docente en la revisión 3)
+- **Fecha:** 2026-10-29
+- **Responsables:** Diseño: Alexander Guerrero (taller de la clase 3, 28/10) · Implementación: Bladimir Velasco · Revisa: pendiente
+
+### Contexto
+
+En la revisión 2 el docente pidió que el usuario pueda escribir su caso con sus palabras (por ejemplo, «si me despidieron sin visto bueno y trabajé 3 años, ¿cuánto recibo?»). Un formulario por cálculo no resuelve esa pregunta: el sistema tiene que entender el caso, elegir el cálculo, pedir los datos que faltan y citar la norma. La guía de la semana 3 pide un agente con las herramientas del caso, cada una con esquema Pydantic, implementación determinista y pruebas; límite de iteraciones; rechazo fuera de dominio; parámetros en `config/` y confirmación humana antes de cualquier acción con efectos («registrar, enviar, derivar»). El caso 07 exige que los montos coincidan al 100 % con el cálculo manual (±0,01 USD), que los casos litigiosos se deriven al Ministerio del Trabajo y que se pueda generar un resumen PDF.
+
+Un agente da vueltas pidiendo funciones: cada vuelta es una llamada que se paga, el modelo puede inventar nombres de funciones o argumentos, y todo lo que lee (el texto del usuario, los documentos del RAG y los resultados de las herramientas) es entrada no confiable (OWASP Top 10 for Agentic Applications 2026: ASI01 secuestro del objetivo, ASI02 mal uso de herramientas).
+
+### Opciones consideradas
+
+1. Agente con lista cerrada, tope de vueltas y confirmación humana, que reutiliza las funciones de `app/tools/`: ventaja: el alcance lo fija el código y no el prompt; los montos salen de las mismas funciones probadas del formulario / desventaja: más llamadas al modelo que el flujo fijo (de 2 a 6 por consulta) y más pruebas que mantener.
+2. Agente sin límites (cualquier función, sin tope): ventaja: más flexible / desventaja: costo impredecible, puede repetir efectos y un texto malicioso podría pedir acciones prohibidas.
+3. Solo el formulario guiado (workflow del ADR-002): ventaja: cero cuota adicional / desventaja: no atiende la observación de la revisión 2 ni responde preguntas combinadas (P07).
+
+### Decisión
+
+Usaremos la opción 1, sin quitar el formulario guiado: los dos conviven y usan las mismas funciones.
+
+- **Meta:** explicar los beneficios y la liquidación con su fundamento en el Código del Trabajo. Los montos los calcula el código; el modelo pide las herramientas y explica. No emite dictámenes jurídicos.
+- **Termina cuando:** el usuario recibe la explicación con su artículo, se le pide un dato que falta, se le informa que no hay respaldo suficiente o su caso queda derivado.
+- **Usuario:** trabajadores y empleadores en Ecuador que desean comprender sus cálculos laborales.
+
+| Herramienta | Qué hace | Nivel | Por qué |
+| --- | --- | --- | --- |
+| `consultar_articulo` | Busca en el Código del Trabajo (RAG, ChromaDB) y devuelve los artículos vigentes más cercanos | Libre | Solo lee. Es el «respaldo normativo» que el taller llamó `explicar_resultado`: la explicación la redacta el agente en su respuesta final, sin una herramienta que vuelva a llamar al modelo |
+| `calcular_decimo_tercero` | Art. 111 | Libre | Solo calcula; misma función que `/calculos`. El taller la nombró `calcular_decimos`; se separó en dos porque cada décimo pide datos distintos |
+| `calcular_decimo_cuarto` | Art. 113 | Libre | Solo calcula |
+| `calcular_vacaciones` | Arts. 69 y 71 | Libre | Solo calcula |
+| `calcular_horas_extra` | Art. 55 (caso de referencia C08) | Libre | Solo calcula |
+| `estimar_liquidacion` | Arts. 71, 111, 113, 185 y 188 (casos C09 y C10) | Libre | Solo genera una estimación |
+| `generar_resumen` | Arma el PDF del cálculo con su fundamento y aviso | Con confirmación | Lo pide el caso; se genera solo si el usuario lo aprueba (decisión del taller) |
+| `derivar_al_ministerio` | Orienta el caso al Ministerio del Trabajo | Con confirmación | La guía pide confirmación para «derivar»; no envía datos a terceros (ADR-003) |
+| `realizar_pago`, `modificar_sueldo`, contactar al empleador, dictaminar si un despido fue legal | — | Fuera de la lista | Mueven dinero, cambian datos o son asesoría legal: los hace una persona |
+
+- **`PERMITIDAS`, `REQUIEREN_OK` y el tope viven en el código** (`app/services/agent.py`) y en `config/parametros.yaml` (`agente.max_iteraciones: 6`), nunca en el prompt.
+- **Al llegar al tope (6 vueltas)** el agente responde: «No pude completar la consulta. Presento lo obtenido e indico qué falta para continuar…», y muestra los cálculos ya hechos.
+- **Argumentos del modelo:** se validan con el esquema Pydantic de cada herramienta antes de ejecutar; si faltan datos, el error vuelve al modelo y éste los pide al usuario («FALTA:»).
+- **Confirmación:** muestra los argumentos reales (qué se hará, con qué datos y a quién). La conversación pausada queda en memoria del servidor; el navegador solo recibe un identificador de un solo uso (15 minutos), nunca el historial.
+- **Verificación final en código:** toda respuesta debe citar al menos un artículo; cada artículo citado debe estar entre los recuperados o en el fundamento de un cálculo, y cada monto debe salir de una herramienta. Si no, el sistema se abstiene. La interfaz muestra solo los fragmentos citados.
+- **Buscar primero (código, no modelo):** antes de la primera llamada, el servidor recupera los 5 artículos más cercanos a la pregunta y se los entrega al modelo como datos. Lo decidió la evaluación del 29/10: en la línea base el modelo respondía «FALTA:» sin buscar en 9 de sus 10 fallos (ver `docs/07-evaluacion.md`).
+- **Conversación de seguimiento (revisión del equipo, 29/10):** ante «me despidieron, trabajé 7 años» el agente se abstenía. Ahora explica la regla con su artículo y pregunta, numerado, solo lo que falta (sueldo, fechas, motivo, región); el usuario responde en la misma caja y el agente recuerda lo ya dicho. El historial vive en el servidor (el navegador solo tiene el id de la sesión), con tope de 6 mensajes por conversación (`agente.max_turnos`). Un artículo citado que la búsqueda no trajo se busca por su número exacto: si existe en el Código queda como fuente; si no existe, el sistema se abstiene.
+- **Fuera de dominio e inyección:** el prompt (`app/prompts/agente_v4.md`) responde «FUERA_DE_DOMINIO» y el sistema muestra un rechazo cortés. La pregunta va en `<pregunta>` y cada fragmento en `<fragmento>`: son datos, nunca instrucciones.
+- **Parámetros en `config/parametros.yaml`:** salario básico unificado, divisores, recargos, porcentajes de la liquidación, tope de vueltas, fragmentos por consulta y texto de la derivación.
+
+### Pruebas (simulador del taller y `pytest`)
+
+| Escenario del taller | Resultado en el simulador (28/10) | Prueba automática |
+| --- | --- | --- |
+| A · Camino feliz | ✔ 3 vueltas | `test_calcula_con_la_herramienta_y_cita_lo_recuperado` |
+| B · Fuera de alcance | ✔ 2 vueltas | `test_fuera_de_dominio_tiene_su_propio_mensaje`, `test_herramienta_fuera_de_la_lista_no_se_ejecuta` |
+| C · El tope | ✔ 6 vueltas | `test_tope_de_iteraciones` |
+| D · Inyección en un documento | ✔ 3 vueltas: la confirmación permitió rechazar | `test_inyeccion_en_un_fragmento_no_da_permisos` |
+
+Las pruebas usan un doble del modelo (`tests/test_agente.py`, `tests/test_consultar.py`): no gastan cuota. La evidencia con el modelo real va en `docs/evidencias/semana-3/`.
+
+### Consecuencias
+
+**Positivas:** atiende la observación de la revisión 2; un texto malicioso no puede crear funciones ni cambiar el tope; el agente y el formulario dan el mismo monto (C08, C09 y C10 coinciden con ±0,01 USD); una cita inventada o un monto calculado por el modelo se detectan y producen abstención; nada con efecto ocurre sin el usuario; el costo por consulta tiene techo (6 llamadas).
+
+**Negativas y riesgos:** cada consulta usa de 2 a 6 llamadas, por lo que la cuota gratuita se agota antes; la verificación es estricta y puede abstenerse ante una respuesta correcta mal escrita (preferimos callar a inventar); el texto libre puede traer datos personales que se envían al proveedor, lo que cambia lo dicho en el ADR-003 sobre «solo campos con formato»: la caja pide no escribirlos y el registro técnico no guarda el texto; las sesiones viven en memoria y se pierden si el servidor se reinicia; la liquidación es una estimación del MVP (sueldo fijo, sin días adicionales de vacaciones ni otros rubros).
+
+---

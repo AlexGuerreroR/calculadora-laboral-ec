@@ -62,6 +62,21 @@ liquidacion:
   despido_minimo_remuneraciones: 3
   despido_tope_remuneraciones: 25
   fuente: "Código del Trabajo, arts. 184, 185 y 188"
+  fuente_estimacion: "Código del Trabajo, arts. 71, 111, 113, 185 y 188"   # liquidación completa: incluye vacaciones y décimos pendientes
   fecha_verificacion: "2026-10-19"
   observacion: "Desahucio solo cuando legalmente corresponda. Despido: tres remuneraciones hasta tres años; después, una por año, contando la fracción como año completo, con tope de 25."
   verificado: true
+
+# Agente (semana 3, ADR-004). Límites del ciclo y texto de la derivación.
+agente:
+  max_iteraciones: 6          # tope de vueltas modelo → herramienta → modelo
+  max_turnos: 6               # mensajes del usuario por conversación (seguimiento con preguntas)
+  fragmentos_por_consulta: 5  # igual al k del hit@5 (con 4 se perdía el Art. 71 de la P12)
+  max_caracteres_fragmento: 900   # menos tokens por llamada: el límite por minuto de Groq (prueba en vivo 29/10)
+  derivacion:
+    destino: "Ministerio del Trabajo"
+    sitio: "https://www.trabajo.gob.ec"
+    mensaje: >-
+      Su caso necesita revisión de una persona. Acuda al Ministerio del Trabajo
+      con su contrato, roles de pago y la carta o comunicación de terminación.
+      Esta aplicación da una orientación y no reemplaza la asesoría legal.

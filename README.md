@@ -80,8 +80,10 @@ python scripts/demo_429.py         # demostración del manejo del error 429 (pro
 python scripts/comparar_prompts.py # compara system_v1, v2 y v3 → docs/05-prompts.md
 ```
 
+- **Integración continua:** [.github/workflows/ci.yml](.github/workflows/ci.yml) corre todas las pruebas con cobertura en cada pull request y en cada push a `main` (GitHub Actions, sin claves). Localmente: `pip install pytest-cov` y `pytest -q --cov=app --cov-report=term-missing`.
+- Evaluación con el modelo real (semana 3): `py eval/run_eval.py` y `py eval/evaluar_agente.py --etiqueta <nombre>` → [docs/07-evaluacion.md](docs/07-evaluacion.md).
 - Comparación de prompts: [docs/05-prompts.md](docs/05-prompts.md).
-- Evidencias de la semana: [docs/evidencias/semana-2/](docs/evidencias/semana-2/).
+- Evidencias: [docs/evidencias/](docs/evidencias/).
 
 ## Base de conocimiento
 

@@ -65,11 +65,49 @@ class EntradaVacaciones(Estricto):
         return self
 
 
+class EntradaHorasExtra(Estricto):
+    """Horas trabajadas sobre la jornada de 8 horas en el mes (Art. 55)."""
+    remuneracion_mensual: float = Field(gt=0, le=SUELDO_MAXIMO, description="Sueldo mensual en USD")
+    horas_suplementarias: float = Field(
+        default=0, ge=0, le=48,
+        description="Horas extra del día o hasta las 24h00 (recargo 50 %). Máximo 12 por semana: 48 al mes")
+    horas_extraordinarias: float = Field(
+        default=0, ge=0, le=200,
+        description="Horas entre las 24h00 y las 06h00, o en sábado o domingo (recargo 100 %)")
+
+    @model_validator(mode="after")
+    def alguna_hora(self) -> "EntradaHorasExtra":
+        if self.horas_suplementarias == 0 and self.horas_extraordinarias == 0:
+            raise ValueError("indique al menos una hora suplementaria o extraordinaria")
+        return self
+
+
+class EntradaLiquidacion(Estricto):
+    """Datos para estimar la liquidación al terminar la relación laboral."""
+    remuneracion_mensual: float = Field(gt=0, le=SUELDO_MAXIMO, description="Último sueldo mensual en USD")
+    fecha_ingreso: date = Field(description="Fecha en que empezó a trabajar")
+    fecha_salida: date = Field(description="Último día de trabajo")
+    motivo: Literal["despido_intempestivo", "desahucio", "acuerdo_partes"] = Field(
+        description="despido_intempestivo: lo despidieron sin causa legal; desahucio: aviso escrito "
+                    "de terminar el contrato (incluye la renuncia con aviso); acuerdo_partes: terminación de mutuo acuerdo")
+    region: Literal["costa_galapagos", "sierra_amazonia"] = Field(description="Región para el décimo cuarto")
+    decimos_mensualizados: bool = Field(
+        default=False, description="true si recibía los décimos cada mes; entonces no hay décimos pendientes")
+
+    @model_validator(mode="after")
+    def fechas_coherentes(self) -> "EntradaLiquidacion":
+        if self.fecha_ingreso >= self.fecha_salida:
+            raise ValueError("la fecha de salida debe ser posterior a la de ingreso")
+        if self.fecha_salida > date.today():
+            raise ValueError("la fecha de salida no puede estar en el futuro")
+        return self
+
+
 # ======================================================================
 # 2. RESULTADO de un cálculo (lo produce el código)
 # ======================================================================
 class ResultadoCalculo(Estricto):
-    tipo: Literal["decimo_tercero", "decimo_cuarto", "vacaciones"]
+    tipo: Literal["decimo_tercero", "decimo_cuarto", "vacaciones", "horas_extra", "liquidacion"]
     entradas: dict
     desglose: list[str]
     total: float

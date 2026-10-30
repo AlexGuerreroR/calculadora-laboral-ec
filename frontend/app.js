@@ -94,6 +94,22 @@ function armarSolicitud() {
     if (!Number.isInteger(meses) || meses < 1 || meses > 12) throw new Error("Los meses deben ser un número entero de 1 a 12.");
     return ["/calculos/decimos", { tipo, meses_trabajados: meses, region: $("region").value }];
   }
+  if (tipo === "liquidacion") {
+    const sueldoLiq = Number($("sueldoLiq").value);
+    if (!(sueldoLiq > 0)) throw new Error("Ingrese el último sueldo mensual, mayor que 0.");
+    if (!$("ingresoLiq").value || !$("salidaLiq").value) throw new Error("Ingrese la fecha de ingreso y el último día de trabajo.");
+    return ["/calculos/liquidacion", {
+      remuneracion_mensual: sueldoLiq, fecha_ingreso: $("ingresoLiq").value, fecha_salida: $("salidaLiq").value,
+      motivo: $("motivoLiq").value, region: $("regionLiq").value, decimos_mensualizados: $("mensualLiq").checked,
+    }];
+  }
+  if (tipo === "horas_extra") {
+    const sueldoH = Number($("sueldoHoras").value);
+    if (!(sueldoH > 0)) throw new Error("Ingrese un sueldo mensual mayor que 0.");
+    const supl = Number($("horasSupl").value), extra = Number($("horasExtra").value);
+    if (!(supl > 0 || extra > 0)) throw new Error("Ingrese al menos una hora suplementaria o extraordinaria.");
+    return ["/calculos/horas-extra", { remuneracion_mensual: sueldoH, horas_suplementarias: supl, horas_extraordinarias: extra }];
+  }
   const sueldo = Number($("sueldoVac").value);
   if (!(sueldo > 0)) throw new Error("Ingrese un sueldo mensual mayor que 0.");
   if (!$("ingreso").value) throw new Error("Ingrese la fecha de ingreso.");
@@ -145,3 +161,172 @@ $("btnExplicar").addEventListener("click", async () => {
     mostrarError($("errorExplicar"), e.message);
   }
 });
+
+// ---------------------------------------------------------------- 3) consulta libre (agente)
+// El usuario escribe con sus palabras. El backend decide las herramientas; aquí solo se
+// muestra lo que vuelve: texto del agente, cálculos del sistema y fuentes recuperadas.
+let sesionPendiente = null;
+let sesionResumen = null;
+let sesionConversacion = null;   // id de la conversación: el historial vive en el servidor
+let turnoAnterior = null;        // {pregunta, respuesta} que pasa al historial en el siguiente mensaje
+const ESTADOS = {
+  ok: "RESPUESTA",
+  falta: "NECESITO UN DATO MÁS",
+  abstencion: "SIN FUENTE SUFICIENTE",
+  fuera_de_dominio: "FUERA DEL ALCANCE",
+  resumen_listo: "RESUMEN LISTO",
+  pendiente_confirmacion: "NECESITA SU CONFIRMACIÓN",
+  derivado: "CASO DERIVADO",
+  rechazado: "ACCIÓN CANCELADA",
+  tope: "CONSULTA DEMASIADO LARGA",
+};
+const NOMBRES = {
+  decimo_tercero: "Décimo tercero", decimo_cuarto: "Décimo cuarto", vacaciones: "Vacaciones",
+  horas_extra: "Horas extra", liquidacion: "Liquidación estimada",
+};
+
+$("pregunta").addEventListener("input", () => { $("contador").textContent = $("pregunta").value.length; });
+
+function mostrarCalculos(calculos) {
+  $("calculosAgente").replaceChildren(...calculos.map((c) => {
+    const caja = document.createElement("div");
+    caja.className = "calculo-agente";
+    const titulo = document.createElement("p");
+    titulo.textContent = `${NOMBRES[c.tipo] || c.tipo}: `;
+    const monto = document.createElement("strong");
+    monto.textContent = usd(c.total);
+    titulo.append(monto);
+    const lista = document.createElement("ol");
+    llenarLista(lista, c.desglose);
+    const fund = document.createElement("p");
+    fund.className = "fundamento";
+    fund.textContent = `Fundamento: ${c.fundamento}`;
+    caja.append(titulo, lista, fund);
+    return caja;
+  }));
+  $("bloqueCalculos").hidden = calculos.length === 0;
+}
+
+function mostrarFuentes(fuentes) {
+  $("fuentesAgente").replaceChildren(...fuentes.map((f) => {
+    const d = document.createElement("details");
+    d.className = "fuente";
+    const s = document.createElement("summary");
+    s.textContent = `Art. ${f.articulo}${f.capitulo ? " · " + f.capitulo : ""}`;
+    const p = document.createElement("p");
+    p.textContent = f.texto;
+    d.append(s, p);
+    return d;
+  }));
+  $("bloqueFuentes").hidden = fuentes.length === 0;
+}
+
+function agregarAlHistorial(turno) {
+  const li = (quien, texto) => {
+    const item = document.createElement("li");
+    const q = document.createElement("span");
+    q.className = "quien";
+    q.textContent = quien;
+    item.append(q, document.createTextNode(texto));
+    return item;
+  };
+  $("historial").append(li("USTED", turno.pregunta), li("ASISTENTE", turno.respuesta));
+  $("historial").hidden = false;
+}
+
+function nuevaConsulta() {
+  sesionConversacion = sesionPendiente = sesionResumen = turnoAnterior = null;
+  $("historial").replaceChildren();
+  ocultar($("historial"), $("respuestaConsulta"), $("errorConsulta"), $("btnNueva"));
+  $("pregunta").value = "";
+  $("contador").textContent = "0";
+  document.querySelector('label[for="pregunta"]').textContent = "Cuéntenos qué necesita saber, sin datos personales";
+  $("pregunta").focus();
+}
+$("btnNueva").addEventListener("click", nuevaConsulta);
+
+function mostrarRespuesta(r) {
+  $("estadoAgente").textContent = ESTADOS[r.estado] || r.estado.toUpperCase();
+  $("textoAgente").textContent = r.respuesta;
+  sesionPendiente = r.estado === "pendiente_confirmacion" ? r.sesion : null;
+  $("confirmacion").hidden = !sesionPendiente;
+  // El texto de la confirmación (qué se hará y con qué datos) lo arma el servidor.
+  if (sesionPendiente) {
+    $("btnAprobar").textContent = r.pendiente && r.pendiente.herramienta === "generar_resumen"
+      ? "Sí, generar el PDF" : "Sí, derivar mi caso";
+  }
+  sesionResumen = r.puede_descargar ? r.sesion : null;
+  sesionConversacion = r.sesion || null;
+  $("btnNueva").hidden = !sesionConversacion;
+  if (sesionConversacion) {
+    document.querySelector('label[for="pregunta"]').textContent =
+      "Responda al asistente o siga preguntando (recuerda lo que ya dijo)";
+  }
+  $("btnPdf").hidden = !sesionResumen;
+  mostrarCalculos(r.calculos || []);
+  mostrarFuentes(r.fuentes || []);
+  $("avisoAgente").textContent = r.aviso;
+  $("respuestaConsulta").hidden = false;
+}
+
+$("formConsulta").addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+  ocultar($("errorConsulta"), $("respuestaConsulta"));
+  const pregunta = $("pregunta").value.trim();
+  if (pregunta.length < 3) return mostrarError($("errorConsulta"), "Escriba su pregunta (mínimo 3 caracteres).");
+  const cuerpo = sesionConversacion ? { pregunta, sesion: sesionConversacion } : { pregunta };
+  try {
+    const r = await enviar("/consultar", cuerpo, $("btnConsultar"), "El asistente está usando sus herramientas…");
+    if (turnoAnterior) agregarAlHistorial(turnoAnterior);
+    turnoAnterior = { pregunta, respuesta: r.respuesta };
+    $("preguntaActual").textContent = `Usted: ${pregunta}`;
+    mostrarRespuesta(r);
+    $("pregunta").value = "";
+    $("contador").textContent = "0";
+  } catch (e) {
+    if (sesionConversacion && /expiró/.test(e.message)) nuevaConsulta();
+    mostrarError($("errorConsulta"), e.message);
+  }
+});
+
+async function decidir(aprobar, boton) {
+  if (!sesionPendiente) return;
+  ocultar($("errorConsulta"));
+  try {
+    const r = await enviar("/consultar/confirmar", { sesion: sesionPendiente, aprobar }, boton, "Procesando…");
+    if (turnoAnterior) turnoAnterior.respuesta = r.respuesta;
+    mostrarRespuesta(r);
+    if (r.estado === "resumen_listo") await descargarPdf();
+  } catch (e) {
+    mostrarError($("errorConsulta"), e.message);
+  }
+}
+
+// El PDF lo arma el servidor con sus propios datos; el navegador solo envía el id de la sesión.
+async function descargarPdf() {
+  if (!sesionResumen) return;
+  const boton = $("btnPdf"), original = boton.textContent;
+  boton.disabled = true;
+  boton.textContent = "Generando PDF…";
+  try {
+    const r = await fetch("/consultar/resumen", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sesion: sesionResumen }),
+    });
+    if (!r.ok) throw new Error(await mensajeDeError(r));
+    const url = URL.createObjectURL(await r.blob());
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "resumen-calculadora-laboral.pdf";
+    a.click();
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    mostrarError($("errorConsulta"), e instanceof TypeError ? "No se pudo conectar con el servidor." : e.message);
+  } finally {
+    boton.disabled = false;
+    boton.textContent = original;
+  }
+}
+$("btnPdf").addEventListener("click", descargarPdf);
+$("btnAprobar").addEventListener("click", () => decidir(true, $("btnAprobar")));
+$("btnRechazar").addEventListener("click", () => decidir(false, $("btnRechazar")));
