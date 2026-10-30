@@ -149,13 +149,26 @@ REQUIEREN_OK = frozenset(n for n, h in HERRAMIENTAS.items() if h.nivel == "con_c
 
 
 def _simplificar(esquema):
-    """Quita «title» y «additionalProperties» de lo que ve el modelo: algunos proveedores
-    (Gemini) los rechazan. La validación estricta sigue en el servidor con Pydantic."""
-    if isinstance(esquema, dict):
-        return {k: _simplificar(v) for k, v in esquema.items() if k not in ("title", "additionalProperties")}
+    """Esquema que ve el modelo, compatible con Groq y con Gemini (que rechaza con 400 algunas
+    partes de JSON Schema: «title», «additionalProperties», «default», «anyOf» con null y
+    «format: date»). La validación estricta sigue en el servidor con Pydantic."""
     if isinstance(esquema, list):
         return [_simplificar(v) for v in esquema]
-    return esquema
+    if not isinstance(esquema, dict):
+        return esquema
+    opciones = esquema.get("anyOf")
+    if opciones and any(o.get("type") == "null" for o in opciones):
+        # campo opcional: se describe solo el tipo no nulo; Pydantic acepta que falte
+        base = next(o for o in opciones if o.get("type") != "null")
+        esquema = {**{k: v for k, v in esquema.items() if k != "anyOf"}, **base}
+    salida = {k: _simplificar(v) for k, v in esquema.items()
+              if k not in ("title", "additionalProperties", "default", "format", "exclusiveMinimum",
+                           "exclusiveMaximum")}
+    if "exclusiveMinimum" in esquema and "minimum" not in esquema:  # Gemini no acepta exclusiveMinimum
+        salida["minimum"] = esquema["exclusiveMinimum"]
+    if esquema.get("format") == "date":
+        salida["description"] = (salida.get("description", "") + " (formato AAAA-MM-DD)").strip()
+    return salida
 
 
 def definiciones() -> list[dict]:
@@ -251,7 +264,7 @@ def verificar(texto: str, ctx: Contexto) -> str | None:
 # ---------------------------------------------------------------- el ciclo
 def _mensaje_asistente(m) -> dict:
     """Se reconstruye a mano: solo los campos estándar (algunos proveedores agregan otros)."""
-    return {"role": "assistant", "content": m.content or "",
+    return {"role": "assistant", "content": m.content or None,  # Gemini rechaza "" junto a tool_calls
             "tool_calls": [{"id": t.id, "type": "function",
                             "function": {"name": t.function.name, "arguments": t.function.arguments}}
                            for t in m.tool_calls]}

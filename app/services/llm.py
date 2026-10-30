@@ -148,7 +148,8 @@ class ClienteLLM:
                 return r, ms, intento
             except DEFINITIVOS as e:
                 _registrar(evento="error_definitivo", proveedor=p.nombre, intento=intento, tipo=type(e).__name__,
-                           estado_http=getattr(e, "status_code", None))
+                           estado_http=getattr(e, "status_code", None),
+                           detalle=str(getattr(e, "message", e))[:300])  # el mensaje del proveedor, no del usuario
                 raise _FalloProveedor() from e
             except (*REINTENTABLES, _RespuestaVacia) as e:
                 pedida = _retry_after(e)

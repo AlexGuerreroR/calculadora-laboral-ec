@@ -264,3 +264,13 @@ def test_si_escribe_en_vez_de_confirmar_la_accion_no_se_hace():
     herramienta = [m for m in llm.recibido[1] if m["role"] == "tool" and m["tool_call_id"] == "d1"]
     assert herramienta and "no confirmó" in herramienta[0]["content"]
     assert "derivar_al_ministerio" not in ctx.pasos
+
+
+def test_esquemas_compatibles_con_gemini():
+    """Prueba en vivo del 29/10: Gemini (respaldo) respondió 400 con las herramientas. El esquema que
+    ve el modelo no lleva las partes de JSON Schema que Gemini rechaza."""
+    import json
+
+    texto_esquemas = json.dumps(agent.definiciones())
+    for prohibido in ('"anyOf"', '"default"', '"format"', '"exclusiveMinimum"', '"title"', '"additionalProperties"'):
+        assert prohibido not in texto_esquemas
