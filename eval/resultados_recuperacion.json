@@ -1,0 +1,446 @@
+{
+  "fecha": "2026-10-28",
+  "modelo": "intfloat/multilingual-e5-small",
+  "k": 5,
+  "hit_at_k": 0.923,
+  "aciertos": 12,
+  "total_con_fuente": 13,
+  "detalle": [
+    {
+      "id": "P01",
+      "tipo": "directa",
+      "esperado": [
+        "111"
+      ],
+      "recuperados": [
+        "111",
+        "94",
+        "113",
+        "357",
+        "369"
+      ],
+      "distancias": [
+        0.127,
+        0.141,
+        0.149,
+        0.152,
+        0.152
+      ],
+      "acierto": true,
+      "puesto": 1
+    },
+    {
+      "id": "P02",
+      "tipo": "directa",
+      "esperado": [
+        "69"
+      ],
+      "recuperados": [
+        "75",
+        "73",
+        "69",
+        "74",
+        "71"
+      ],
+      "distancias": [
+        0.136,
+        0.137,
+        0.143,
+        0.144,
+        0.148
+      ],
+      "acierto": true,
+      "puesto": 3
+    },
+    {
+      "id": "P03",
+      "tipo": "directa",
+      "esperado": [
+        "55"
+      ],
+      "recuperados": [
+        "55",
+        "s/n tras 268 (1)",
+        "52",
+        "50",
+        "47.2"
+      ],
+      "distancias": [
+        0.106,
+        0.125,
+        0.13,
+        0.13,
+        0.132
+      ],
+      "acierto": true,
+      "puesto": 1
+    },
+    {
+      "id": "P04",
+      "tipo": "directa",
+      "esperado": [
+        "47"
+      ],
+      "recuperados": [
+        "47",
+        "48",
+        "s/n tras 268 (1)",
+        "47.2",
+        "57"
+      ],
+      "distancias": [
+        0.122,
+        0.125,
+        0.128,
+        0.129,
+        0.131
+      ],
+      "acierto": true,
+      "puesto": 1
+    },
+    {
+      "id": "P05",
+      "tipo": "directa",
+      "esperado": [
+        "113"
+      ],
+      "recuperados": [
+        "97",
+        "111",
+        "113",
+        "114",
+        "212"
+      ],
+      "distancias": [
+        0.16,
+        0.161,
+        0.161,
+        0.174,
+        0.175
+      ],
+      "acierto": true,
+      "puesto": 3
+    },
+    {
+      "id": "P06",
+      "tipo": "directa",
+      "esperado": [
+        "185"
+      ],
+      "recuperados": [
+        "185",
+        "184",
+        "190",
+        "624",
+        "509"
+      ],
+      "distancias": [
+        0.111,
+        0.134,
+        0.148,
+        0.148,
+        0.15
+      ],
+      "acierto": true,
+      "puesto": 1
+    },
+    {
+      "id": "P07",
+      "tipo": "combinada",
+      "esperado": [
+        "188",
+        "71"
+      ],
+      "recuperados": [
+        "75",
+        "190",
+        "72",
+        "69",
+        "74"
+      ],
+      "distancias": [
+        0.123,
+        0.137,
+        0.137,
+        0.138,
+        0.138
+      ],
+      "acierto": false,
+      "puesto": null
+    },
+    {
+      "id": "P08",
+      "tipo": "combinada",
+      "esperado": [
+        "47",
+        "55"
+      ],
+      "recuperados": [
+        "96",
+        "47",
+        "55",
+        "47.2",
+        "47.1"
+      ],
+      "distancias": [
+        0.12,
+        0.12,
+        0.12,
+        0.124,
+        0.126
+      ],
+      "acierto": true,
+      "puesto": 2
+    },
+    {
+      "id": "P09",
+      "tipo": "combinada",
+      "esperado": [
+        "185",
+        "111"
+      ],
+      "recuperados": [
+        "190",
+        "111",
+        "185",
+        "495",
+        "335"
+      ],
+      "distancias": [
+        0.132,
+        0.132,
+        0.133,
+        0.142,
+        0.148
+      ],
+      "acierto": true,
+      "puesto": 2
+    },
+    {
+      "id": "P10",
+      "tipo": "combinada",
+      "esperado": [
+        "69",
+        "75"
+      ],
+      "recuperados": [
+        "75",
+        "69",
+        "74",
+        "s/n tras 268 (1)",
+        "73"
+      ],
+      "distancias": [
+        0.107,
+        0.125,
+        0.125,
+        0.132,
+        0.135
+      ],
+      "acierto": true,
+      "puesto": 1
+    },
+    {
+      "id": "P11",
+      "tipo": "coloquial",
+      "esperado": [
+        "188"
+      ],
+      "recuperados": [
+        "528",
+        "621",
+        "188",
+        "172",
+        "94"
+      ],
+      "distancias": [
+        0.153,
+        0.165,
+        0.165,
+        0.165,
+        0.168
+      ],
+      "acierto": true,
+      "puesto": 3
+    },
+    {
+      "id": "P12",
+      "tipo": "coloquial",
+      "esperado": [
+        "71"
+      ],
+      "recuperados": [
+        "72",
+        "77",
+        "75",
+        "74",
+        "71"
+      ],
+      "distancias": [
+        0.14,
+        0.141,
+        0.144,
+        0.144,
+        0.148
+      ],
+      "acierto": true,
+      "puesto": 5
+    },
+    {
+      "id": "P13",
+      "tipo": "sin_respuesta",
+      "esperado": [],
+      "recuperados": [
+        "239",
+        "237",
+        "238",
+        "242",
+        "260"
+      ],
+      "distancias": [
+        0.126,
+        0.127,
+        0.134,
+        0.136,
+        0.138
+      ]
+    },
+    {
+      "id": "P14",
+      "tipo": "sin_respuesta",
+      "esperado": [],
+      "recuperados": [
+        "34.3",
+        "113",
+        "143",
+        "201",
+        "395"
+      ],
+      "distancias": [
+        0.139,
+        0.146,
+        0.158,
+        0.159,
+        0.159
+      ]
+    },
+    {
+      "id": "P15",
+      "tipo": "sin_respuesta",
+      "esperado": [],
+      "recuperados": [
+        "64",
+        "514",
+        "428",
+        "295",
+        "466"
+      ],
+      "distancias": [
+        0.148,
+        0.154,
+        0.157,
+        0.157,
+        0.16
+      ]
+    },
+    {
+      "id": "P16",
+      "tipo": "sin_respuesta",
+      "esperado": [],
+      "recuperados": [
+        "355",
+        "497",
+        "172",
+        "249",
+        "4"
+      ],
+      "distancias": [
+        0.154,
+        0.155,
+        0.162,
+        0.163,
+        0.164
+      ]
+    },
+    {
+      "id": "P17",
+      "tipo": "fuera_dominio",
+      "esperado": [],
+      "recuperados": [
+        "158",
+        "165",
+        "34.3",
+        "157",
+        "152"
+      ],
+      "distancias": [
+        0.184,
+        0.186,
+        0.191,
+        0.191,
+        0.191
+      ]
+    },
+    {
+      "id": "P18",
+      "tipo": "fuera_dominio",
+      "esperado": [],
+      "recuperados": [
+        "42",
+        "344",
+        "218",
+        "340",
+        "551"
+      ],
+      "distancias": [
+        0.159,
+        0.166,
+        0.166,
+        0.167,
+        0.167
+      ]
+    },
+    {
+      "id": "P19",
+      "tipo": "inyeccion",
+      "esperado": [],
+      "recuperados": [
+        "413",
+        "412",
+        "426",
+        "219",
+        "494"
+      ],
+      "distancias": [
+        0.186,
+        0.187,
+        0.188,
+        0.189,
+        0.19
+      ]
+    },
+    {
+      "id": "P20",
+      "tipo": "inyeccion",
+      "esperado": [
+        "69"
+      ],
+      "recuperados": [
+        "69",
+        "528",
+        "75",
+        "227",
+        "74"
+      ],
+      "distancias": [
+        0.119,
+        0.123,
+        0.123,
+        0.125,
+        0.132
+      ],
+      "acierto": true,
+      "puesto": 1
+    }
+  ]
+}
