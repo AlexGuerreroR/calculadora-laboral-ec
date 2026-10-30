@@ -40,7 +40,7 @@ from app.tools.parametros import cargar_parametros
 from app.tools.vacaciones import calcular_vacaciones
 
 log = logging.getLogger("agente")
-PROMPT_AGENTE = "agente_v2"  # v1: sin PDF ni fuera de dominio · v2: agrega generar_resumen y FUERA_DE_DOMINIO
+PROMPT_AGENTE = "agente_v3"  # v1 base · v2 + PDF y FUERA_DE_DOMINIO · v3 + fragmentos recuperados antes y derivación
 
 ABSTENCION = ("No encontré en el Código del Trabajo una fuente que responda su pregunta con seguridad. "
               "Puede reformularla o usar el formulario de cálculo. Si se trata de un conflicto con su "
@@ -355,8 +355,13 @@ def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None)
 
 
 def iniciar(llm, pregunta: str, buscador: Callable) -> tuple[RespuestaAgente, list[dict], Contexto]:
+    """«Buscar primero, responder después» (clase del 26/10): el CÓDIGO recupera los artículos de la
+    pregunta antes de la primera llamada al modelo, en vez de esperar a que el modelo decida buscar.
+    En la línea base del 29/10 el modelo respondió «FALTA:» sin buscar en 9 de 10 fallos."""
     ctx = Contexto(buscador=buscador)
-    mensajes = [{"role": "user", "content": f"<pregunta>{pregunta}</pregunta>"}]
+    recuperado = _ejecutar("consultar_articulo", {"pregunta": pregunta[:300]}, ctx)
+    mensajes = [{"role": "user", "content": f"<pregunta>{pregunta}</pregunta>\n<fragmentos_recuperados>"
+                 f"{json.dumps(recuperado, ensure_ascii=False)}</fragmentos_recuperados>"}]
     return ciclo(llm, mensajes, ctx), mensajes, ctx
 
 

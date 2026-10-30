@@ -52,7 +52,7 @@ def test_calcula_con_la_herramienta_y_cita_lo_recuperado():
     assert r.estado == "ok"
     assert r.calculos[0]["total"] == 9331.84
     assert [f["articulo"] for f in r.fuentes] == ["188"]
-    assert r.pasos == ["estimar_liquidacion", "consultar_articulo"]
+    assert r.pasos == ["consultar_articulo", "estimar_liquidacion", "consultar_articulo"]
     # el resultado de la herramienta volvió al modelo como mensaje «tool»
     assert llm.recibido[1][-1]["role"] == "tool"
 
@@ -68,7 +68,7 @@ def test_herramienta_fuera_de_la_lista_no_se_ejecuta():
     r, llm, _ = correr(llamada("enviar_correo_al_empleador", {"texto": "hola"}),
                        texto("SIN_FUENTE"))
     assert agent.NO_PERMITIDA in llm.recibido[1][-1]["content"]
-    assert r.pasos == [] and r.estado == "abstencion"
+    assert r.pasos == ["consultar_articulo"] and r.estado == "abstencion"   # solo la búsqueda inicial
 
 
 def test_tope_de_iteraciones():
@@ -120,13 +120,13 @@ def test_derivar_se_pausa_hasta_que_el_usuario_confirme():
     assert "derivar_al_ministerio" not in r.pasos      # todavía NO se ejecutó
     hecho = agent.confirmar(r.pendiente, True, ctx)
     assert hecho.estado == "derivado" and "Ministerio del Trabajo" in hecho.respuesta
-    assert hecho.pasos == ["derivar_al_ministerio"]
+    assert hecho.pasos == ["consultar_articulo", "derivar_al_ministerio"]
 
 
 def test_si_el_usuario_rechaza_no_se_deriva():
     r, _, ctx = correr(llamada("derivar_al_ministerio", {"motivo": "conflicto"}))
     rechazo = agent.confirmar(r.pendiente, False, ctx)
-    assert rechazo.estado == "rechazado" and rechazo.pasos == []
+    assert rechazo.estado == "rechazado" and "derivar_al_ministerio" not in rechazo.pasos
 
 
 def test_lista_cerrada_y_niveles_coinciden_con_el_adr():
@@ -200,3 +200,12 @@ def test_pdf_se_arma_con_datos_del_servidor():
                        texto("Su liquidación estimada es de USD 9331,84 (Art. 188). Es una orientación."))
     pdf = generar_pdf(ctx.calculos, agent.fuentes_del_resumen(ctx), ctx.respuesta_final)
     assert pdf.startswith(b"%PDF") and len(pdf) > 1000
+
+
+def test_el_codigo_busca_primero_aunque_el_modelo_no_lo_pida():
+    """Hallazgo de la línea base (29/10): el modelo respondía «FALTA:» sin buscar. Ahora el código
+    recupera los artículos antes de la primera llamada y se los entrega como datos etiquetados."""
+    r, llm, _ = correr(texto("Según el Art. 188, corresponde indemnización. Es una orientación."))
+    primer_mensaje = llm.recibido[0][0]["content"]
+    assert "<fragmentos_recuperados>" in primer_mensaje and "Art. 188" in primer_mensaje
+    assert r.estado == "ok" and r.recuperados == ["188"] and len(llm.recibido) == 1   # una sola llamada

@@ -196,7 +196,8 @@ Usaremos la opción 1, sin quitar el formulario guiado: los dos conviven y usan 
 - **Argumentos del modelo:** se validan con el esquema Pydantic de cada herramienta antes de ejecutar; si faltan datos, el error vuelve al modelo y éste los pide al usuario («FALTA:»).
 - **Confirmación:** muestra los argumentos reales (qué se hará, con qué datos y a quién). La conversación pausada queda en memoria del servidor; el navegador solo recibe un identificador de un solo uso (15 minutos), nunca el historial.
 - **Verificación final en código:** toda respuesta debe citar al menos un artículo; cada artículo citado debe estar entre los recuperados o en el fundamento de un cálculo, y cada monto debe salir de una herramienta. Si no, el sistema se abstiene. La interfaz muestra solo los fragmentos citados.
-- **Fuera de dominio e inyección:** el prompt (`app/prompts/agente_v2.md`) responde «FUERA_DE_DOMINIO» y el sistema muestra un rechazo cortés. La pregunta va en `<pregunta>` y cada fragmento en `<fragmento>`: son datos, nunca instrucciones.
+- **Buscar primero (código, no modelo):** antes de la primera llamada, el servidor recupera los 5 artículos más cercanos a la pregunta y se los entrega al modelo como datos. Lo decidió la evaluación del 29/10: en la línea base el modelo respondía «FALTA:» sin buscar en 9 de sus 10 fallos (ver `docs/07-evaluacion.md`).
+- **Fuera de dominio e inyección:** el prompt (`app/prompts/agente_v3.md`) responde «FUERA_DE_DOMINIO» y el sistema muestra un rechazo cortés. La pregunta va en `<pregunta>` y cada fragmento en `<fragmento>`: son datos, nunca instrucciones.
 - **Parámetros en `config/parametros.yaml`:** salario básico unificado, divisores, recargos, porcentajes de la liquidación, tope de vueltas, fragmentos por consulta y texto de la derivación.
 
 ### Pruebas (simulador del taller y `pytest`)
