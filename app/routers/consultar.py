@@ -41,6 +41,8 @@ MAX_SESIONES = 200
 
 class SolicitudConsulta(BaseModel):
     pregunta: str = Field(min_length=3, max_length=600)
+    sesion: str | None = Field(default=None, min_length=32, max_length=32,
+                               description="Para responder a lo que preguntó el agente (misma conversación)")
 
 
 class SolicitudConfirmar(BaseModel):
@@ -66,9 +68,10 @@ class RespuestaConsulta(BaseModel):
 
 # ---------------------------------------------------------------- sesiones pendientes (memoria)
 class Sesiones:
-    """Guarda por 15 minutos las consultas que esperan confirmación o que tienen cálculos
-    (para el PDF). En memoria: si el servidor se reinicia, el usuario vuelve a preguntar.
-    El navegador solo recibe el id; el historial y los cálculos nunca salen del servidor."""
+    """Guarda por 15 minutos cada conversación: historial, cálculos y acción pendiente. En memoria:
+    si el servidor se reinicia, el usuario vuelve a empezar. El navegador solo recibe el id; el
+    historial y los cálculos nunca salen del servidor (un historial enviado por el cliente se
+    podría falsificar)."""
 
     def __init__(self):
         self._datos: dict[str, list] = {}   # clave → [hora, pendiente | None, ctx]
@@ -142,14 +145,23 @@ def consultar(solicitud: SolicitudConsulta, request: Request,
         llm = fabrica_llm()
     except ErrorConfiguracion:
         raise HTTPException(503, "El asistente no está configurado. Puede usar el formulario de cálculo.")
+    ctx = None
+    if solicitud.sesion:
+        ctx = sesiones.contexto(solicitud.sesion)
+        if ctx is None:
+            raise HTTPException(404, "La conversación expiró. Pulse «Nueva consulta» y escriba su caso completo.")
+        ctx.buscador = buscador
     try:
-        r, _, ctx = agent.iniciar(llm, solicitud.pregunta.strip(), buscador)
+        if ctx is None:
+            r, _, ctx = agent.iniciar(llm, solicitud.pregunta.strip(), buscador)
+        else:
+            r = agent.continuar(llm, ctx, solicitud.pregunta.strip())
     except ErrorLLM as e:
         raise HTTPException(503, e.mensaje_usuario, headers={"Retry-After": "60"})
     except agent.BaseNoDisponible:
         raise HTTPException(503, "La base de normativa no está disponible. Puede usar el formulario de cálculo.")
-    guardar = r.estado == "pendiente_confirmacion" or (r.estado == "ok" and r.calculos)
-    sesion = sesiones.guardar(r.pendiente, ctx) if guardar else None
+    # Toda conversación se guarda: el usuario puede responder a lo que preguntó el agente.
+    sesion = sesiones.guardar(r.pendiente, ctx, solicitud.sesion)
     return _salida(r, sesion)
 
 
@@ -161,7 +173,7 @@ def confirmar(solicitud: SolicitudConfirmar):
         raise HTTPException(404, "La consulta ya no está disponible. Vuelva a escribir su pregunta.")
     pendiente, ctx = guardado
     r = agent.confirmar(pendiente, solicitud.aprobar, ctx)
-    return _salida(r, solicitud.sesion if r.calculos else None)
+    return _salida(r, solicitud.sesion)  # la conversación sigue abierta después de confirmar
 
 
 @router.post("/consultar/resumen", response_class=Response,

@@ -85,3 +85,18 @@ def test_base_no_disponible_es_503():
     app.dependency_overrides[modulo.obtener_buscador] = lambda: roto
     r = TestClient(app).post("/consultar", json={"pregunta": "Me despidieron"})
     assert r.status_code == 503
+
+
+def test_conversacion_por_sesion():
+    cliente = cliente_con(LLMFalso(texto("Por despido, el Art. 188 da un mes por año. ¿Cuál era su sueldo? Es una orientación."),
+                                   llamada("estimar_liquidacion", C10, "c1"),
+                                   texto("Su liquidación estimada es de USD 9331,84 (Art. 188). Es una orientación.")))
+    r1 = cliente.post("/consultar", json={"pregunta": "me despidieron. trabajé 7 años"}).json()
+    assert r1["estado"] == "ok" and r1["sesion"]
+    r2 = cliente.post("/consultar", json={"pregunta": "ganaba 1000…", "sesion": r1["sesion"]}).json()
+    assert r2["calculos"][0]["total"] == 9331.84 and r2["sesion"] == r1["sesion"]
+
+
+def test_sesion_vencida_es_404():
+    r = cliente_con(LLMFalso()).post("/consultar", json={"pregunta": "hola hola", "sesion": "f" * 32})
+    assert r.status_code == 404

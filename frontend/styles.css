@@ -82,3 +82,18 @@ textarea { width:100%; margin-top:7px; padding:12px 14px; background:#fafcfb; bo
 details.fuente { border:1px solid var(--borde); border-radius:10px; padding:10px 14px; margin-bottom:8px; background:#fafcfb; font-size:16px; }
 details.fuente summary { cursor:pointer; font-weight:650; }
 details.fuente p { white-space:pre-line; font-size:15px; color:#3d554d; }
+
+/* Conversación de seguimiento */
+.historial { list-style:none; padding:0; margin:0 0 8px; }
+.historial li { border-left:3px solid var(--borde); padding:6px 0 6px 14px; margin-bottom:10px; font-size:16px; color:#3d554d; white-space:pre-line; }
+.historial .quien { display:block; font-size:12px; font-weight:700; letter-spacing:.5px; color:var(--suave); }
+.pregunta-actual { font-size:16px; color:var(--suave); margin:0 0 4px; }
+.acciones-consulta { display:flex; gap:12px; }
+.acciones-consulta button { margin-top:12px; }
+#btnNueva { flex:0 0 220px; }
+@media(max-width:600px){ .acciones-consulta { flex-direction:column; gap:0; } #btnNueva { flex:auto; } }
+
+/* Cinco opciones de cálculo y casilla */
+.opciones { grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); }
+label.casilla { display:flex; align-items:center; gap:10px; font-weight:500; }
+label.casilla input { width:20px; height:20px; accent-color:var(--primario); }

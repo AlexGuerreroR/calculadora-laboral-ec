@@ -26,10 +26,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ValidationError
 
 from app.config import ErrorConfiguracion
-from app.schemas import (EntradaDecimoCuarto, EntradaDecimoTercero, EntradaVacaciones, Explicacion,
-                         ResultadoCalculo)
+from app.schemas import (EntradaDecimoCuarto, EntradaDecimoTercero, EntradaHorasExtra, EntradaLiquidacion,
+                         EntradaVacaciones, Explicacion, ResultadoCalculo)
 from app.services.llm import ClienteLLM, ProveedorNoDisponible, SalidaInvalida, cargar_prompt
 from app.tools.decimos import calcular_decimo_cuarto, calcular_decimo_tercero
+from app.tools.horas import calcular_horas_extra
+from app.tools.liquidacion import estimar_liquidacion
 from app.tools.vacaciones import calcular_vacaciones
 
 router = APIRouter(tags=["explicación con IA"])
@@ -56,6 +58,8 @@ CALCULOS = {
     "decimo_tercero": (EntradaDecimoTercero, calcular_decimo_tercero),
     "decimo_cuarto": (EntradaDecimoCuarto, calcular_decimo_cuarto),
     "vacaciones": (EntradaVacaciones, calcular_vacaciones),
+    "horas_extra": (EntradaHorasExtra, calcular_horas_extra),
+    "liquidacion": (EntradaLiquidacion, estimar_liquidacion),
 }
 
 

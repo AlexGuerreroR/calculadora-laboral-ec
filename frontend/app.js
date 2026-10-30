@@ -94,6 +94,22 @@ function armarSolicitud() {
     if (!Number.isInteger(meses) || meses < 1 || meses > 12) throw new Error("Los meses deben ser un número entero de 1 a 12.");
     return ["/calculos/decimos", { tipo, meses_trabajados: meses, region: $("region").value }];
   }
+  if (tipo === "liquidacion") {
+    const sueldoLiq = Number($("sueldoLiq").value);
+    if (!(sueldoLiq > 0)) throw new Error("Ingrese el último sueldo mensual, mayor que 0.");
+    if (!$("ingresoLiq").value || !$("salidaLiq").value) throw new Error("Ingrese la fecha de ingreso y el último día de trabajo.");
+    return ["/calculos/liquidacion", {
+      remuneracion_mensual: sueldoLiq, fecha_ingreso: $("ingresoLiq").value, fecha_salida: $("salidaLiq").value,
+      motivo: $("motivoLiq").value, region: $("regionLiq").value, decimos_mensualizados: $("mensualLiq").checked,
+    }];
+  }
+  if (tipo === "horas_extra") {
+    const sueldoH = Number($("sueldoHoras").value);
+    if (!(sueldoH > 0)) throw new Error("Ingrese un sueldo mensual mayor que 0.");
+    const supl = Number($("horasSupl").value), extra = Number($("horasExtra").value);
+    if (!(supl > 0 || extra > 0)) throw new Error("Ingrese al menos una hora suplementaria o extraordinaria.");
+    return ["/calculos/horas-extra", { remuneracion_mensual: sueldoH, horas_suplementarias: supl, horas_extraordinarias: extra }];
+  }
   const sueldo = Number($("sueldoVac").value);
   if (!(sueldo > 0)) throw new Error("Ingrese un sueldo mensual mayor que 0.");
   if (!$("ingreso").value) throw new Error("Ingrese la fecha de ingreso.");
@@ -151,6 +167,8 @@ $("btnExplicar").addEventListener("click", async () => {
 // muestra lo que vuelve: texto del agente, cálculos del sistema y fuentes recuperadas.
 let sesionPendiente = null;
 let sesionResumen = null;
+let sesionConversacion = null;   // id de la conversación: el historial vive en el servidor
+let turnoAnterior = null;        // {pregunta, respuesta} que pasa al historial en el siguiente mensaje
 const ESTADOS = {
   ok: "RESPUESTA",
   falta: "NECESITO UN DATO MÁS",
@@ -203,6 +221,30 @@ function mostrarFuentes(fuentes) {
   $("bloqueFuentes").hidden = fuentes.length === 0;
 }
 
+function agregarAlHistorial(turno) {
+  const li = (quien, texto) => {
+    const item = document.createElement("li");
+    const q = document.createElement("span");
+    q.className = "quien";
+    q.textContent = quien;
+    item.append(q, document.createTextNode(texto));
+    return item;
+  };
+  $("historial").append(li("USTED", turno.pregunta), li("ASISTENTE", turno.respuesta));
+  $("historial").hidden = false;
+}
+
+function nuevaConsulta() {
+  sesionConversacion = sesionPendiente = sesionResumen = turnoAnterior = null;
+  $("historial").replaceChildren();
+  ocultar($("historial"), $("respuestaConsulta"), $("errorConsulta"), $("btnNueva"));
+  $("pregunta").value = "";
+  $("contador").textContent = "0";
+  document.querySelector('label[for="pregunta"]').textContent = "Cuéntenos qué necesita saber, sin datos personales";
+  $("pregunta").focus();
+}
+$("btnNueva").addEventListener("click", nuevaConsulta);
+
 function mostrarRespuesta(r) {
   $("estadoAgente").textContent = ESTADOS[r.estado] || r.estado.toUpperCase();
   $("textoAgente").textContent = r.respuesta;
@@ -214,6 +256,12 @@ function mostrarRespuesta(r) {
       ? "Sí, generar el PDF" : "Sí, derivar mi caso";
   }
   sesionResumen = r.puede_descargar ? r.sesion : null;
+  sesionConversacion = r.sesion || null;
+  $("btnNueva").hidden = !sesionConversacion;
+  if (sesionConversacion) {
+    document.querySelector('label[for="pregunta"]').textContent =
+      "Responda al asistente o siga preguntando (recuerda lo que ya dijo)";
+  }
   $("btnPdf").hidden = !sesionResumen;
   mostrarCalculos(r.calculos || []);
   mostrarFuentes(r.fuentes || []);
@@ -226,9 +274,17 @@ $("formConsulta").addEventListener("submit", async (evento) => {
   ocultar($("errorConsulta"), $("respuestaConsulta"));
   const pregunta = $("pregunta").value.trim();
   if (pregunta.length < 3) return mostrarError($("errorConsulta"), "Escriba su pregunta (mínimo 3 caracteres).");
+  const cuerpo = sesionConversacion ? { pregunta, sesion: sesionConversacion } : { pregunta };
   try {
-    mostrarRespuesta(await enviar("/consultar", { pregunta }, $("btnConsultar"), "El asistente está usando sus herramientas…"));
+    const r = await enviar("/consultar", cuerpo, $("btnConsultar"), "El asistente está usando sus herramientas…");
+    if (turnoAnterior) agregarAlHistorial(turnoAnterior);
+    turnoAnterior = { pregunta, respuesta: r.respuesta };
+    $("preguntaActual").textContent = `Usted: ${pregunta}`;
+    mostrarRespuesta(r);
+    $("pregunta").value = "";
+    $("contador").textContent = "0";
   } catch (e) {
+    if (sesionConversacion && /expiró/.test(e.message)) nuevaConsulta();
     mostrarError($("errorConsulta"), e.message);
   }
 });
@@ -238,6 +294,7 @@ async function decidir(aprobar, boton) {
   ocultar($("errorConsulta"));
   try {
     const r = await enviar("/consultar/confirmar", { sesion: sesionPendiente, aprobar }, boton, "Procesando…");
+    if (turnoAnterior) turnoAnterior.respuesta = r.respuesta;
     mostrarRespuesta(r);
     if (r.estado === "resumen_listo") await descargarPdf();
   } catch (e) {

@@ -223,3 +223,44 @@ def test_los_articulos_del_fundamento_se_muestran_con_su_texto():
     r, _, _ = agent.iniciar(llm, "Me despidieron…", buscador)
     assert r.estado == "ok" and [f["articulo"] for f in r.fuentes] == ["185"]
     assert "**" not in r.respuesta
+
+
+# ---------------------------------------------------------------- conversación de seguimiento
+def test_el_agente_pregunta_y_recuerda_lo_que_dijo_el_usuario():
+    """Revisión del 29/10: «me despidieron, trabajé 7 años» terminaba en abstención. Ahora el agente
+    explica la regla, pregunta lo que falta y, con la respuesta, calcula sin volver a pedir datos."""
+    solo_188 = lambda pregunta, k=5, tema=None: [ART_188] if "188" in pregunta else []  # noqa: E731
+    llm = LLMFalso(texto("Por despido, el Art. 188 da un mes por año. Necesito: 1. su sueldo; 2. las fechas; "
+                         "3. la región. Es una orientación."),
+                   llamada("estimar_liquidacion", C10, "c1"),
+                   texto("Su liquidación estimada es de USD 9331,84 (Art. 188). Es una orientación."))
+    r1, _, ctx = agent.iniciar(llm, "me despidieron. trabajé 7 años", solo_188)
+    assert r1.estado == "ok" and [f["articulo"] for f in r1.fuentes] == ["188"]   # traído por número exacto
+    r2 = agent.continuar(llm, ctx, "ganaba 1000, del 1/8/2020 al 31/8/2026, Sierra")
+    assert r2.estado == "ok" and r2.calculos[0]["total"] == 9331.84
+    historial = llm.recibido[1]
+    assert historial[0]["content"] == "<pregunta>me despidieron. trabajé 7 años</pregunta>"   # compactado
+    assert historial[1] == {"role": "assistant", "content": r1.respuesta}
+    assert "ganaba 1000" in historial[2]["content"]
+
+
+def test_la_conversacion_tiene_tope_de_turnos():
+    llm = LLMFalso(*[texto("FALTA: ¿Cuál es su sueldo?")] * 10)
+    r, _, ctx = agent.iniciar(llm, "me despidieron", buscador_falso)
+    for _ in range(5):
+        r = agent.continuar(llm, ctx, "no sé")
+    assert r.estado == "falta" and ctx.turnos == 6
+    r = agent.continuar(llm, ctx, "otra vez")
+    assert r.estado == "tope" and r.respuesta == agent.FIN_CONVERSACION
+    assert len(llm.recibido) == 6                      # el séptimo mensaje no llamó al modelo
+
+
+def test_si_escribe_en_vez_de_confirmar_la_accion_no_se_hace():
+    llm = LLMFalso(llamada("derivar_al_ministerio", {"motivo": "conflicto"}, "d1"),
+                   texto("FALTA: ¿Qué más desea saber?"))
+    r, _, ctx = agent.iniciar(llm, "quiero demandar", buscador_falso)
+    assert r.estado == "pendiente_confirmacion"
+    agent.continuar(llm, ctx, "mejor no, otra pregunta")
+    herramienta = [m for m in llm.recibido[1] if m["role"] == "tool" and m["tool_call_id"] == "d1"]
+    assert herramienta and "no confirmó" in herramienta[0]["content"]
+    assert "derivar_al_ministerio" not in ctx.pasos

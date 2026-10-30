@@ -40,7 +40,7 @@ from app.tools.parametros import cargar_parametros
 from app.tools.vacaciones import calcular_vacaciones
 
 log = logging.getLogger("agente")
-PROMPT_AGENTE = "agente_v3"  # v1 base · v2 + PDF y FUERA_DE_DOMINIO · v3 + fragmentos recuperados antes y derivación
+PROMPT_AGENTE = "agente_v4"  # v1 base · v2 + PDF y FUERA_DE_DOMINIO · v3 + buscar primero · v4 + conversación
 
 ABSTENCION = ("No encontré en el Código del Trabajo una fuente que responda su pregunta con seguridad. "
               "Puede reformularla o usar el formulario de cálculo. Si se trata de un conflicto con su "
@@ -176,6 +176,9 @@ class Contexto:
     citados: set[str] = field(default_factory=set)           # artículos que cita la respuesta final
     resumen_listo: bool = False                              # el usuario aprobó el PDF
     respuesta_final: str = ""                                # texto ya verificado, para el PDF
+    mensajes: list[dict] = field(default_factory=list)       # historial de la conversación (servidor)
+    turnos: int = 0                                          # mensajes del usuario en esta conversación
+    pendiente: "Pendiente | None" = None                     # acción esperando confirmación
 
 
 @dataclass
@@ -330,22 +333,28 @@ def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None)
         m, proveedor = r.datos, r.proveedor
         if not getattr(m, "tool_calls", None):
             texto = (m.content or "").strip()
+            ctx.citados = set()
             if texto.startswith("SIN_FUENTE"):
                 return _respuesta("abstencion", ABSTENCION, ctx, proveedor=proveedor)
             if texto.startswith("FUERA_DE_DOMINIO"):
                 return _respuesta("fuera_de_dominio", FUERA_DE_DOMINIO, ctx, proveedor=proveedor)
+            texto = texto.replace("**", "").replace("__", "")  # texto plano: la interfaz no interpreta markdown
+            # Un artículo citado que la búsqueda no trajo se busca por su número exacto en el Código:
+            # si existe, queda como fuente verificable; si no existe (inventado), la verificación falla.
+            ctx.citados = articulos_en(texto)
+            _traer_citados(ctx)
             if texto.startswith("FALTA:"):
                 # El modelo pide un dato al usuario. No puede traer montos ni citas sin verificar.
-                if montos_en(texto) or articulos_en(texto) - set(ctx.fuentes):
+                if montos_en(texto) or ctx.citados - set(ctx.fuentes):
+                    ctx.citados = set()
                     return _respuesta("abstencion", ABSTENCION, ctx, proveedor=proveedor)
                 return _respuesta("falta", texto.removeprefix("FALTA:").strip(), ctx, proveedor=proveedor)
             motivo = verificar(texto, ctx)
             if motivo:
                 log.info("abstención por verificación: %s", motivo)
+                ctx.citados = set()
                 return _respuesta("abstencion", ABSTENCION, ctx, proveedor=proveedor)
-            texto = texto.replace("**", "").replace("__", "")  # texto plano: la interfaz no interpreta markdown
-            ctx.citados, ctx.respuesta_final = articulos_en(texto), texto
-            _traer_citados(ctx)
+            ctx.respuesta_final = texto
             return _respuesta("ok", texto, ctx, proveedor=proveedor)
 
         mensajes.append(_mensaje_asistente(m))
@@ -370,27 +379,72 @@ def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None)
     return _respuesta("tope", TOPE, ctx, proveedor=proveedor)
 
 
+FIN_CONVERSACION = ("Esta conversación llegó al máximo de mensajes. Pulse «Nueva consulta» y escriba su caso "
+                    "completo: sueldo, fecha de ingreso, fecha de salida, motivo y región.")
+
+
+def _compactar(mensajes: list[dict]) -> None:
+    """Los fragmentos de turnos anteriores ya no se reenvían completos: así cada turno no crece en
+    tokens (costo y límite por minuto). Las fuentes siguen en el servidor para verificar las citas."""
+    for m in mensajes:
+        if m["role"] == "user" and "<fragmentos_recuperados>" in m["content"]:
+            m["content"] = m["content"].split("\n<fragmentos_recuperados>")[0]
+        elif m["role"] == "tool" and len(m["content"]) > 400:
+            m["content"] = m["content"][:400] + "…(recortado)"
+
+
+def continuar(llm, ctx: Contexto, pregunta: str) -> RespuestaAgente:
+    """Un mensaje del usuario dentro de una conversación (el primero o una respuesta a lo que el
+    agente preguntó). «Buscar primero, responder después» (clase del 26/10): el CÓDIGO recupera los
+    artículos antes de llamar al modelo; en la línea base del 29/10 el modelo respondía «FALTA:» sin
+    buscar en 9 de 10 fallos."""
+    if ctx.turnos >= cargar_parametros()["agente"]["max_turnos"]:
+        return _respuesta("tope", FIN_CONVERSACION, ctx)
+    if ctx.pendiente:  # el usuario escribió en vez de confirmar: la acción queda sin hacer
+        ctx.mensajes.append({"role": "tool", "tool_call_id": ctx.pendiente.id_llamada,
+                             "content": json.dumps({"resultado": "El usuario no confirmó; no se hizo."},
+                                                 ensure_ascii=False)})
+        ctx.pendiente = None
+    ctx.turnos += 1
+    _compactar(ctx.mensajes)
+    anteriores = " ".join(m["content"].removeprefix("<pregunta>").removesuffix("</pregunta>")
+                          for m in ctx.mensajes if m["role"] == "user")
+    busqueda = f"{anteriores} {pregunta}".strip()[-300:]  # la búsqueda considera lo ya dicho
+    recuperado = _ejecutar("consultar_articulo", {"pregunta": busqueda}, ctx)
+    ctx.mensajes.append({"role": "user", "content": f"<pregunta>{pregunta}</pregunta>\n<fragmentos_recuperados>"
+                         f"{json.dumps(recuperado, ensure_ascii=False)}</fragmentos_recuperados>"})
+    r = ciclo(llm, ctx.mensajes, ctx)
+    if r.estado == "pendiente_confirmacion":
+        ctx.pendiente = r.pendiente
+    else:
+        ctx.mensajes.append({"role": "assistant", "content": r.respuesta})
+    return r
+
+
 def iniciar(llm, pregunta: str, buscador: Callable) -> tuple[RespuestaAgente, list[dict], Contexto]:
-    """«Buscar primero, responder después» (clase del 26/10): el CÓDIGO recupera los artículos de la
-    pregunta antes de la primera llamada al modelo, en vez de esperar a que el modelo decida buscar.
-    En la línea base del 29/10 el modelo respondió «FALTA:» sin buscar en 9 de 10 fallos."""
     ctx = Contexto(buscador=buscador)
-    recuperado = _ejecutar("consultar_articulo", {"pregunta": pregunta[:300]}, ctx)
-    mensajes = [{"role": "user", "content": f"<pregunta>{pregunta}</pregunta>\n<fragmentos_recuperados>"
-                 f"{json.dumps(recuperado, ensure_ascii=False)}</fragmentos_recuperados>"}]
-    return ciclo(llm, mensajes, ctx), mensajes, ctx
+    return continuar(llm, ctx, pregunta), ctx.mensajes, ctx
 
 
 def confirmar(pendiente: Pendiente, aprobado: bool, ctx: Contexto) -> RespuestaAgente:
     """La decisión del usuario. Si acepta, se ejecuta la acción; si no, no se hace nada."""
+    ctx.pendiente = None
     if not aprobado:
-        return _respuesta("rechazado", "No se realizó la acción. Puede seguir consultando.", ctx)
-    salida = _ejecutar(pendiente.herramienta, pendiente.argumentos, ctx)
-    if "error" in salida:
-        return _respuesta("abstencion", salida["error"], ctx)
-    if pendiente.herramienta == "generar_resumen":
-        return _respuesta("resumen_listo", "Su resumen PDF está listo para descargar.", ctx)
-    return _respuesta("derivado", f"{salida['mensaje']} Sitio oficial: {salida['sitio']}", ctx)
+        salida, r = {"resultado": "El usuario rechazó la acción."}, _respuesta(
+            "rechazado", "No se realizó la acción. Puede seguir consultando.", ctx)
+    else:
+        salida = _ejecutar(pendiente.herramienta, pendiente.argumentos, ctx)
+        if "error" in salida:
+            r = _respuesta("abstencion", salida["error"], ctx)
+        elif pendiente.herramienta == "generar_resumen":
+            r = _respuesta("resumen_listo", "Su resumen PDF está listo para descargar.", ctx)
+        else:
+            r = _respuesta("derivado", f"{salida['mensaje']} Sitio oficial: {salida['sitio']}", ctx)
+    # El historial queda válido para seguir conversando: resultado de la herramienta + lo que vio el usuario
+    ctx.mensajes += [{"role": "tool", "tool_call_id": pendiente.id_llamada,
+                      "content": json.dumps(salida, ensure_ascii=False)},
+                     {"role": "assistant", "content": r.respuesta}]
+    return r
 
 
 def nueva_sesion() -> str:

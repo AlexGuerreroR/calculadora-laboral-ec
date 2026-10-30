@@ -70,6 +70,7 @@ liquidacion:
 # Agente (semana 3, ADR-004). Límites del ciclo y texto de la derivación.
 agente:
   max_iteraciones: 6          # tope de vueltas modelo → herramienta → modelo
+  max_turnos: 6               # mensajes del usuario por conversación (seguimiento con preguntas)
   fragmentos_por_consulta: 5  # igual al k del hit@5 (con 4 se perdía el Art. 71 de la P12)
   max_caracteres_fragmento: 1500
   derivacion:
