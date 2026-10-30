@@ -65,7 +65,7 @@ def estimar_liquidacion(entrada: EntradaLiquidacion) -> ResultadoCalculo:
         d13 = redondear(sueldo * dec(m13) / dec(12))
         inicio14 = max(ingreso, _inicio_periodo(salida, INICIO_DECIMO_CUARTO[entrada.region]))
         m14 = meses_completos(inicio14, salida)
-        sbu = dec(params["salario_basico_unificado"]["valor"])
+        sbu = redondear(dec(params["salario_basico_unificado"]["valor"]))  # 482 → 482.00 en el desglose
         d14 = redondear(sbu * dec(m14) / dec(12))
         desglose += [f"Décimo tercero proporcional (Art. 111): {sueldo} x {m13} meses / 12 = {d13}",
                      f"Décimo cuarto proporcional (Art. 113): {sbu} x {m14} meses / 12 = {d14}"]

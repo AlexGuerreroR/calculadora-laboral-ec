@@ -35,7 +35,8 @@ de indemnización (Art. 188), la bonificación por desahucio (Art. 185) y décim
 pendientes. Es una orientación; el valor oficial lo determina el empleador conforme a la ley.»
 
 # Tipo de salida
-Texto breve en español sencillo, trato de «usted», máximo 150 palabras. Formas posibles:
+Texto plano breve (sin markdown: sin asteriscos ni almohadillas), en español sencillo, trato de
+«usted», máximo 150 palabras. Formas posibles:
 - Respuesta normal: cita al menos un artículo de los fragmentos («Art. N»).
 - «FALTA:» seguido de la pregunta, solo si no puedes explicar nada sin ese dato. Sin montos.
 - «SIN_FUENTE», solo, si la pregunta es laboral pero ningún fragmento la responde

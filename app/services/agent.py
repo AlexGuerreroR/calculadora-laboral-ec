@@ -283,6 +283,20 @@ def _respuesta(estado, texto, ctx: Contexto, **extra) -> RespuestaAgente:
     return RespuestaAgente(estado, texto, fuentes, ctx.calculos, ctx.pasos, list(ctx.fuentes), **extra)
 
 
+def _traer_citados(ctx: Contexto) -> None:
+    """Si la respuesta cita un artículo que vino del fundamento de un cálculo (config/) y no de la
+    búsqueda, se trae su texto por número exacto (búsqueda híbrida): así la interfaz siempre puede
+    mostrar «el fragmento exacto» de cada artículo citado."""
+    for numero in sorted(ctx.citados - set(ctx.fuentes)):
+        try:
+            hallados = ctx.buscador(f"Art. {numero}", k=1)
+        except Exception:  # sin índice: la respuesta ya se verificó, solo falta el texto
+            return
+        for h in hallados:
+            if h["articulo"] == numero:
+                ctx.fuentes[numero] = h
+
+
 def fuentes_del_resumen(ctx: Contexto) -> list[dict]:
     """Fragmentos para el PDF: los citados en la respuesta verificada; si el usuario pidió el PDF
     antes de esa respuesta, los recuperados que coinciden con el fundamento de los cálculos."""
@@ -329,7 +343,9 @@ def ciclo(llm, mensajes: list[dict], ctx: Contexto, max_iter: int | None = None)
             if motivo:
                 log.info("abstención por verificación: %s", motivo)
                 return _respuesta("abstencion", ABSTENCION, ctx, proveedor=proveedor)
+            texto = texto.replace("**", "").replace("__", "")  # texto plano: la interfaz no interpreta markdown
             ctx.citados, ctx.respuesta_final = articulos_en(texto), texto
+            _traer_citados(ctx)
             return _respuesta("ok", texto, ctx, proveedor=proveedor)
 
         mensajes.append(_mensaje_asistente(m))

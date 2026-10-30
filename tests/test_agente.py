@@ -209,3 +209,17 @@ def test_el_codigo_busca_primero_aunque_el_modelo_no_lo_pida():
     primer_mensaje = llm.recibido[0][0]["content"]
     assert "<fragmentos_recuperados>" in primer_mensaje and "Art. 188" in primer_mensaje
     assert r.estado == "ok" and r.recuperados == ["188"] and len(llm.recibido) == 1   # una sola llamada
+
+
+def test_los_articulos_del_fundamento_se_muestran_con_su_texto():
+    """Prueba en vivo del 29/10: la liquidación citaba los Arts. 185 y 188 del fundamento del cálculo,
+    la búsqueda no los había traído y la interfaz no mostraba ningún fragmento."""
+    art_185 = {"articulo": "185", "texto": "Art. 185.- Bonificaciones por desahucio.- …", "tema": "despido",
+               "capitulo": "", "distancia": 0.0}
+    def buscador(pregunta, k=5, tema=None):
+        return [art_185] if pregunta == "Art. 185" else []
+    llm = LLMFalso(llamada("estimar_liquidacion", C10),
+                   texto("Su liquidación estimada es de **USD 9331,84**, con la bonificación del Art. 185."))
+    r, _, _ = agent.iniciar(llm, "Me despidieron…", buscador)
+    assert r.estado == "ok" and [f["articulo"] for f in r.fuentes] == ["185"]
+    assert "**" not in r.respuesta
