@@ -59,6 +59,19 @@ def test_limites_despido(ingreso, salida, meses):
     assert f"Indemnización por despido intempestivo: {meses * 1000}.00" in r.desglose
 
 
+
+@pytest.mark.parametrize("ingreso,salida,anios,valor", [
+    ("2023-01-01", "2025-12-01", 2, "350.00"),  # 2 años y 11 meses: la fracción no cuenta
+    ("2023-01-01", "2026-01-01", 3, "525.00"),  # 3 años exactos
+])
+def test_limites_desahucio(ingreso, salida, anios, valor):
+    # Desahucio: 25 % de la última remuneración por cada año completo (700 x 0.25 x años).
+    datos = C09 | dict(fecha_ingreso=ingreso, fecha_salida=salida, base_acumulada_decimo_tercero=0,
+                      dias_decimo_cuarto_pendientes=0, dias_vacaciones_base_pendientes=0)
+    r = estimar_liquidacion(EntradaLiquidacion(**datos))
+    assert f"Bonificación por desahucio: {valor}" in r.desglose
+    assert f"x {anios} años completos = {valor}" in " ".join(r.desglose)
+
 def test_aniversario_bisiesto():
     from datetime import date
     assert antiguedad(date(2024, 2, 29), date(2025, 2, 28)) == (1, False)
