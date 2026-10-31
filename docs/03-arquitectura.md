@@ -3,9 +3,53 @@
 **Caso 07:** Calculadora Inteligente de Beneficios y Liquidaciones Laborales
 **Tipo de producto:** Automatización de proceso con agente
 **Repositorio:** https://github.com/AlexGuerreroR/calculadora-laboral-ec
-**Etapa:** Semana 2 · Construcción del MVP e integración con IA generativa
+**Etapa actual de la copia:** Semana 3 · RAG, agente y evaluación (30/10/2026)
 
 > Este documento tiene dos partes. La **parte A** describe el MVP de la semana 2 (C4 niveles 1 y 2), generado con la plantilla *Estudio de Arquitectura del MVP* y ajustado por el grupo. La **parte B** conserva el diseño completo de la semana 1, que se implementa en las semanas 3 y 4.
+
+## Implementación actual de la copia — semana 3
+
+Las partes A y B se conservan como historia del diseño. Actualmente FastAPI sirve
+los cinco formularios, el agente y el PDF. Los importes los calcula Python; el
+modelo explica y selecciona herramientas de una lista cerrada con Pydantic.
+Groq es el principal y Gemini el respaldo; la disponibilidad de cada servicio
+se distingue de la configuración y del manejo local de fallos.
+
+```mermaid
+flowchart LR
+    UI[Interfaz HTML y JavaScript] --> API[FastAPI: validación y límites]
+    API --> CALC[Funciones Python: décimos, vacaciones, horas y liquidación]
+    API --> AG[Agente acotado: herramientas y permisos]
+    CFG[config/parametros.yaml] --> CALC
+    CFG --> AG
+    AG --> RET[Pregunta original y artículos por tema]
+    RET --> DB[(Chroma local: Código del Trabajo)]
+    AG --> LLM[Cliente LLM: Groq principal y Gemini respaldo]
+    DB --> CTX[Fragmentos identificados]
+    CTX --> LLM
+    LLM --> VAL[Validación de citas, cantidades y esquema]
+    VAL --> UI
+    CALC --> UI
+    API --> PRE[Vista previa del resumen]
+    PRE --> HUM[Confirmación humana de un solo uso]
+    HUM --> PDF[ReportLab: PDF en memoria]
+    PDF --> UI
+```
+
+El texto libre final del agente no reemplaza resultados de herramientas. Para
+orientación se conserva la pregunta original, sin aceptar la reformulación del
+modelo como fuente de hechos. Las ayudas por tema recuperan texto real de los
+artículos; no son respuestas prefijadas. Los días anuales pueden calcularse con
+años declarados inequívocos sin inventar remuneración ni fechas. Un cálculo
+monetario requiere entradas del formulario y se recalcula en el servidor.
+
+Los documentos privados no cargados producen abstención. Las órdenes hostiles
+citadas se apartan y la pregunta exterior se vuelve a validar. La aprobación
+del PDF no puede provenir del modelo: corresponde a una sesión, caduca y solo
+se consume una vez. Esta implementación usa un único proceso para los pendientes.
+
+Validación y limitaciones reales: [07-evaluacion.md](07-evaluacion.md).
+La nube y el despliegue de semana 4 no se dan por realizados.
 
 ## Problema
 
@@ -156,6 +200,31 @@ Valores definidos en `.env` (el código del kit no se modifica) y contrastados c
 - **Límites conocidos:** remuneración fija por mes en vacaciones, meses completos (sin fracciones de mes) y sin jornada nocturna ni trabajo en días de descanso (preguntas P12 y P13 del levantamiento).
 
 ## Semana 3: herramientas del agente (previstas)
+
+Actualización de la copia, 30/10/2026: ya existen `calcular_horas` y
+`estimar_liquidacion`, con endpoints `/calculos/horas` y `/calculos/liquidacion`
+y formularios. La liquidación estima los saldos informados y confirmados; no
+decide el motivo legal de salida. Los diez casos de referencia coinciden con
+los supuestos del Excel. El apartado anterior describe el alcance histórico de
+semana 2. Posteriormente se añadió `/agente`: bucle acotado de herramientas,
+datos del formulario comprobados por el servidor y salida construida con
+resultados verificables. Los esquemas salen de Pydantic; las ocho funciones
+permitidas están en `app/services/agente.py`. La verificación inicial usa dobles;
+posteriormente se completó una consulta real con Groq, dos vueltas y tres
+solicitudes lógicas para explicar el décimo tercero.
+Posteriormente se añadió el resumen PDF: el agente solo pide su preparación;
+el endpoint `/resumen/preparar` guarda una instantánea en memoria y devuelve una
+vista previa. `/resumen/confirmar` consume una autorización aleatoria, de un solo
+uso y ligada a la sesión, y genera los bytes del PDF. `/resumen/cancelar` invalida
+la solicitud. No se permite al modelo invocar el endpoint de confirmación.
+La verificación de esta extensión usó dobles y PDFs reales, sin API generativa.
+
+En la interfaz actual hay dos recorridos. El botón «Descargar PDF» encadena
+preparación y confirmación con un solo clic, sin mostrar una segunda tarjeta.
+Cuando el resumen se solicita al agente, se conserva la vista previa con los
+botones de confirmar y cancelar. Ambos recorridos usan los mismos endpoints y
+el token de sesión de un solo uso. La segunda pantalla de confirmación solo
+corresponde al recorrido del agente.
 
 - `calcular_decimos(remuneraciones, periodo)`
 - `calcular_vacaciones(fecha_ingreso, remuneracion)`

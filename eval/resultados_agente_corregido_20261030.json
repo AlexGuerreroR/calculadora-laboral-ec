@@ -1,0 +1,211 @@
+{
+  "inicio_utc": "2026-10-30T21:48:20.685258+00:00",
+  "proveedor": "groq",
+  "modelo": "openai/gpt-oss-120b",
+  "respaldo": null,
+  "solicitudes_previas": 26,
+  "maximo_adicional_groq": 32,
+  "reserva_gemini": 2,
+  "limite_total": 60,
+  "configuracion_ejecucion": {
+    "timeout_s": 15.0,
+    "reintentos": 2,
+    "max_tokens": 2048,
+    "razonamiento": "low"
+  },
+  "alcance": "servicio real, pregunta original sin formularios añadidos; recuperación interna registrada",
+  "detalle": [
+    {
+      "id": "P01",
+      "pregunta": "¿Hasta cuándo me tienen que pagar el décimo tercero?",
+      "tipo": "directa",
+      "respuesta_esperada": "Por regla general se paga mensualmente, como la doceava parte de lo percibido cada mes; si el trabajador pidió por escrito acumularlo, se paga hasta el 24 de diciembre. La respuesta debe distinguir ambos casos.",
+      "fuente_esperada": "Código del Trabajo, Art. 111",
+      "comportamiento_esperado": "responder_con_cita",
+      "respuesta_real": {
+        "estado": "abstencion",
+        "mensaje": "No encontré respaldo suficiente en las fuentes cargadas para explicar este resultado. Puede consultar al Ministerio del Trabajo. El cálculo sigue visible por separado.",
+        "calculos": [],
+        "explicaciones": [],
+        "normativa": [],
+        "pasos": [
+          {
+            "herramienta": "consultar_normativa",
+            "estado": "abstencion"
+          }
+        ],
+        "faltantes": [],
+        "resumen_confirmacion": [],
+        "iteraciones": 1,
+        "llamadas_modelo": 2,
+        "resumen_pdf": null
+      },
+      "trazas": [
+        {
+          "numero_global": 27,
+          "contenido_propuesto": null,
+          "herramientas_propuestas": [
+            {
+              "nombre": "consultar_normativa",
+              "argumentos": "{\"pregunta\":\"¿Hasta cuándo me tienen que pagar el décimo tercero?\"}"
+            }
+          ]
+        },
+        {
+          "numero_global": 28,
+          "contenido_propuesto": "{\n  \"estado\": \"ok\",\n  \"respuesta\": \"El décimo tercero debe pagarse mensualmente como parte proporcional de la doceava parte de las remuneraciones del año calendario. Si el trabajador lo solicita por escrito, puede recibirlo de forma acumulada hasta el 24 de diciembre de cada año.\",\n  \"citas\": [\n    \"art-111\"\n  ]\n}",
+          "herramientas_propuestas": [],
+          "pregunta_interna": "¿Hasta cuándo me tienen que pagar el décimo tercero?",
+          "fuentes_internas": [
+            {
+              "id": "art-111",
+              "articulo": "111"
+            },
+            {
+              "id": "art-94",
+              "articulo": "94"
+            },
+            {
+              "id": "art-113",
+              "articulo": "113"
+            },
+            {
+              "id": "art-357",
+              "articulo": "357"
+            },
+            {
+              "id": "art-369",
+              "articulo": "369"
+            }
+          ],
+          "resultado_herramienta_dias": null
+        }
+      ],
+      "solicitudes_logicas": 2,
+      "duracion_s": 30.81
+    },
+    {
+      "id": "P02",
+      "pregunta": "Llevo 7 años en la empresa, ¿cuántos días de vacaciones tengo?",
+      "tipo": "directa",
+      "respuesta_esperada": "15 días más 1 por cada año que exceda de cinco: 17 días (el número lo calcula la herramienta).",
+      "fuente_esperada": "Código del Trabajo, Art. 69",
+      "comportamiento_esperado": "responder_con_cita",
+      "respuesta_real": {
+        "estado": "abstencion",
+        "mensaje": "No encontré respaldo suficiente en las fuentes cargadas para explicar este resultado. Puede consultar al Ministerio del Trabajo. El cálculo sigue visible por separado.",
+        "calculos": [],
+        "explicaciones": [],
+        "normativa": [],
+        "pasos": [
+          {
+            "herramienta": "consultar_normativa",
+            "estado": "abstencion"
+          }
+        ],
+        "faltantes": [],
+        "resumen_confirmacion": [],
+        "iteraciones": 1,
+        "llamadas_modelo": 2,
+        "resumen_pdf": null
+      },
+      "trazas": [
+        {
+          "numero_global": 29,
+          "contenido_propuesto": null,
+          "herramientas_propuestas": [
+            {
+              "nombre": "consultar_normativa",
+              "argumentos": "{\"pregunta\":\"¿Cuántos días de vacaciones corresponden a un trabajador con 7 años de antigüedad según la normativa laboral ecuatoriana?\"}"
+            }
+          ]
+        },
+        {
+          "numero_global": 30,
+          "contenido_propuesto": "{\n  \"estado\": \"ok\",\n  \"respuesta\": \"Según el Art. 69 del Código del Trabajo, todo trabajador tiene derecho a 15 días de vacaciones anuales. Por cada año de servicio que exceda los cinco, se añade un día adicional, sin que el total adicional supere los quince días. Con 7 años de antigüedad, corresponde 15 días básicos + 2 días adicionales = 17 días de vacaciones al año. El Art. 75 permite acumular vacaciones hasta por tres años consecutivos, pero no afecta el cómputo anual de los días.\",\n  \"citas\": [\n    \"art-69\",\n    \"art-75\"\n  ]\n}",
+          "herramientas_propuestas": [],
+          "pregunta_interna": "Llevo 7 años en la empresa, ¿cuántos días de vacaciones tengo?",
+          "fuentes_internas": [
+            {
+              "id": "art-75",
+              "articulo": "75"
+            },
+            {
+              "id": "art-69",
+              "articulo": "69"
+            },
+            {
+              "id": "art-71",
+              "articulo": "71"
+            },
+            {
+              "id": "art-73",
+              "articulo": "73"
+            },
+            {
+              "id": "art-74",
+              "articulo": "74"
+            }
+          ],
+          "resultado_herramienta_dias": {
+            "anios_servicio": 7,
+            "dias_base": 15,
+            "dias_adicionales": 2,
+            "dias_anuales": 17,
+            "fundamento": "Código del Trabajo, arts. 69, 70 y 71"
+          }
+        }
+      ],
+      "solicitudes_logicas": 2,
+      "duracion_s": 60.27
+    }
+  ],
+  "huellas_sha256": {
+    "eval\\preguntas.csv": "2e94cef93168d31ecbdec34e6986d53d87163a1926fd13a93c6b816930576a32",
+    "config\\parametros.yaml": "44247456902c1e0c482c9ba3deb1da1c217bb264a1df2e09059d39c0f5e6675a",
+    "app\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "app\\config.py": "093a5f32020b0d2038f35ae7ee17ddeadbbe1c63427a9be869d3cbec26a7d83a",
+    "app\\errores.py": "952991e763cbf6695d56393a6dd8fb88950708a3adf720d392a22b5b1d761018",
+    "app\\main.py": "1d338dd8f9ce3ed0f50699ef7c2c8aab931d3087c3472df8c89cb5c487f6c43d",
+    "app\\routers\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "app\\routers\\agente.py": "62bbe96dc353d0b6109eaa4308bf100a5db7ce17a30bdf53a884f106e4da7dda",
+    "app\\routers\\calculos.py": "8c5e704523b5a32f1e042232041a177dc476f2903a3d8d4f94e228e6b8d888eb",
+    "app\\routers\\explicar.py": "cc2e6ccb6ce46d31eb2e24ee58044f42994328eb1aab5dd6d87f6cd71e821e15",
+    "app\\routers\\resumen.py": "40fd79826ccd779b52fd5e1217705c87a0d960e4cc3b236eba50ed632b8df981",
+    "app\\schemas.py": "7b0381ac3ce17099f2136d56f173a17b77cdeb21044e588009bb74d2dd96c9cb",
+    "app\\services\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "app\\services\\agente.py": "0aa3322f0748b05e06029d989ebbdeaef6af9401fe9af82b409e656dbf329727",
+    "app\\services\\llm.py": "c3ff38afc31e3755a1e1aa60f3971f8aff7d78e2368e9193b8871db12c76c2be",
+    "app\\services\\normativa.py": "c711212589cb88daac0274700ceed1ee20bb4f90f451729284aa24a39f316cfb",
+    "app\\services\\rag.py": "b9754553ffeb6f03799f02f6fd06b14d59b8868327f2d279b1a55651080751a8",
+    "app\\services\\resumen.py": "62f029fbe44ff0fe553f27d535197d88f0bcc20bb5a06d22419ea2a99c3a8f61",
+    "app\\services\\retriever.py": "f82bb248de644a9b27f507d2df262ea90f973ec4ba6e11a3d67859bc615da402",
+    "app\\tools\\__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "app\\tools\\decimos.py": "25d14161b93897717d766efddde46330a1185df1a1c7cd4b1ff2cb2b042ffb6b",
+    "app\\tools\\horas.py": "e0a67b9229340ed594f7c5eb4e5e273f12ccda0b7ba401c8abc500a379997682",
+    "app\\tools\\liquidacion.py": "edaef6f2c05277a45f72fb2ccbd79e1a4dc151575fa6f815512362a9833f6444",
+    "app\\tools\\parametros.py": "a08c34e20263c0af35b677661e3f512c621dc21c0b0c2230255891b4587c0046",
+    "app\\tools\\resumen.py": "0f673440386ff488196632db01285eb79eb99d9d689c034fb8f164778d7b7c5f",
+    "app\\tools\\vacaciones.py": "28e762ce1ccee0c7a862b5c3a8b4d5ca84ab27ea80993ce87ba32862465927e2",
+    "app\\prompts\\agente_v1.md": "fccb770cf9533d2599dbaf8dd6baf9576e78148b0560afb2bd9b65f9e1493bfb",
+    "app\\prompts\\agente_v2.md": "d0467181743947555c2f95f850f80ff0c0bded98f43c72f0971b9668c4417952",
+    "app\\prompts\\agente_v3.md": "9035af530018678dd78e50a10985e80be17a576e3800a82bb8611600e1633a46",
+    "app\\prompts\\agente_v4.md": "d07d4a2c95ca4de1820acfd4cd92e85fd622ad8c9f2d430a0d8297724f645ea5",
+    "app\\prompts\\normativa_v1.md": "3bb1bdb4e45df441df72c446061673a7b65fbea68921d10726bc56af40718395",
+    "app\\prompts\\normativa_v2.md": "cfb964925e34788caa1ecd0e0a95ec19a765c145edee143bc060f0cc1f52ed8e",
+    "app\\prompts\\rag_v1.md": "2e4a443e909cc077c6cd018776420672461c714a69b5a1aaeafbe520c0194116",
+    "app\\prompts\\rag_v2.md": "1cc1673fee614c69b81288c1917710a18f44d83e4c2253d3248145cdc9f4b00c",
+    "app\\prompts\\rag_v3.md": "9e217ec13b5f187853a17e85428a9cfbc615a524b10903fe965351115e1ef5ff",
+    "app\\prompts\\system_v1.md": "c7473e5698221010157945bcc6e86f97e6b2e6506b1f5cccd651800239b82983",
+    "app\\prompts\\system_v2.md": "18e9bb1f5f60c3fd0c3cd981e3919d76c51bb69798a8f3aa5d5a0aa01e32a0c3",
+    "app\\prompts\\system_v3.md": "002b940dae444322efcd7f7e746ce7f780beba84321053e336d81040031f8ab8"
+  },
+  "solicitudes_logicas_usadas": 5,
+  "total_acumulado": 31,
+  "completa": false,
+  "interrumpida": true,
+  "motivo_interrupcion": "Corregir presentación de cita y cantidades derivadas de Python antes de continuar.",
+  "solicitud_en_curso_contada_conservadoramente": 32,
+  "total_acumulado_conservador": 32,
+  "solicitudes_logicas_incluida_interrumpida": 6
+}

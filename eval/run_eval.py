@@ -33,7 +33,12 @@ def esperados(fuente: str) -> list[str]:
 
 
 def main() -> None:
-    preguntas = list(csv.DictReader(open(RAIZ / "eval/preguntas.csv", encoding="utf-8")))
+    # Validar índice, entrada y salida antes de consultar o escribir resultados.
+    retriever.ruta_indice()
+    entrada = retriever.validar_ruta_copia(RAIZ / "eval/preguntas.csv")
+    destino = retriever.validar_ruta_copia(RAIZ / "eval/resultados_recuperacion.json")
+    with entrada.open(encoding="utf-8") as archivo:
+        preguntas = list(csv.DictReader(archivo))
     filas, aciertos, con_fuente = [], 0, 0
     print(f"Modelo de embeddings: {retriever.modelo_embeddings()} · top-{K}\n")
     for p in preguntas:
@@ -59,7 +64,7 @@ def main() -> None:
     salida = {"fecha": date.today().isoformat(), "modelo": retriever.modelo_embeddings(), "k": K,
               "hit_at_k": round(tasa, 3), "aciertos": aciertos, "total_con_fuente": con_fuente,
               "detalle": filas}
-    (RAIZ / "eval/resultados_recuperacion.json").write_text(
+    destino.write_text(
         json.dumps(salida, ensure_ascii=False, indent=2), encoding="utf-8")
     print("Detalle guardado en eval/resultados_recuperacion.json")
 

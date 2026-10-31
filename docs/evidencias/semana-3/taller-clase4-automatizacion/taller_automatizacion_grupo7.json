@@ -1,0 +1,104 @@
+{
+  "v": 1,
+  "taller": "automatizacion",
+  "grupo": 7,
+  "integrantes": "Bladimir Velasco, Alexander Guerrero, Dorian Zambrano",
+  "flujo": {
+    "disp": "Formulario web",
+    "ent": "Solicitud de liquidación con fecha de ingreso, fecha de salida, sueldo y tipo de terminación",
+    "acc": "Registrar la liquidación como pendiente con su base legal y avisar a RR. HH",
+    "vol": "20",
+    "volu": "por día",
+    "porque": {
+      "iguales": true,
+      "audit": true,
+      "riesgo": true
+    },
+    "pq": "Toda liquidación sigue los mismos pasos (clasificar, extraer, calcular, revisar, registrar) y cada monto debe poder auditarse contra el artículo del Código del Trabajo"
+  },
+  "est": [
+    {
+      "nombre": "Disparador",
+      "que": "Llega: solicitud de liquidación con fechas y sueldo (formulario web)",
+      "dec": "Sistema",
+      "sale": "Evento en la cola"
+    },
+    {
+      "nombre": "Clasificar",
+      "que": "Decidir el tipo (liquidación, consulta u otro) con un número de confianza",
+      "dec": "IA",
+      "sale": "JSON {tipo, confianza}"
+    },
+    {
+      "nombre": "Umbral",
+      "que": "Si la confianza es baja, desviar a revisión",
+      "dec": "Código",
+      "sale": "Sigue o va a revisión"
+    },
+    {
+      "nombre": "Extraer",
+      "que": "Sacar los campos: nombre, fecha de ingreso, fecha de salida, sueldo",
+      "dec": "IA",
+      "sale": "Datos validados con Pydantic"
+    },
+    {
+      "nombre": "Reglas",
+      "que": "Calcular décimos y vacaciones con Decimal y config/",
+      "dec": "Código",
+      "sale": "Resultado exacto con su fuente"
+    },
+    {
+      "nombre": "Revisión",
+      "que": "RR. HH. aprueba antes de cualquier pago",
+      "dec": "Persona",
+      "sale": "Aprobado o corregido"
+    },
+    {
+      "nombre": "Actuar",
+      "que": "Registrar como pendiente (idempotente) y notificar a RR. HH.",
+      "dec": "Sistema",
+      "sale": "Registro con auditoría"
+    }
+  ],
+  "ack": {},
+  "umbral": 0.85,
+  "umbpq": "Con 0.80 el caso de los dos temas (0.84) salía automático y mal. Desde 0.85 no hay errores silenciosos y solo 3 de 10 casos (30 %) van a revisión",
+  "rev": "La solicitud ya clasificada, los campos prellenados, el cálculo con su artículo y el motivo por el que fue a revisión",
+  "q": {
+    "rn": "20",
+    "rk": "5",
+    "rm": "90",
+    "cm": "80",
+    "sn": "3",
+    "esc": {
+      "A": true,
+      "B": true,
+      "C": true,
+      "D": true
+    },
+    "am": "79",
+    "fn": "20",
+    "fr": "30",
+    "sw": {
+      "pytest": true,
+      "cov": true,
+      "ci": true
+    },
+    "cov": "80",
+    "cuando": "GitHub Actions corre pytest y la evaluación en cada push a main; QA revisa los resultados antes de cada entrega"
+  },
+  "seg": {
+    "texto": true,
+    "esquema": true,
+    "dinero": true,
+    "idem": true
+  },
+  "linea": "Grupo 7: automatizamos «Registrar la liquidación como pendiente con su base legal y avisar a RR. HH» cuando llega solicitud de liquidación con fecha de ingreso, fecha de salida, sueldo y tipo de terminación; la IA se encarga de clasificar y extraer; el código, de umbral y reglas; una persona, de revisión; umbral 0.85 (30 % a revisión, 0 errores silenciosos); medimos el RAG con 20 preguntas y el flujo con 20 casos.",
+  "lineaEditada": false,
+  "envios": [
+    {
+      "tipo": "avance",
+      "hora": "08:55 p. m."
+    }
+  ]
+}

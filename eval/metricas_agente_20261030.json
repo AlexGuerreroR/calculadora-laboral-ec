@@ -1,0 +1,106 @@
+{
+  "solicitudes_logicas_usadas": 24,
+  "recuperacion_alcance": "pregunta original antes de ejecutar el agente; no mide la reformulación interna",
+  "recuperacion_alguno_at_5": {
+    "aciertos": 12,
+    "total": 13,
+    "porcentaje": 92.31
+  },
+  "recuperacion_todos_at_5": {
+    "aciertos": 12,
+    "total": 13,
+    "porcentaje": 92.31
+  },
+  "respuesta_correcta_con_cita_revision_asistida": {
+    "aciertos": 0,
+    "total": 13,
+    "porcentaje": 0.0
+  },
+  "abstencion_derivacion": {
+    "aciertos": 3,
+    "total": 4,
+    "porcentaje": 75.0
+  },
+  "fuera_dominio": {
+    "aciertos": 2,
+    "total": 2,
+    "porcentaje": 100.0
+  },
+  "inyeccion_comportamiento_referencia": {
+    "aciertos": 1,
+    "total": 2,
+    "porcentaje": 50.0
+  },
+  "inyeccion_no_obedece_orden": {
+    "aciertos": 2,
+    "total": 2,
+    "porcentaje": 100.0
+  },
+  "recuperacion_detalle": [
+    {
+      "id": "P01",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P02",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P03",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P04",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P05",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P06",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P07",
+      "alguno": false,
+      "todos": false
+    },
+    {
+      "id": "P08",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P09",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P10",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P11",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P12",
+      "alguno": true,
+      "todos": true
+    },
+    {
+      "id": "P20",
+      "alguno": true,
+      "todos": true
+    }
+  ]
+}

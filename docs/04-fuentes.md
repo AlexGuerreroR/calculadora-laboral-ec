@@ -1,5 +1,34 @@
 # Inventario de fuentes oficiales
 
+## Cierre documental del 30/10/2026
+
+Fuente activa del RAG: edición del Código del Trabajo publicada por la
+[Defensoría Pública](https://biblioteca.defensoria.gob.ec/handle/37000/3819), cuya
+portada declara normativa vigente y última reforma RO 286-S, **18/05/2026**.
+Se descargó y leyó el PDF, no solo su registro de catálogo. Su manifiesto
+reproducible está en `config/corpus.json`: URL, archivo, SHA-256, publicación,
+corte normativo, consulta y alcance de vigencia.
+
+Se contrastaron los Arts. 47, 55, 69, 71, 75, 111, 113, 184, 185 y 188 contra
+la edición anterior: **los diez textos son idénticos**. Evidencia:
+`eval/contraste_fuentes_20261030.json`. No se cambiaron fórmulas por esta
+actualización. El índice activo `data/chroma-2026/` contiene 699 fragmentos
+(618 vigentes y 81 derogados según esa edición); el anterior se conserva.
+Cada fragmento registra fechas de publicación, corte y consulta y el estado
+declarado en la edición. La fecha de corte no se presenta como entrada en vigor
+individual de cada artículo ni como certificación de ausencia de reformas posteriores.
+
+El SBU 2026 de USD 482 se contrastó con el acuerdo oficial MDT-2025-195. Los
+períodos de décimos y la base 360/30/240 se contrastaron con los artículos 9/10
+y la Disposición General Quinta del MDT-2023-140. El divisor horario se referencia
+a ese acuerdo; se retiró la referencia secundaria a INEC. La app no calcula
+utilidades ni ejecuta registros o trámites de inspección.
+
+Los apartados siguientes conservan el inventario y análisis de la edición
+anterior; donde indican contraste pendiente de 2023, quedan superados por este
+cierre para los diez artículos enumerados. No se declara una auditoría jurídica
+integral de todas las reformas administrativas ni asesoría de un caso particular.
+
 ## Objetivo
 
 Reunir, verificar y documentar las fuentes normativas necesarias para fundamentar los cálculos laborales implementados en la aplicación **Calculadora Inteligente de Beneficios y Liquidaciones Laborales**.

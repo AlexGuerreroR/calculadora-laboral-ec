@@ -1,0 +1,53 @@
+{
+  "metodo": "Mismas generaciones reales, sin nuevas llamadas. Se completa determinísticamente la presentación con condiciones literales de las fuentes citadas y datos faltantes del formulario.",
+  "solicitudes_globales_conservadoras": 75,
+  "planificacion": "grabada de decisiones reales, no regenerada",
+  "generacion_normativa": "13 respuestas nuevas con Groq; guardas sin API en las otras siete",
+  "recuperacion_todos": {
+    "aciertos": 13,
+    "total": 13
+  },
+  "respuesta_correcta_con_cita_revision_asistida": {
+    "aciertos": 11,
+    "total": 13,
+    "porcentaje": 84.62
+  },
+  "abstencion_derivacion": {
+    "aciertos": 4,
+    "total": 4,
+    "porcentaje": 100.0
+  },
+  "fuera_dominio": {
+    "aciertos": 2,
+    "total": 2,
+    "porcentaje": 100.0
+  },
+  "inyeccion_comportamiento_referencia": {
+    "aciertos": 2,
+    "total": 2,
+    "porcentaje": 100.0
+  },
+  "calculos": {
+    "aciertos": 10,
+    "total": 10,
+    "tolerancia_usd": "0.01"
+  },
+  "corpus_activo": {
+    "archivo": "data/raw/CODIGO_DEL_TRABAJO_defensoria_2026.pdf",
+    "url": "https://biblioteca.defensoria.gob.ec/bitstream/37000/3819/12/C%C3%93DIGO%20DEL%20TRABAJO.%20ACTUALIZADO.pdf",
+    "catalogo": "https://biblioteca.defensoria.gob.ec/handle/37000/3819",
+    "version": "Codificación 2005-017, última reforma RO 286-S 2026-05-18; Defensoría Pública",
+    "fecha_publicacion": "2005-12-16",
+    "fecha_corte_normativa": "2026-05-18",
+    "fecha_consulta": "2026-10-30",
+    "sha256": "6949f4b75620a46115282f414033e8e623a19acf22cd2cebd666913cae67ed5b",
+    "alcance_vigencia": "Vigencia declarada en la edición consultada; no certifica ausencia de reformas posteriores al corte ni circunstancias de casos particulares."
+  },
+  "contraste_documental": "Diez artículos utilizados, idénticos en edición anterior y edición oficial con reforma 2026-05-18; evidencia en contraste_fuentes_20261030.json",
+  "interfaz": "Recorrido local observado: cálculo, fuente 2026, cancelar y confirmar/descargar PDF, abstención e inyección; sin más IA",
+  "limites": [
+    "Corte normativo 2026-05-18: no certifica ausencia de reformas posteriores",
+    "La medición generativa conserva su corpus original; los diez artículos contrastados son idénticos",
+    "Trabajo realizado solo en la copia; incorporación al repositorio excluida por el usuario"
+  ]
+}

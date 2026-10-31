@@ -1,5 +1,15 @@
 # Comparación de versiones del system prompt
 
+Actualización de semana 3: la comparación siguiente es histórica, del 23/10.
+Los prompts activos de la copia son `agente_v4`, `normativa_v3` y `rag_v3`.
+La corrida de línea base empleó `agente_v3` y `normativa_v1`; no se atribuyen sus
+resultados a las versiones nuevas. `agente_v4` distingue orientación de cálculo
+monetario, conserva la pregunta original y mantiene permisos/confirmación.
+`normativa_v3` recibe fuentes pertinentes y, cuando corresponde, días o exceso de
+jornada calculados por Python. Prohíbe ampliar la respuesta a trámites o derechos
+no preguntados y distingue los IDs de fuentes de los resultados de herramientas.
+Evidencia y revisión en [07-evaluacion.md](07-evaluacion.md).
+
 Fecha: 23/10/2026 · Modelo: openai/gpt-oss-120b · Respaldo: ninguno
 
 Califiquen cada respuesta con **Sí / No**. ¿Correcta? = explica fiel al resultado o se abstiene cuando debe. ¿Inventa? = afirma algo que no está en la solicitud. ¿Formato? = respeta el esquema, el tono y las restricciones (por ejemplo, no copia datos personales).

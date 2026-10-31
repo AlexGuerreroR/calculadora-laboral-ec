@@ -10,6 +10,9 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+.deps-rag/
+.cache/
+.tmp-*/
 logs/
 
 # Node
@@ -18,6 +21,7 @@ node_modules/
 # Bases de datos locales, base vectorial y archivos generados
 *.db
 data/chroma/
+data/chroma-2026/
 output/
 
 # Editor / sistema operativo
@@ -28,3 +32,8 @@ Thumbs.db
 
 # Fuente con restricción de redistribución: se descarga localmente (ver data/raw/README.md)
 data/raw/CODIGO_DEL_TRABAJO.pdf
+data/raw/CODIGO_DEL_TRABAJO_defensoria_2026.pdf
+
+# Reporte de cobertura (pytest-cov)
+.coverage
+htmlcov/
