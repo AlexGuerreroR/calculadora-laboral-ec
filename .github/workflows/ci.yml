@@ -1,0 +1,33 @@
+# Integración continua · Calculadora Laboral EC (plan de calidad, taller de la clase 4)
+# Corre todas las pruebas en cada push y en cada pull request. Si una prueba falla,
+# GitHub marca el commit en rojo y el PR no se debe fusionar.
+# No usa claves: las pruebas reemplazan al modelo por un doble y no llaman a Groq ni a Gemini.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          # torch solo para CPU: la versión con CUDA pesa varios GB y las pruebas no la usan
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt
+          pip install "pytest-cov>=6,<8"
+
+      - name: Pruebas y cobertura
+        # Meta del plan de calidad (docs/evidencias/semana-3/taller-clase4-automatizacion/11-plan-de-calidad.md): 80 %.
+        run: pytest -q --cov=app --cov-report=term-missing --cov-fail-under=80
