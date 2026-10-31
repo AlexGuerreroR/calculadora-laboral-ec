@@ -1,0 +1,11 @@
+id,ruta,entrada_json,total_esperado
+C01,/calculos/decimos,"{""tipo"": ""decimo_tercero"", ""remuneraciones"": [600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600, 600]}",600.00
+C02,/calculos/decimos,"{""tipo"": ""decimo_tercero"", ""remuneraciones"": [500, 500, 500, 500, 500, 500]}",250.00
+C03,/calculos/decimos,"{""tipo"": ""decimo_tercero"", ""remuneraciones"": [700, 700, 700, 700, 700, 700, 700, 700, 700, 850, 850, 850]}",737.50
+C04,/calculos/decimos,"{""tipo"": ""decimo_cuarto"", ""meses_trabajados"": 12, ""region"": ""sierra_amazonia""}",482.00
+C05,/calculos/decimos,"{""tipo"": ""decimo_cuarto"", ""meses_trabajados"": 6, ""region"": ""costa_galapagos""}",241.00
+C06,/calculos/vacaciones,"{""remuneracion_mensual"": 600, ""fecha_ingreso"": ""2025-10-01"", ""fecha_corte"": ""2026-10-01""}",300.00
+C07,/calculos/vacaciones,"{""remuneracion_mensual"": 900, ""fecha_ingreso"": ""2019-03-01"", ""fecha_corte"": ""2026-03-01""}",510.00
+C08,/calculos/horas,"{""remuneracion_mensual"": 800, ""horas_suplementarias"": 10, ""horas_extraordinarias"": 4}",76.67
+C09,/calculos/liquidacion,"{""remuneracion_mensual"": 700, ""fecha_ingreso"": ""2024-06-01"", ""fecha_salida"": ""2026-09-30"", ""motivo_salida"": ""renuncia_con_desahucio"", ""region"": ""sierra_amazonia"", ""salario_pendiente"": 0, ""base_acumulada_decimo_tercero"": 7000, ""dias_decimo_cuarto_pendientes"": 60, ""dias_vacaciones_base_pendientes"": 5, ""dias_vacaciones_adicionales_pendientes"": 0, ""horas_suplementarias_pendientes"": 0, ""horas_extraordinarias_pendientes"": 0, ""descuentos_confirmados"": 0, ""criterios_confirmados"": true}",1130.33
+C10,/calculos/liquidacion,"{""remuneracion_mensual"": 1000, ""fecha_ingreso"": ""2020-08-01"", ""fecha_salida"": ""2026-08-31"", ""motivo_salida"": ""despido_intempestivo"", ""region"": ""sierra_amazonia"", ""salario_pendiente"": 0, ""base_acumulada_decimo_tercero"": 9000, ""dias_decimo_cuarto_pendientes"": 30, ""dias_vacaciones_base_pendientes"": ""1.25"", ""dias_vacaciones_adicionales_pendientes"": 0, ""horas_suplementarias_pendientes"": 0, ""horas_extraordinarias_pendientes"": 0, ""descuentos_confirmados"": 0, ""criterios_confirmados"": true}",9331.84

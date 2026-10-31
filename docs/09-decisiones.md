@@ -36,11 +36,19 @@ Este registro distingue la asistencia al desarrollo del comportamiento previsto 
 
 ### Dorian Zambrano
 
-Se registra su aporte a requisitos, fuentes y revisiones mediante PR. La herramienta de IA utilizada, sus usos específicos y las correcciones efectuadas no han sido confirmados para este registro. Dorian debe aportar su declaración antes de marcar como completo el criterio de declaración individual de D4.
+Se registra su aporte a requisitos, fuentes y revisiones mediante PR. El usuario
+confirmó el 30/10/2026 que Dorian utilizó **ChatGPT**. No detalló qué tareas se
+apoyaron en ese asistente ni qué correcciones o validaciones realizó Dorian;
+esos puntos quedan por precisar por el integrante, sin atribuir automáticamente
+a la IA todos sus aportes ni registrar una revisión humana no confirmada.
 
 ## Estado de implementación y revisión
 
-El backend actual contiene el endpoint `/health`. La integración del motor de cálculo, la interfaz, el modelo de lenguaje y la recuperación documental permanecen pendientes.
+Estado histórico al preparar el documento (19/10): el backend contenía `/health`.
+Actualización de la copia al 30/10: están implementados motor de cinco cálculos,
+interfaz, RAG, agente acotado y PDF con confirmación humana. La validación real
+de calidad y la disponibilidad del respaldo se registran en `07-evaluacion.md`;
+la existencia de código no se equipara al cumplimiento de las métricas.
 
 Los presentes documentos fueron preparados con asistencia de IA a partir de los archivos del repositorio y de la información aportada por Alexander. Corresponde al responsable Dorian revisar su contenido y a Alexander verificar las instrucciones y enlaces antes de aprobar el PR de D4. Esta verificación final no se registra como realizada anticipadamente.
 
@@ -62,7 +70,12 @@ El caso pide un endpoint que explique en lenguaje sencillo un resultado ya calcu
 
 ### Decisión
 
-Usaremos Gemini 3.8 Flash como proveedor principal y Groq (openai/gpt-oss-120b) como respaldo, porque ambos son gratuitos sin tarjeta y el modelo solo redacta una explicación corta, tarea que no exige un modelo grande. El proveedor se cambia con LLM_PROVIDER en el .env, sin tocar el código; durante el desarrollo usaremos Groq para reservar la cuota de Gemini.
+Decisión histórica del 19/10: Gemini principal y Groq de respaldo. En la copia
+del 30/10 se invirtió el orden: **Groq principal y Gemini de respaldo**, mediante
+`.env`, por los errores de disponibilidad observados. No se afirma que los
+límites históricos de cuota sigan vigentes: dependen de la cuenta y el modelo.
+La prueba real de failover distingue fallo simulado del principal y respuesta
+real de Gemini; sus resultados y tiempos están en `eval/respaldo_real*.json`.
 
 ### Consecuencias
 
@@ -137,18 +150,28 @@ Usaremos variables de entorno porque es la única opción en la que la clave no 
  
 | Dato | Se recibe | Se almacena | Se envía al modelo | Finalidad |
 | --- | --- | --- | --- | --- |
-| Remuneraciones mensuales | Sí | No (solo en memoria durante la solicitud) | Sí, como parte del resultado ya calculado, sin datos que identifiquen a la persona | Calcular y explicar el beneficio |
-| Fechas de ingreso y de corte | Sí | No | Sí, dentro del resultado | Calcular días, meses y años de servicio |
-| Región (Costa/Galápagos o Sierra/Amazonía) | Sí | No | Sí, dentro del resultado | Determinar el período del décimo cuarto |
-| Nombre, cédula, empresa, teléfono o correo | **No se piden** | No | No | — |
+| Remuneraciones y saldos | Sí | Durante el cálculo y, si se pide PDF, en la instantánea pendiente en memoria | Sí, al pedir explicación o adjuntar el cálculo al agente | Calcular, explicar y resumir el beneficio |
+| Fechas de ingreso, corte y salida | Sí | En memoria; también en la instantánea pendiente de PDF | Sí, si forman parte del cálculo adjunto | Calcular tiempos y mostrar datos utilizados |
+| Región (Costa/Galápagos o Sierra/Amazonía) | Sí | En memoria; también en la instantánea pendiente de PDF | Sí, dentro del cálculo adjunto | Determinar el período del décimo cuarto |
+| Consulta de texto libre al agente | Sí | Solo durante la solicitud; no se registra su contenido en logs | Sí | Consultar normativa y coordinar herramientas |
+| Nombre, cédula, empresa, teléfono o correo | **No se piden** | No hay campos para ellos; el texto libre no se filtra automáticamente | Podrían enviarse si el usuario los incluye en la consulta; la interfaz pide no hacerlo | Se solicita no introducirlos |
+| Cookie aleatoria de sesión del resumen y token de aprobación | Sí | Cookie HttpOnly/SameSite en navegador; hash de sesión y token pendiente en memoria | No | Vincular vista previa y confirmación, impedir reutilización |
+| PDF generado | Se produce tras confirmación | Bytes en memoria enviados al navegador; no se guarda en disco del servidor | No | Descarga autorizada por el usuario |
 | Registro técnico (`logs/llm.jsonl`) | — | Sí, local y fuera del repositorio | No | Medir proveedor, modelo, intento, tokens y tiempo; nunca guarda el texto del usuario ni los montos |
  
-El frontend mostrará un aviso visible: que la explicación la genera una IA, que es una orientación, que no se guardan sus datos y que ante un conflicto debe acudir al Ministerio del Trabajo.
+Actualización de la copia, 30/10/2026: el frontend informa del envío al proveedor
+al usar IA y de la memoria temporal para la vista previa del PDF. Los pendientes
+caducan a los 300 segundos configurados y se eliminan al procesar otra operación;
+también desaparecen al reiniciar el proceso. Confirmar o cancelar elimina la
+entrada inmediatamente. La preparación está acotada por sesión y por proceso.
+El PDF se genera sin API y solo tras la confirmación de un token de un solo uso.
+Esto documenta el tratamiento implementado; no certifica cumplimiento jurídico
+ni verifica secretos históricos de un repositorio que no se inspeccionó.
  
 ### Consecuencias
  
-**Positivas:** La clave nunca aparece en el repositorio ni en el historial; si un prompt se filtra, no expone credenciales; se cumple el inventario y el aviso que exige la guía (LOPDP); si el proveedor usa los datos del nivel gratuito, solo recibe montos sin identificar a nadie.
+**Positivas:** Las claves se leen en el backend y no se incorporan al prompt ni al frontend. Se documentan los datos tratados y el aviso de privacidad de la aplicación. La ausencia de secretos en un historial remoto no se ha verificado en esta revisión de la copia.
  
-**Negativas y riesgos:** Cada integrante debe configurar su `.env` y la aplicación no funciona sin él; al no guardar nada, no hay historial de consultas para auditar errores; si una clave llega a un commit hay que revocarla de inmediato y avisar al docente; el formulario solo tiene campos con formato validado para que el usuario no escriba datos personales en texto libre.
+**Negativas y riesgos:** Cada integrante debe configurar su `.env` para usar IA; los cálculos y el PDF son locales. No hay historial persistente de consultas para auditar su contenido. Los pendientes de PDF viven en un solo proceso y se pierden al reiniciarlo; un despliegue con varios workers requiere otro diseño de almacenamiento. La consulta del agente admite texto libre y podría contener información personal pese al aviso de no introducirla. Si una clave llega a un commit debe revocarse y notificarse; no se ha inspeccionado el historial remoto en esta tarea.
  
 ---

@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 load_dotenv()  # lee el .env local (la clave nunca está en el código)
 
 from app.errores import registrar_manejadores  # noqa: E402
-from app.routers import calculos, explicar  # noqa: E402
+from app.routers import calculos, explicar, agente, resumen  # noqa: E402
 
 app = FastAPI(
     title="Calculadora Laboral EC",
@@ -28,6 +28,8 @@ app.add_middleware(CORSMiddleware, allow_origins=origenes, allow_methods=["GET",
 registrar_manejadores(app)
 app.include_router(calculos.router)
 app.include_router(explicar.router)
+app.include_router(agente.router)
+app.include_router(resumen.router)
 
 
 @app.get("/health")

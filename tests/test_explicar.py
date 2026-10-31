@@ -7,19 +7,24 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.routers import explicar as modulo
-from app.schemas import EntradaDecimoTercero, Explicacion
+from app.schemas import EntradaDecimoTercero, ExplicacionRAG, FuenteRAG
 from app.services.llm import ProveedorNoDisponible, Resultado, SalidaInvalida
 from app.tools.decimos import calcular_decimo_tercero
 
 # Un resultado REAL, producido por la herramienta de cálculo (caso C01).
 RESULTADO = calcular_decimo_tercero(EntradaDecimoTercero(remuneraciones=[600] * 12)).model_dump(mode="json")
 
-EXPLICACION_OK = Explicacion(
+FUENTE = FuenteRAG(id="art-111", documento="Código del Trabajo", articulo="111",
+                  texto="Art. 111.- Décima tercera remuneración.",
+                  fuente="https://www.trabajo.gob.ec/", version="fuente de prueba")
+
+EXPLICACION_OK = ExplicacionRAG(
     estado="ok",
-    explicacion="Su décimo tercero es de USD 600,00. Es una orientación.",
+    explicacion="Su décimo tercero es de USD 600.00, según el Art. 111 del Código del Trabajo. Es una orientación.",
     pasos=["Se sumaron 12 sueldos de USD 600.", "Se dividió para 12."],
     advertencias=[],
     faltantes=[],
+    citas=["art-111"],
 )
 
 
@@ -39,6 +44,7 @@ class LLMFalso:
 @pytest.fixture(autouse=True)
 def limitador_limpio():
     modulo.limitador = modulo.LimitadorPorMinuto(4)
+    app.dependency_overrides[modulo.obtener_recuperador] = lambda: (lambda resultado: [FUENTE])
     yield
     app.dependency_overrides.clear()
     modulo._crear_llm.cache_clear()
@@ -59,7 +65,10 @@ def test_explica_y_el_fundamento_lo_pone_el_servidor():
     assert cuerpo["fundamento"] == RESULTADO["fundamento"]   # sale de config/parametros.yaml
     assert cuerpo["total"] == 600.0
     assert "inteligencia artificial" in cuerpo["aviso"]
-    assert llm.llamadas[0].startswith("<resultado>")          # los datos van delimitados
+    import json
+    contexto = json.loads(llm.llamadas[0])
+    assert contexto["fragmentos"][0]["id"] == "art-111"
+    assert cuerpo["fuentes"][0]["articulo"] == "111"
 
 
 # ---------------------------------------------------------------- datos manipulados por el cliente
@@ -132,7 +141,7 @@ def test_salida_invalida_no_rompe_y_conserva_el_calculo():
 
 
 def test_abstencion_del_modelo_se_informa():
-    abstiene = Explicacion(estado="no_disponible", explicacion="", pasos=[], advertencias=[], faltantes=["total"])
+    abstiene = ExplicacionRAG(estado="no_disponible", explicacion="", pasos=[], advertencias=[], faltantes=["total"], citas=[])
     r = cliente_con(LLMFalso(datos=abstiene)).post("/explicar", json=RESULTADO)
     assert r.status_code == 200 and "no tiene datos suficientes" in r.json()["mensaje"]
 

@@ -3,11 +3,103 @@
 
 anio_vigencia: 2026
 
+rag:
+  top_k: 5
+  orientacion:
+    - patron: '\bvacaciones\b'
+      articulos: ["69", "71"]
+    - patron: '\b(acumul\w*|juntar)\b.{0,40}\bvacaciones\b|\bvacaciones\b.{0,40}\b(acumul\w*|juntar)\b'
+      articulos: ["75"]
+    - patron: '\b(despid\w*|despido|botaron)\b'
+      articulos: ["188"]
+    - patron: '\bdesahucio\b'
+      articulos: ["184", "185"]
+    - patron: '\bdecimo tercero\b|\bdecima tercera\b'
+      articulos: ["111"]
+    - patron: '\bdecimo cuarto\b|\bdecima cuarta\b'
+      articulos: ["113"]
+    - patron: '\b(horas?|jornada)\b'
+      articulos: ["47", "55"]
+  prompt: rag_v3
+  articulos_calculo:
+    decimo_tercero: ["111"]
+    decimo_cuarto: ["113"]
+    vacaciones: ["69", "71"]
+    horas_extra: ["55"]
+    liquidacion: ["69", "71", "111", "113", "185"]
+  articulos_liquidacion_adicionales:
+    despido_intempestivo: ["188"]
+    horas_extra: ["55"]
+
+limites:
+  explicar_liquidacion_caracteres: 6000
+
+resumen:
+  vigencia_segundos: 300
+  max_pendientes: 128
+  max_pendientes_por_sesion: 5
+  max_caracteres_entrada: 8000
+  solicitudes_por_minuto: 8
+  zona_horaria: America/Guayaquil
+
+agente:
+  prompt: agente_v4
+  prompt_normativa: normativa_v3
+  fuentes_no_cargadas:
+    - '\b(contrato colectivo|reglamento interno)\b.{0,60}\b(mi|nuestra|empresa)\b'
+    - '\b(descuent\w*|aport\w*)\b.{0,60}\biess\b'
+    - '\biess\b.{0,60}\b(aport\w*|descuent\w*)\b'
+  max_iteraciones: 6
+  max_llamadas_modelo: 8
+  max_herramientas_por_vuelta: 4
+  max_caracteres_argumentos: 8000
+  max_caracteres_contexto: 40000
+  max_caracteres_mensaje: 1500
+  max_caracteres_entrada: 8000
+  solicitudes_por_minuto: 4
+  terminos_dominio:
+    - laboral
+    - trabajo
+    - trabajador
+    - empleador
+    - jefe
+    - sueldo
+    - salario
+    - remuneracion
+    - decimo
+    - vacaciones
+    - horas
+    - jornada
+    - despid
+    - despido
+    - botaron
+    - desahucio
+    - liquidacion
+    - finiquito
+    - contrato
+    - renuncia
+    - iess
+    - beneficio
+    - reglamento interno
+  patrones_inyeccion:
+    - 'ignor[a-z]*.{0,70}(instrucciones|reglas|anteriores)'
+    - '(system.?prompt|prompt.{0,20}(sistema|interno))'
+    - '(revela|muestra|dime).{0,40}(clave|credencial|instrucciones internas)'
+    - '(ejecuta|ejecutar).{0,30}(comando|shell|sql|python)'
+  patrones_disputa:
+    - 'quien tiene (la )?razon'
+    - '(despido|despidieron).{0,30}(legal|ilegal|justificado)'
+    - '(evadir|incumplir).{0,40}(ley|obligacion|pago)'
+
 calendario:
   dias_mes: 30
   dias_anio: 360
   fuente: "Acuerdo Ministerial MDT-2023-140, Disposición General Quinta"
   verificado: true
+
+jornada:
+  horas_maximas_diarias_generales: 8
+  fuente: "Código del Trabajo, art. 47; régimen general, verificar excepciones"
 
 salario_basico_unificado:
   valor: 482.00
@@ -42,7 +134,7 @@ horas:
   divisor_hora_ordinaria: 240
   recargo_suplementaria: 0.50
   recargo_extraordinaria: 1.00
-  fuente: "Código del Trabajo, art. 55; Resolución INEC 021-DIREJ-DIJU-NI-2026, art. 24"
+  fuente: "Código del Trabajo, art. 55; Acuerdo MDT-2023-140, Disposición General Quinta (jornada mensual de 240 horas)"
   fecha_verificacion: "2026-10-19"
   observacion: "Divisor para jornada completa con remuneración mensual. Aplicar los recargos según horario y condiciones legales; no confundir con jornada nocturna ordinaria."
   verificado: true
@@ -62,6 +154,7 @@ liquidacion:
   despido_minimo_remuneraciones: 3
   despido_tope_remuneraciones: 25
   fuente: "Código del Trabajo, arts. 184, 185 y 188"
+  fuente_saldos: "Código del Trabajo, arts. 55, 69, 71, 111 y 113; MDT-2023-140, arts. 9 y 10"
   fecha_verificacion: "2026-10-19"
   observacion: "Desahucio solo cuando legalmente corresponda. Despido: tres remuneraciones hasta tres años; después, una por año, contando la fracción como año completo, con tope de 25."
   verificado: true

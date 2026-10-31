@@ -2,6 +2,94 @@
 
 Proyecto: Calculadora Laboral EC · Caso 07 · Grupo 7 · Semana 3.
 
+## Estado comprobado en la copia · 30/10/2026
+
+Corpus activo actualizado: Código de Defensoría Pública con reforma **18/05/2026**,
+699 artículos (618 vigentes y 81 derogados según edición), índice
+`data/chroma-2026/`. Manifiesto `config/corpus.json`, hash del PDF y metadatos de
+publicación, corte normativo, consulta y estado declarado. Diez artículos del
+producto contrastados e idénticos al corpus anterior; no cambian las fórmulas.
+La fecha de corte no se confunde con una certificación de reformas posteriores.
+
+- `/explicar` recalcula las entradas, recupera los artículos configurados para ese
+  cálculo y entrega al modelo un JSON con resultado y fragmentos identificados.
+- Se usa `app/prompts/rag_v3.md`; `rag_v1.md` y `rag_v2.md` se conservan como versiones
+  RAG y `system_v3.md` se conserva para la comparación
+  histórica de semana 2, no es el prompt del nuevo flujo RAG.
+- Para décimo tercero se exige Art. 111; para décimo cuarto, Art. 113; para
+  vacaciones, Arts. 69 y 71. La lista y top-k están en `config/parametros.yaml`.
+- Horas adicionales exige Art. 55. Liquidación recupera Arts. 69, 71, 111, 113
+  y 185; añade 188 para despido intempestivo y 55 cuando hay horas pendientes.
+  La búsqueda exacta amplía el número de resultados cuando hacen falta más de
+  cinco artículos. Se verificó con el índice real para C08, C09 y C10, sin API.
+  `rag_v3` añade los nombres y límites de estos cálculos y preserva la corrección
+  de nombre de v2. Las pruebas reales anteriores corresponden a sus versiones
+  registradas; no se atribuyen a v3.
+- El buscador devuelve identificador, documento, artículo, texto, URL y versión.
+  La búsqueda exacta mantiene los filtros de vigencia y tema combinados.
+- El servidor rechaza citas ajenas a los fragmentos recuperados y montos USD que
+  no figuren en los datos del cálculo. Los números de artículos no habilitan dinero.
+  Estos controles no demuestran por sí solos que cada frase sea fiel a la fuente.
+- Sin todos los artículos necesarios, se abstiene antes de crear el cliente LLM.
+  Si el índice no está disponible, devuelve 503 y conserva el cálculo separado.
+- El frontend muestra las fuentes citadas, su versión y el texto exacto desplegable.
+- Se descargó el PDF de la URL oficial configurada y se reconstruyó el índice:
+  692 fragmentos, 610 marcados vigentes según esa edición y 82 derogados.
+- La línea base semántica del 30/10 obtuvo 12/13 = 92,3 % (hit@5), con fallo P07.
+  La recuperación actual del agente conserva la pregunta original y añade los
+  artículos de los temas reconocidos. La comprobación local posterior obtuvo
+  13/13 con **todos** los artículos esperados. Para temas reconocidos entrega
+  solo los artículos pertinentes; Art. 75 se añade cuando se pregunta por acumular
+  vacaciones. No se rellenan los huecos con artículos de materias distintas.
+- Pasaron 50 comprobaciones locales de RAG, endpoint con dobles, fragmentación
+  y aislamiento de rutas (1,59 s), sin consumo de API.
+  Esta comprobación local no midió generación con un proveedor. Posteriormente se
+  probaron tres explicaciones reales con v1 y se repitió el décimo tercero con v2;
+  resultados y corrección en [la bitácora](10-bitacora-copia.md), grupo C.
+  Las corridas generativas posteriores, sus fallos y el cierre están en
+  `docs/07-evaluacion.md`; las cifras históricas no se atribuyen a los prompts actuales.
+
+**Límite normativo:** la edición anterior indicaba reforma de 2023 y se conserva
+para contraste. La activa indica 18/05/2026. `vigente` detecta derogación según
+la edición consultada; no sustituye una certificación jurídica ni prueba que no
+existan reformas posteriores al corte. Contraste cerrado en `04-fuentes.md`.
+
+**Archivos locales:** las dependencias nuevas se instalaron en `.deps-rag/` y el
+modelo se descargó en `.cache/modelos/`, dentro de la copia. No se modificó `.venv`.
+El índice permanece en `data/chroma/`. Las rutas se validan antes de abrir Chroma.
+
+## Consulta normativa del agente
+
+`consultar_normativa` usa `recuperar_normativa`, que combina la pregunta original
+con artículos por tema configurados, entrega sus
+identificadores al prompt `normativa_v3` y valida `TextoNormativo`. Sin respaldo
+o con una cita ajena a los fragmentos, se abstiene. La consulta normativa no
+publica dinero ni operaciones aritméticas nuevas: los valores personalizados
+se resuelven mediante las herramientas con datos del formulario. Dos comparaciones
+sin importe monetario admiten datos declarados inequívocos del texto: años para
+días anuales de vacaciones y horas diarias para exceso sobre la jornada general.
+Pydantic valida esas entradas y Python hace las operaciones. Los resultados se
+entregan al modelo identificados como herramientas, nunca como fuentes normativas.
+
+Hay una comprobación conservadora de cantidades con unidad (días, horas, meses,
+años, remuneraciones y porcentajes) contra el texto citado. Reconoce equivalencias
+básicas como «quince días» y «15 días». Es un filtro literal, no una prueba
+semántica completa de que la norma aplica al caso; puede producir abstenciones
+adicionales y debe evaluarse con las preguntas de referencia.
+
+El agente usa actualmente `agente_v4` para decidir herramientas y `rag_v3` para explicar
+cálculos. Sus pruebas iniciales usan dobles de modelo y buscador. Una prueba real
+posterior completó la explicación del décimo tercero con `calculo-0`, 600,00 USD
+y cita `art-111` del índice real. La bitácora F5 registra versiones y consumo.
+Las mediciones de recuperación y llamadas reales conservan su alcance y versión;
+una consulta aprobada no acredita automáticamente las métricas del agente.
+
+La consulta real citada corresponde a `agente_v2`. `agente_v3` conserva el
+protocolo corregido y añade la solicitud de vista previa PDF; esta extensión
+se comprobó con un doble, sin consumo adicional de API. La preparación consulta
+las fuentes del índice local y congela sus referencias junto al cálculo; el PDF
+no incorpora texto libre del modelo ni reproduce los artículos completos.
+
 El sistema responde con el Código del Trabajo y cita el artículo; si no encuentra fuente, guarda silencio y deriva. Los montos nunca salen del modelo: los calculan las herramientas en código (ADR-002). La ficha de diseño de la clase del 26/10 está en [rag/ficha_rag_grupo_07.md](rag/ficha_rag_grupo_07.md).
 
 ## 1. Fuentes
@@ -74,7 +162,7 @@ Si el PDF del Código no está, `scripts/ingest.py` lo descarga de la URL oficia
 
 **Umbral de silencio.** En las preguntas que deben abstenerse (P13–P19), el mejor resultado quedó a una distancia de 0,126 a 0,186, igual o más cerca que muchas preguntas con respuesta. El modelo E5 produce distancias muy juntas, por lo que **un umbral de distancia no basta para decidir el silencio**: la abstención se decidirá en la generación (el modelo indica si los fragmentos responden la pregunta) y con la verificación de que el artículo citado esté entre los recuperados.
 
-**Mejoras previstas (jueves 29), una por una y medidas:** 1) quitar del texto que se convierte en vector las anotaciones de reforma («(Sustituido por el Art. 21 de la Ley s/n…)») y anteponer el capítulo; 2) filtrar por el alcance del producto (jornada, vacaciones, remuneración, décimos, despido) antes del top-k.
+**Mejoras propuestas el jueves 29, todavía no aplicadas:** 1) quitar del texto que se convierte en vector las anotaciones de reforma («(Sustituido por el Art. 21 de la Ley s/n…)») y anteponer el capítulo; 2) filtrar por el alcance del producto (jornada, vacaciones, remuneración, décimos, despido) antes del top-k. El nuevo explicador de cálculos usa artículos exactos configurados; la recuperación semántica general conserva esta línea base y su fallo P07.
 
 ## Cómo reconstruir
 

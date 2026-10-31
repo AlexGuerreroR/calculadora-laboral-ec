@@ -15,9 +15,10 @@
   <main><div class="introduccion"><p class="sobre-titulo">SUS DERECHOS, EN NÚMEROS CLAROS</p><h1>Sus beneficios laborales,<br>más claros y a su alcance.</h1><p>Calcule sus beneficios y conozca el detalle de cada resultado, paso a paso.</p></div>
     <!-- Bienvenida: alcance y aviso de IA (guía, semana 2) -->
     <details class="aviso"><summary>Antes de empezar · Alcance, privacidad y uso de IA</summary>
-      <p><strong>¿Qué hace?</strong> Calcula su décimo tercero, décimo cuarto y vacaciones con las reglas del Código del Trabajo y le explica el resultado en lenguaje sencillo.</p>
-      <p><strong>¿Qué no hace?</strong> No calcula todavía horas extra ni liquidaciones, no resuelve conflictos laborales y no reemplaza a un abogado. Ante un conflicto, acuda al Ministerio del Trabajo.</p>
+      <p><strong>¿Qué hace?</strong> Calcula décimos, vacaciones y horas adicionales. Estima liquidaciones por renuncia con desahucio o despido intempestivo a partir de los saldos que usted informa, y puede explicar el resultado con sus fuentes.</p>
+      <p><strong>¿Qué no hace?</strong> No determina si el motivo de salida es legal ni resuelve conflictos laborales. Las estimaciones no reemplazan un acta de finiquito ni asesoría profesional. Ante un conflicto, acuda al Ministerio del Trabajo.</p>
       <p><strong>Inteligencia artificial y datos:</strong> la explicación la redacta una IA a partir de un cálculo hecho por el sistema. Los datos necesarios se envían al proveedor al solicitar la explicación. No ingrese nombres, cédulas ni otros datos personales.</p>
+      <p>La vista previa del PDF conserva temporalmente el cálculo en memoria para su confirmación y caduca según el plazo indicado. El servidor no guarda el PDF ni lo envía a terceros.</p>
     </details>
 
     <!-- Paso 1: elegir el cálculo -->
@@ -27,6 +28,8 @@
         <label><input type="radio" name="tipo" value="decimo_tercero" checked> <span><strong>Décimo tercero</strong><small>Sus remuneraciones del período</small></span></label>
         <label><input type="radio" name="tipo" value="decimo_cuarto"> <span><strong>Décimo cuarto</strong><small>Según su región y meses trabajados</small></span></label>
         <label><input type="radio" name="tipo" value="vacaciones"> <span><strong>Vacaciones</strong><small>Días y valor de su descanso</small></span></label>
+        <label><input type="radio" name="tipo" value="horas_extra"> <span><strong>Horas adicionales</strong><small>Suplementarias y extraordinarias</small></span></label>
+        <label><input type="radio" name="tipo" value="liquidacion"> <span><strong>Liquidación estimada</strong><small>Según motivo y saldos pendientes</small></span></label>
       </div>
     </section>
 
@@ -61,35 +64,120 @@
           <input id="corte" type="date">
         </div>
 
+        <div data-para="horas_extra" hidden>
+          <p class="ayuda">Para sueldo mensual y jornada completa. Ingrese las horas del período que desea consultar. No incluya horas ya pagadas.</p>
+          <label for="sueldoHoras">Remuneración mensual (USD)</label>
+          <input id="sueldoHoras" type="number" min="0.01" step="0.01" placeholder="Ej.: 800">
+          <label for="horasSuplementarias">Horas suplementarias</label>
+          <input id="horasSuplementarias" type="number" min="0" step="0.01" placeholder="Ej.: 10; ingrese 0 si no hay">
+          <label for="horasExtraordinarias">Horas extraordinarias</label>
+          <input id="horasExtraordinarias" type="number" min="0" step="0.01" placeholder="Ej.: 4; ingrese 0 si no hay">
+          <p class="ayuda">La clasificación depende del horario y las condiciones de trabajo. Esta consulta suma valores; no comprueba límites diarios o semanales.</p>
+        </div>
+
+        <div data-para="liquidacion" hidden>
+          <p class="ayuda">Informe únicamente saldos pendientes. Escriba 0 cuando un rubro ya esté pagado o no tenga saldo; dejarlo vacío no equivale a cero. El cálculo de vacaciones usa remuneración fija.</p>
+          <label for="sueldoLiq">Última remuneración mensual (USD)</label>
+          <input id="sueldoLiq" type="number" min="0.01" step="0.01">
+          <label for="ingresoLiq">Fecha de ingreso</label><input id="ingresoLiq" type="date">
+          <label for="salidaLiq">Fecha de salida</label><input id="salidaLiq" type="date">
+          <label for="motivoLiq">Motivo de salida confirmado</label>
+          <select id="motivoLiq">
+            <option value="">Seleccione el motivo</option>
+            <option value="renuncia_con_desahucio">Renuncia con desahucio</option>
+            <option value="despido_intempestivo">Despido intempestivo</option>
+          </select>
+          <label for="regionLiq">Región del décimo cuarto</label>
+          <select id="regionLiq">
+            <option value="">Seleccione la región</option>
+            <option value="sierra_amazonia">Sierra o Amazonía (agosto–julio)</option>
+            <option value="costa_galapagos">Costa o Galápagos (marzo–febrero)</option>
+          </select>
+          <label for="salarioPendiente">Salario aún no pagado (USD)</label>
+          <input id="salarioPendiente" type="number" min="0" step="0.01">
+          <label for="baseDecimoLiq">Suma de remuneraciones cuyo décimo tercero sigue pendiente (USD)</label>
+          <input id="baseDecimoLiq" type="number" min="0" step="0.01">
+          <p class="ayuda">Por ejemplo: 10 meses de USD 700 suman USD 7.000. El sistema divide esa base para 12. Si ese décimo ya fue pagado mensualmente, no vuelva a incluirlo.</p>
+          <label for="diasDecimoLiq">Días pendientes del período regional del décimo cuarto</label>
+          <input id="diasDecimoLiq" type="number" min="0" max="360" step="0.01">
+          <p class="ayuda">Use la base de 30 días por mes. Por ejemplo: agosto y septiembre completos suman 60 días. No incluya períodos ya pagados.</p>
+          <label for="vacacionesBaseLiq">Saldo de días base de vacaciones no gozados ni pagados</label>
+          <input id="vacacionesBaseLiq" type="number" min="0" step="0.01">
+          <label for="vacacionesExtraLiq">Saldo de días adicionales de vacaciones por antigüedad</label>
+          <input id="vacacionesExtraLiq" type="number" min="0" step="0.01">
+          <p class="ayuda">Confirme estos saldos con su registro de vacaciones. Un saldo cero no significa que nunca tuvo derecho a días adicionales.</p>
+          <label for="suplementariasLiq">Horas suplementarias pendientes</label>
+          <input id="suplementariasLiq" type="number" min="0" step="0.01">
+          <label for="extraordinariasLiq">Horas extraordinarias pendientes</label>
+          <input id="extraordinariasLiq" type="number" min="0" step="0.01">
+          <label for="descuentosLiq">Descuentos ya verificados (USD)</label>
+          <input id="descuentosLiq" type="number" min="0" step="0.01">
+          <p class="ayuda">La bonificación por desahucio se estima con años completos de servicio. Si tiene fracciones de año o condiciones particulares, solicite una revisión del cálculo.</p>
+          <label><input id="confirmarLiq" type="checkbox"> He revisado el motivo de salida y los saldos pendientes.</label>
+        </div>
+
         <button id="btnCalcular" type="submit">Calcular mi beneficio</button>
       </form>
       <p id="errorCalculo" class="error" role="alert" hidden></p>
     </section>
 
-    <div class="columna-resultado"><section id="estadoVacio" class="estado-vacio"><div class="icono-vacio" aria-hidden="true">＝</div><p class="sobre-titulo">SU RESULTADO, AQUÍ</p><h2>Un cálculo claro.<br>Sin adivinanzas.</h2><p>Complete el formulario para ver el monto y su desglose. Después puede pedir una explicación con IA.</p><small>No necesita crear una cuenta</small></section><!-- Paso 3: resultado desglosado -->
+    <div class="columna-resultado"><section id="estadoVacio" class="estado-vacio"><div class="icono-vacio" aria-hidden="true">＝</div><p class="sobre-titulo">SU RESULTADO, AQUÍ</p><h2>Un cálculo claro.<br>Sin adivinanzas.</h2><p>Complete el formulario para ver el monto de su beneficio.</p><small>No necesita crear una cuenta</small></section><!-- Paso 3: resultado -->
     <section id="resultado" class="tarjeta" hidden aria-live="polite">
       <h2>3. Resultado</h2>
-      <div class="resumen-total"><span class="etiqueta-total">BENEFICIO CALCULADO · USD</span><p class="total"><span id="total"></span></p><small>Revise cómo se obtuvo este valor</small></div>
-      <p id="dias" hidden></p>
-      <h3 class="titulo-detalle">Detalle del cálculo</h3><ol id="desglose"></ol>
-      <p class="fundamento">Fundamento: <span id="fundamento"></span></p>
-      <button id="btnExplicar" class="boton-ia" type="button">Explicar con IA</button>
-      <p id="errorExplicar" class="error" role="alert" hidden></p>
+      <div class="resumen-total"><span class="etiqueta-total">BENEFICIO CALCULADO · USD</span><p class="total"><span id="total"></span></p></div>
     </section>
 
     </div>
     </div>
-    <!-- Paso 4: explicación con IA -->
-    <section id="explicacion" class="tarjeta" hidden aria-live="polite">
-      <h2>4. En palabras sencillas <span class="insignia-ia">IA</span></h2>
-      <p id="textoExplicacion"></p>
-      <ol id="pasos"></ol>
-      <ul id="advertencias" class="advertencias"></ul>
-      <p id="avisoIA" class="aviso-ia"></p>
+    <section id="asistenteLaboral" class="tarjeta consulta-agente">
+      <h2>Consulte al asistente laboral</h2>
+      <p class="ayuda">Puede pedir al asistente que explique el resultado de su cálculo o hacer otra consulta sobre derechos, requisitos y plazos laborales en Ecuador. Para consultar sobre su cálculo, marque «Usar los datos de mi último cálculo». Para una consulta general, deje la casilla desmarcada. Cada consulta es independiente.</p>
+      <form id="formAgente">
+        <label for="mensajeAgente">Su consulta</label>
+        <textarea id="mensajeAgente" rows="4" maxlength="1500" required aria-describedby="ayudaConsultaAgente" placeholder="Ej.: Explique cómo se obtuvo el resultado de mi cálculo. También puede preguntar: ¿Qué recargo corresponde por trabajar horas extra el domingo?"></textarea>
+        <p id="ayudaConsultaAgente" class="ayuda">Escriba qué desea entender de su cálculo o la pregunta laboral que quiere consultar.</p>
+        <label><input id="usarCalculoAgente" type="checkbox" disabled> Usar los datos de mi último cálculo</label>
+        <p id="adjuntoAgente" class="ayuda">Calcule un beneficio para poder adjuntarlo a la consulta.</p>
+        <button id="btnAgente" type="submit">Consultar al asistente</button>
+      </form>
+      <button id="btnResumen" type="button" hidden>Descargar PDF</button>
+    <p id="estadoResumenPDF" class="aviso" role="status" hidden></p>
+    <section id="vistaResumenPDF" class="tarjeta" hidden aria-live="polite">
+      <h2>Revise su resumen antes de generar el PDF</h2>
+      <p id="tituloResumenPDF"></p>
+      <p id="mensajeResumenPDF"></p>
+      <p id="avisoFuentesResumenPDF" class="ayuda"></p>
+      <details><summary>Datos y desglose que tendrá el documento</summary>
+        <ul id="datosResumenPDF"></ul><ol id="detalleResumenPDF"></ol>
+      </details>
+      <div id="fuentesResumenPDF" hidden><h3>Fuentes consultadas</h3><div id="listaFuentesResumenPDF"></div></div>
+      <p class="ayuda">El documento es una orientación, no un acta de finiquito. La confirmación genera y descarga el archivo; no lo envía a terceros. <span id="vigenciaResumenPDF"></span></p>
+      <button id="btnConfirmarResumenPDF" type="button">Confirmar y descargar PDF</button>
+      <button id="btnCancelarResumenPDF" type="button">Cancelar resumen</button>
+      <p id="errorResumenPDF" class="error" role="alert" hidden></p>
+    </section>
+
+      <p id="estadoAgente" class="ayuda" role="status" hidden></p>
+      <p id="errorAgente" class="error" role="alert" hidden></p>
+      <div id="respuestaAgente" hidden aria-live="polite">
+        <p id="mensajeRespuestaAgente"></p>
+        <ul id="faltantesAgente"></ul>
+        <div id="calculosAgente"></div>
+        <div id="textosAgente"></div>
+        <div id="fuentesAgente" hidden><h3>Fuentes de la consulta</h3><div id="listaFuentesAgente"></div></div>
+        <p class="ayuda">Esta orientación no reemplaza una revisión profesional. No ingrese nombres, cédulas ni otros datos personales.</p>
+      </div>
+      <div id="confirmacionAgente" class="aviso" hidden>
+        <h3>Revise los saldos que se utilizarán</h3>
+        <ul id="resumenConfirmacionAgente"></ul>
+        <p>Esta confirmación permite consultar estos datos. No registra un finiquito, no envía documentos ni realiza pagos.</p>
+        <button id="btnConfirmarAgente" type="button">Confirmar uso de estos saldos</button>
+        <button id="btnCancelarAgente" type="button">Cancelar</button>
+      </div>
     </section>
   </main>
 
-  <footer>Caso 07 · Grupo 7 · Seminario de Ingeniería de Software con IA Generativa · UNIANDES</footer>
-  <script src="app.js"></script>
+  <footer>Calculadora Laboral EC · Orientación sobre beneficios laborales en Ecuador</footer>
+  <script src="app.js?v=20261030-limpieza-consulta"></script>
 </body>
 </html>

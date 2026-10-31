@@ -20,7 +20,7 @@ CATALOGO = {
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
         "clave": "GEMINI_API_KEY",
         "modelo_env": "GEMINI_MODEL",
-        "modelo": "gemini-3.8-flash",
+        "modelo": "gemini-3.6-flash",
     },
     "groq": {
         "base_url": "https://api.groq.com/openai/v1",
@@ -59,6 +59,7 @@ class Config:
     max_tokens: int
     reintentos: int
     razonamiento: str | None  # "low" | "medium" | "high" | None
+    timeout_respaldo_s: float = 45
 
 
 def _env(nombres: tuple[str, ...], defecto: str = "") -> str:
