@@ -33,3 +33,7 @@ Thumbs.db
 # Fuente con restricción de redistribución: se descarga localmente (ver data/raw/README.md)
 data/raw/CODIGO_DEL_TRABAJO.pdf
 data/raw/CODIGO_DEL_TRABAJO_defensoria_2026.pdf
+
+# Reporte de cobertura (pytest-cov)
+.coverage
+htmlcov/

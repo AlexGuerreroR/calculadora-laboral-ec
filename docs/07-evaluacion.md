@@ -56,10 +56,9 @@ abstención e inyección, sin consumir más IA. Alcance documental y captura:
 `docs/evidencias/semana-3/cierre-fuentes.md`.
 El corte no certifica reformas posteriores ni casos particulares. Las corridas
 se realizaron en la copia y luego se trasladó el avance al repositorio local.
-Ese traslado registra otra ejecución de 235 pruebas en 8,12 s; no constituye
-una nueva evaluación con proveedores. Véase `docs/11-traslado-repositorio-local.md`.
-Los cambios siguen pendientes de commit y publicación en GitHub.
-Lista de requisitos: `docs/cierre-semana-3.md`.
+En el repositorio local se volvieron a ejecutar las 235 pruebas; eso no
+constituye una nueva evaluación con proveedores. Los cambios están publicados
+en GitHub.
 
 ## Corridas históricas
 

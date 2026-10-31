@@ -211,7 +211,7 @@ datos del formulario comprobados por el servidor y salida construida con
 resultados verificables. Los esquemas salen de Pydantic; las ocho funciones
 permitidas están en `app/services/agente.py`. La verificación inicial usa dobles;
 posteriormente se completó una consulta real con Groq, dos vueltas y tres
-solicitudes lógicas para explicar el décimo tercero (bitácora, grupo F5).
+solicitudes lógicas para explicar el décimo tercero.
 Posteriormente se añadió el resumen PDF: el agente solo pide su preparación;
 el endpoint `/resumen/preparar` guarda una instantánea en memoria y devuelve una
 vista previa. `/resumen/confirmar` consume una autorización aleatoria, de un solo

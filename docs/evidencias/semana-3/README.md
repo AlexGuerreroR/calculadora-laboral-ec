@@ -2,7 +2,6 @@
 
 Las evaluaciones se conservan en `eval/`, sin duplicarlas en esta carpeta.
 El avance se desarrolló en la copia y después se trasladó al repositorio local.
-El traslado se describe en [su registro](../../11-traslado-repositorio-local.md).
 
 ## Cierre de la evaluación
 
@@ -37,8 +36,7 @@ demuestran una evaluación nueva con el proveedor.
 Las pruebas y capturas anteriores de vista previa y cancelación documentan ese
 recorrido. Actualmente, el botón «Descargar PDF» prepara y confirma en un solo
 clic. La vista previa con confirmación separada permanece cuando el resumen se
-solicita al agente. El cambio está registrado en el grupo U de la bitácora;
-no se presentan las capturas anteriores como una nueva comprobación de ese botón.
+solicita al agente. No se presentan las capturas anteriores como una nueva comprobación de ese botón.
 
 El manifiesto del corpus está en `config/corpus.json`. La comparación documental
 se limita a los diez artículos registrados y al corte del 18/05/2026.
@@ -52,7 +50,7 @@ se limita a los diez artículos registrados y al corte del 18/05/2026.
 | `resultados_agente_final_20261030.json` | Corrida anterior cuyas decisiones utiliza `cerrar_evaluacion.py`. |
 | `resultados_recuperacion.json` | Recuperación histórica; no es una evaluación de respuestas. |
 
-La evolución del código está registrada en [la bitácora](../../10-bitacora-copia.md).
+La evolución del código se puede seguir en el historial de commits del repositorio.
 
 ## Diagnósticos auxiliares
 
@@ -63,3 +61,16 @@ No deben borrarse sin revisar sus referencias: algunos scripts dependen de ellos
 
 No publicar `.env`, claves, dependencias, cachés ni registros generales del
 proveedor. Los datos de evaluación son los ejemplos del conjunto de referencia.
+
+## Talleres de la semana 3
+
+Archivos descargados en los talleres, conservados como evidencia. **Son ejercicios
+de diseño: no se ejecutan como parte de la aplicación** (`pytest.ini` limita las
+pruebas a `tests/`). Los resultados que aparecen en ellos (escenarios A–D, umbral
+y errores silenciosos) son del simulador de cada taller, no mediciones de la
+aplicación. Cada carpeta tiene un `README.md` que lo indica.
+
+| Carpeta | Taller | Contenido |
+| --- | --- | --- |
+| `taller-clase3-agentes/` | Clase 3, 28/10: agente de alcance controlado | ADR del diseño, bucle del agente, herramienta `calcular_decimos` con esquema y prueba. Escenarios A–D superados en el simulador. La implementación final está en `app/services/agente.py` y se describe en el ADR-004 de `docs/09-decisiones.md`. |
+| `taller-clase4-automatizacion/` | Clase 4, 29/10: flujo automatizado y plan de calidad | ADR del flujo, `flujo.py`, 20 casos en `casos_flujo.jsonl`, `evaluar.py` y plan de calidad (CI con pytest y cobertura de 80 %). El flujo de registro es un diseño del taller; la aplicación no registra liquidaciones. |

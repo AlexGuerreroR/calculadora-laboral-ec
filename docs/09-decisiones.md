@@ -175,3 +175,26 @@ ni verifica secretos históricos de un repositorio que no se inspeccionó.
 **Negativas y riesgos:** Cada integrante debe configurar su `.env` para usar IA; los cálculos y el PDF son locales. No hay historial persistente de consultas para auditar su contenido. Los pendientes de PDF viven en un solo proceso y se pierden al reiniciarlo; un despliegue con varios workers requiere otro diseño de almacenamiento. La consulta del agente admite texto libre y podría contener información personal pese al aviso de no introducirla. Si una clave llega a un commit debe revocarse y notificarse; no se ha inspeccionado el historial remoto en esta tarea.
  
 ---
+
+## ADR-004: Agente de alcance controlado
+
+*Semana 3 · actualiza ADR-002 · diseño del taller de la clase 3 en `docs/evidencias/semana-3/taller-clase3-agentes/`*
+
+### Contexto
+
+En la semana 2 elegimos un workflow (ADR-002). En la semana 3 el caso pide un agente que use las mismas funciones de cálculo como herramientas, sin perder la exactitud de los montos ni dejar que el modelo decida qué se ejecuta.
+
+### Decisión
+
+- **Lista cerrada en código:** `PERMITIDAS` en `app/services/agente.py` contiene ocho herramientas: `consultar_normativa`, `calcular_decimos`, `calcular_vacaciones`, `calcular_horas`, `estimar_liquidacion`, `explicar_resultado`, `solicitar_datos` y `generar_resumen`. Una herramienta que no está en la lista no se ejecuta.
+- **Tope:** `config/parametros.yaml`, sección `agente`: 6 vueltas, 8 solicitudes lógicas al modelo y 4 herramientas por vuelta.
+- **Confirmación humana:** `estimar_liquidacion` solo usa los saldos si el usuario los confirmó en el formulario; una orden del modelo no los confirma. `generar_resumen` solo prepara la vista previa; el PDF se genera en otro endpoint después del clic del usuario.
+- **Argumentos:** cada herramienta valida sus argumentos con Pydantic y deben coincidir con el formulario confirmado; el modelo no puede cambiar sueldos, fechas ni saldos.
+- **Salida:** se publican los resultados de las herramientas y las citas verificadas, no el texto final libre del modelo.
+- **Fuera de alcance:** pagar, registrar, enviar o borrar. No existen herramientas para eso.
+
+### Consecuencias
+
+**Positivas:** los montos siguen saliendo del código y coinciden con los 10 casos de referencia; el agente se prueba con dobles del modelo (`tests/test_agente.py`, `tests/test_agente_correcciones.py`).
+
+**Negativas:** el agente es menos flexible que una conversación libre y pide usar el formulario cuando faltan datos. Cada vuelta consume solicitudes del proveedor.
