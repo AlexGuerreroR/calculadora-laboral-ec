@@ -18,7 +18,6 @@ con fuentes y PDF de descarga directa. Las respuestas anteriores se limpian
 al descargar o cambiar de calculo. Las secciones historicas siguientes pueden
 describir la antigua vista previa del PDF o modelos anteriores; la configuracion
 de ejecucion actual usa Groq como principal y Gemini 3.6 Flash como respaldo.
-El informe de traslado y el respaldo se indican en `docs/11-traslado-repositorio-local.md`.
 
 **Caso 07 · Calculadora Inteligente de Beneficios y Liquidaciones Laborales** · Grupo 7 · Seminario de Ingeniería de Software con IA Generativa, UNIANDES.
 
@@ -36,6 +35,27 @@ Los trabajadores consultados (12 de 15 en nuestro levantamiento) no saben cómo 
 - **Resumen PDF:** el botón «Descargar PDF» prepara y descarga el documento con un solo clic. Si se solicita al agente, se muestra una vista previa con confirmación o cancelación. Ambos caminos usan un token de sesión de un solo uso; el modelo no confirma la descarga.
 - **Pendiente:** evaluación generativa completa del agente y validación final del producto.
 - **Despliegue previsto:** Render (semana 4).
+
+## Estado real de la Entrega 3
+
+| Punto de la Entrega 3 | Estado | Dónde está |
+|---|---|---|
+| Conocimiento especializado | Hecho | `scripts/ingest.py` descarga el Código del Trabajo de la URL de `config/corpus.json`, valida su SHA-256 y lo corta por artículo con fuente, versión, número de artículo, tema y vigencia |
+| RAG con citas y silencio | Hecho (embeddings + búsqueda híbrida por «Art. N») | `app/services/retriever.py`, `app/services/rag.py`; sin fragmento suficiente responde que no tiene respaldo |
+| Agente de alcance controlado | Hecho | `app/services/agente.py`: lista cerrada `PERMITIDAS` (8 herramientas); tope de 6 vueltas en `config/parametros.yaml` (`agente.max_iteraciones`); confirmación humana para `estimar_liquidacion` y `generar_resumen` |
+| Calidad | Hecho | `pytest -q` (237 pruebas, sin claves); CI en `.github/workflows/ci.yml` con cobertura mínima de 80 % |
+| Evaluación | Hecho | `eval/preguntas.csv` (20) y `eval/casos_calculo.csv` (10); resultados en `docs/07-evaluacion.md` |
+
+Resultados guardados del cierre de la semana 3 (`eval/metricas_cierre_20261030.json`):
+recuperación 13/13, respuestas con cita correcta 11/13 (84,6 %), abstenciones 4/4,
+fuera de dominio 2/2, inyección 2/2 y cálculos 10/10 dentro de USD 0,01.
+
+### Lo que NO hace todavía
+
+- No está desplegada: la URL pública es tarea de la semana 4.
+- La evaluación de cierre reutiliza decisiones de herramienta grabadas; falta una corrida completa nueva del agente sobre la versión final. P06 y P07 siguen fallando.
+- Las sesiones y la vista previa del PDF viven en memoria: se pierden al reiniciar y no sirven con varios procesos.
+- No registra, envía ni paga nada; tampoco reemplaza la asesoría legal en casos litigiosos.
 
 ## Arquitectura
 
@@ -124,8 +144,8 @@ py -3.14 -B -m pytest -q -p no:cacheprovider tests/test_rag.py tests/test_explic
 
 Comprobación realizada: 50 comprobaciones locales aprobadas y recuperación real
 12/13 (92,3 %). Esa comprobación local no llamó al proveedor generativo.
-Las pruebas reales posteriores y el ajuste a `rag_v2` están registrados en
-[la bitácora de la copia](docs/10-bitacora-copia.md), grupo C. Se configuró Groq
+Después se hicieron pruebas reales y se ajustó el prompt a `rag_v2` (véase
+`docs/06-rag.md`). Se configuró Groq
 como principal y Gemini como respaldo. Las claves permanecen únicamente en el
 `.env` local y nunca deben publicarse.
 La comprobación anterior utilizó un corpus con reformas hasta 2023. El corpus
@@ -141,7 +161,7 @@ históricas. Recuperación actual del agente: 13/13 con todos los artículos esp
 El respaldo `gemini-3.6-flash` respondió un JSON válido en 2,162 s después de un
 fallo simulado de Groq; quedó configurado en la copia. Evidencia:
 `eval/gemini_modelos_probados_20261030.json`. No se provocó una caída real de Groq.
-Lista de requisitos y demostración: [cierre de semana 3](docs/cierre-semana-3.md).
+Estado de cada requisito: [Estado real de la Entrega 3](#estado-real-de-la-entrega-3).
 
 ```powershell
 pytest -q                          # pruebas con un doble del modelo: no gastan cuota
@@ -179,7 +199,7 @@ C10 = 9.331,84 USD, sujetos a los supuestos del ejercicio. El formulario de
 liquidación exige revisar y confirmar los saldos propios. C09/C10 permanecen
 solo en la documentación y los datos de validación; no son controles de la app.
 El prompt activo es `rag_v3`; esta etapa comprobó su integración y las fuentes
-locales, sin volver a consumir API. La bitácora detalla el alcance exacto.
+locales, sin volver a consumir API. El alcance está en `docs/07-evaluacion.md`.
 
 ### Consultar al agente
 
@@ -213,7 +233,7 @@ py -3.14 -B -m pytest -q -p no:cacheprovider tests/test_agente.py tests/test_llm
 
 Resultado de esta selección: 101 pruebas aprobadas sin API. No es la misma
 selección de 115 pruebas de la etapa de cálculos, ni una evaluación real de las
-20 preguntas. Detalles de versiones y resultados en la bitácora, grupo F.
+20 preguntas. Resultados por versión en `docs/07-evaluacion.md`.
 
 Prueba real posterior con Groq: `agente_v2` eligió `explicar_resultado` para
 `calculo-0`; `rag_v3` explicó el décimo tercero conservando 600,00 USD y citando
@@ -270,10 +290,8 @@ Consumo conservador total: 75 solicitudes. Gemini 3.6 Flash quedó comprobado de
 respaldo. Se actualizó el corpus a la edición oficial con reforma 18/05/2026,
 699 fragmentos y metadatos temporales; los diez artículos utilizados son idénticos
 a los evaluados. Se observó la interfaz con cálculo, fuente 2026, PDF confirmado
-y descargado, cancelación, abstención e inyección, sin más IA. El avance ya se
-trasladó al repositorio local; todavía no está publicado en GitHub. El traslado
-y sus comprobaciones constan en `docs/11-traslado-repositorio-local.md`. Véanse
-[evaluación](docs/07-evaluacion.md) y [lista de cierre](docs/cierre-semana-3.md).
+y descargado, cancelación, abstención e inyección, sin más IA. El avance está
+publicado en GitHub. Véase [evaluación](docs/07-evaluacion.md).
 
 ### Línea base histórica
 
@@ -286,8 +304,7 @@ ese diagnóstico consumieron 26/60 solicitudes autorizadas, sin Gemini; la
 configuración habitual conserva Groq principal y Gemini de respaldo.
 
 Resultados, criterios y orden de corrección en
-[docs/07-evaluacion.md](docs/07-evaluacion.md). Cambios de esta etapa en
-[docs/10-bitacora-copia.md](docs/10-bitacora-copia.md), grupo H. No se afirma
+[docs/07-evaluacion.md](docs/07-evaluacion.md). No se afirma
 que el agente cumpla las metas ni que Gemini se haya probado en esta corrida.
 
 ## Uso de IA en el desarrollo y aporte de cada integrante

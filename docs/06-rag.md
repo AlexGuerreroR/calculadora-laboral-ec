@@ -44,8 +44,7 @@ La fecha de corte no se confunde con una certificación de reformas posteriores.
 - Pasaron 50 comprobaciones locales de RAG, endpoint con dobles, fragmentación
   y aislamiento de rutas (1,59 s), sin consumo de API.
   Esta comprobación local no midió generación con un proveedor. Posteriormente se
-  probaron tres explicaciones reales con v1 y se repitió el décimo tercero con v2;
-  resultados y corrección en [la bitácora](10-bitacora-copia.md), grupo C.
+  probaron tres explicaciones reales con v1 y se repitió el décimo tercero con v2.
   Las corridas generativas posteriores, sus fallos y el cierre están en
   `docs/07-evaluacion.md`; las cifras históricas no se atribuyen a los prompts actuales.
 
@@ -80,7 +79,7 @@ adicionales y debe evaluarse con las preguntas de referencia.
 El agente usa actualmente `agente_v4` para decidir herramientas y `rag_v3` para explicar
 cálculos. Sus pruebas iniciales usan dobles de modelo y buscador. Una prueba real
 posterior completó la explicación del décimo tercero con `calculo-0`, 600,00 USD
-y cita `art-111` del índice real. La bitácora F5 registra versiones y consumo.
+y cita `art-111` del índice real.
 Las mediciones de recuperación y llamadas reales conservan su alcance y versión;
 una consulta aprobada no acredita automáticamente las métricas del agente.
 
