@@ -64,9 +64,11 @@ proveedor. Los datos de evaluación son los ejemplos del conjunto de referencia.
 
 ## Talleres de la semana 3
 
-Archivos descargados en los talleres, conservados como evidencia. Son ejercicios
-de diseño: no se ejecutan como parte de la aplicación (`pytest.ini` limita las
-pruebas a `tests/`).
+Archivos descargados en los talleres, conservados como evidencia. **Son ejercicios
+de diseño: no se ejecutan como parte de la aplicación** (`pytest.ini` limita las
+pruebas a `tests/`). Los resultados que aparecen en ellos (escenarios A–D, umbral
+y errores silenciosos) son del simulador de cada taller, no mediciones de la
+aplicación. Cada carpeta tiene un `README.md` que lo indica.
 
 | Carpeta | Taller | Contenido |
 | --- | --- | --- |

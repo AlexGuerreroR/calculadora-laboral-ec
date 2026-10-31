@@ -43,7 +43,7 @@ Los trabajadores consultados (12 de 15 en nuestro levantamiento) no saben cómo 
 | Conocimiento especializado | Hecho | `scripts/ingest.py` descarga el Código del Trabajo de la URL de `config/corpus.json`, valida su SHA-256 y lo corta por artículo con fuente, versión, número de artículo, tema y vigencia |
 | RAG con citas y silencio | Hecho (embeddings + búsqueda híbrida por «Art. N») | `app/services/retriever.py`, `app/services/rag.py`; sin fragmento suficiente responde que no tiene respaldo |
 | Agente de alcance controlado | Hecho | `app/services/agente.py`: lista cerrada `PERMITIDAS` (8 herramientas); tope de 6 vueltas en `config/parametros.yaml` (`agente.max_iteraciones`); confirmación humana para `estimar_liquidacion` y `generar_resumen` |
-| Calidad | Hecho | `pytest -q` (237 pruebas, sin claves); CI en `.github/workflows/ci.yml` con cobertura mínima de 80 % |
+| Calidad | Hecho | `pytest -q` (237 pruebas, sin claves); CI en `.github/workflows/ci.yml` con cobertura mínima de 80 %; el CI no ejecuta la evaluación generativa |
 | Evaluación | Hecho | `eval/preguntas.csv` (20) y `eval/casos_calculo.csv` (10); resultados en `docs/07-evaluacion.md` |
 
 Resultados guardados del cierre de la semana 3 (`eval/metricas_cierre_20261030.json`):

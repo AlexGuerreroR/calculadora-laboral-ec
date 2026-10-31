@@ -3,6 +3,8 @@
 *Taller de la Clase 3 · 28 de octubre de 2026 · Grupo 7 · Beneficios y liquidaciones laborales*
 *Integrantes: Alexander Guerrero, Bladimir Velasco, Dorian Zambrano*
 
+> **Ejercicio del taller.** Es el diseño hecho en clase con el simulador del bucle; no describe la aplicación. Los resultados A–D son del simulador, no de la aplicación. La implementación real está en `app/services/agente.py` y se documenta en el ADR-004 de `docs/09-decisiones.md`.
+
 ### Contexto
 El producto necesita, además de responder con nuestros documentos (RAG), ejecutar acciones. Un agente da vueltas pidiendo funciones; debemos acotar qué puede pedir, cuántas vueltas puede dar y qué acciones requieren confirmación humana.
 

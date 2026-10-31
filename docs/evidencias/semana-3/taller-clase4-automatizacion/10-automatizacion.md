@@ -3,6 +3,8 @@
 *Taller de la Clase 4 · 29 de octubre de 2026 · Grupo 7 · Beneficios y liquidaciones laborales*
 *Integrantes: Bladimir Velasco, Alexander Guerrero, Dorian Zambrano*
 
+> **Ejercicio del taller.** Este flujo no está implementado en la aplicación: la aplicación no registra liquidaciones ni notifica a RR. HH. Las cifras del umbral (7 automáticos, 3 a revisión, 0 errores silenciosos) salen del simulador del taller con 10 casos de práctica; no son mediciones de la aplicación. `casos_flujo.jsonl` conserva los 20 casos como plantillas con `TODO`.
+
 ### Contexto
 En el producto se repite un proceso que hoy hace una persona a mano: Solicitud de liquidación con fecha de ingreso, fecha de salida, sueldo y tipo de terminación (20 por día). Queremos automatizarlo sin que la IA tome decisiones exactas ni riesgosas.
 
