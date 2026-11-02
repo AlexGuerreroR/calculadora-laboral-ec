@@ -1,0 +1,16 @@
+# Nunca entran a la imagen: secretos, entornos y datos que se regeneran
+.env
+.venv/
+venv/
+.git/
+.github/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+logs/
+data/chroma/
+data/chroma-2026/
+data/raw/CODIGO_DEL_TRABAJO*.pdf
+docs/evidencias/
