@@ -1,6 +1,9 @@
 """Corrida autorizada: 20 preguntas originales, Groq exclusivo, máximo 60 llamadas.
 
 Ejecutar desde la raíz de la copia. Guarda cada fila antes de continuar.
+Sin argumentos usa el archivo de la semana 3. Para una corrida nueva, indique otro archivo:
+
+    python eval/run_agente_real.py eval/resultados_agente_s4_20261102.json
 No usa formularios inventados, no modifica el dataset ni califica semántica por citas.
 """
 import csv
@@ -45,7 +48,8 @@ class ClienteEvaluacion(ClienteLLM):
 
 def main():
     retriever.ruta_indice()
-    destino = retriever.validar_ruta_copia(RAIZ / 'eval/resultados_agente_real_20261030.json')
+    nombre = sys.argv[1] if len(sys.argv) > 1 else 'eval/resultados_agente_real_20261030.json'
+    destino = retriever.validar_ruta_copia(RAIZ / nombre)
     if destino.exists():
         raise RuntimeError('La evidencia ya existe; no se sobrescribe ni se repite la corrida.')
     config = replace(cargar_config(), respaldo=None)
