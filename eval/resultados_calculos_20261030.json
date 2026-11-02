@@ -1,0 +1,321 @@
+{
+  "fecha_utc": "2026-10-30T21:24:20.587431+00:00",
+  "usa_api": false,
+  "referencia": "B4_Resolución de casos.xlsx, Resultados C4:C13; supuestos C09/C10 conservados",
+  "tolerancia_usd": "0.01",
+  "aciertos": 10,
+  "total": 10,
+  "detalle": [
+    {
+      "id": "C01",
+      "http": 200,
+      "esperado": "600.00",
+      "resultado": {
+        "tipo": "decimo_tercero",
+        "entradas": {
+          "remuneraciones": [
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0,
+            600.0
+          ]
+        },
+        "desglose": [
+          "Suma de 12 remuneraciones: 7200.00",
+          "Doceava parte: 7200.00 / 12 = 600.00"
+        ],
+        "total": 600.0,
+        "dias": null,
+        "fundamento": "Código del Trabajo, art. 111; MDT-2023-140, arts. 9 y 10"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C02",
+      "http": 200,
+      "esperado": "250.00",
+      "resultado": {
+        "tipo": "decimo_tercero",
+        "entradas": {
+          "remuneraciones": [
+            500.0,
+            500.0,
+            500.0,
+            500.0,
+            500.0,
+            500.0
+          ]
+        },
+        "desglose": [
+          "Suma de 6 remuneraciones: 3000.00",
+          "Doceava parte: 3000.00 / 12 = 250.00"
+        ],
+        "total": 250.0,
+        "dias": null,
+        "fundamento": "Código del Trabajo, art. 111; MDT-2023-140, arts. 9 y 10"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C03",
+      "http": 200,
+      "esperado": "737.50",
+      "resultado": {
+        "tipo": "decimo_tercero",
+        "entradas": {
+          "remuneraciones": [
+            700.0,
+            700.0,
+            700.0,
+            700.0,
+            700.0,
+            700.0,
+            700.0,
+            700.0,
+            700.0,
+            850.0,
+            850.0,
+            850.0
+          ]
+        },
+        "desglose": [
+          "Suma de 12 remuneraciones: 8850.00",
+          "Doceava parte: 8850.00 / 12 = 737.50"
+        ],
+        "total": 737.5,
+        "dias": null,
+        "fundamento": "Código del Trabajo, art. 111; MDT-2023-140, arts. 9 y 10"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C04",
+      "http": 200,
+      "esperado": "482.00",
+      "resultado": {
+        "tipo": "decimo_cuarto",
+        "entradas": {
+          "meses_trabajados": 12,
+          "region": "sierra_amazonia"
+        },
+        "desglose": [
+          "Salario básico unificado 2026: 482.0",
+          "Proporción: 482.0 x 12 / 12 = 482.00",
+          "Período de la región: 1 de agosto al 31 de julio"
+        ],
+        "total": 482.0,
+        "dias": null,
+        "fundamento": "Código del Trabajo, art. 113; MDT-2023-140, arts. 9 y 10"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C05",
+      "http": 200,
+      "esperado": "241.00",
+      "resultado": {
+        "tipo": "decimo_cuarto",
+        "entradas": {
+          "meses_trabajados": 6,
+          "region": "costa_galapagos"
+        },
+        "desglose": [
+          "Salario básico unificado 2026: 482.0",
+          "Proporción: 482.0 x 6 / 12 = 241.00",
+          "Período de la región: 1 de marzo al último día de febrero"
+        ],
+        "total": 241.0,
+        "dias": null,
+        "fundamento": "Código del Trabajo, art. 113; MDT-2023-140, arts. 9 y 10"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C06",
+      "http": 200,
+      "esperado": "300.00",
+      "resultado": {
+        "tipo": "vacaciones",
+        "entradas": {
+          "remuneracion_mensual": 600.0,
+          "fecha_ingreso": "2025-10-01",
+          "fecha_corte": "2026-10-01",
+          "anios_completos": 1
+        },
+        "desglose": [
+          "Años completos de servicio: 1",
+          "Días: 15 base proporcional + 0 adicionales = 15",
+          "Valor base: 600.0 x 12 / 24 = 300.00",
+          "Valor de días adicionales: 600.0 / 30 x 0 = 0.00",
+          "Total: 300.00 + 0.00 = 300.00"
+        ],
+        "total": 300.0,
+        "dias": 15.0,
+        "fundamento": "Código del Trabajo, arts. 69, 70 y 71"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C07",
+      "http": 200,
+      "esperado": "510.00",
+      "resultado": {
+        "tipo": "vacaciones",
+        "entradas": {
+          "remuneracion_mensual": 900.0,
+          "fecha_ingreso": "2019-03-01",
+          "fecha_corte": "2026-03-01",
+          "anios_completos": 7
+        },
+        "desglose": [
+          "Años completos de servicio: 7",
+          "Días: 15 base proporcional + 2 adicionales = 17",
+          "Valor base: 900.0 x 12 / 24 = 450.00",
+          "Valor de días adicionales: 900.0 / 30 x 2 = 60.00",
+          "Total: 450.00 + 60.00 = 510.00"
+        ],
+        "total": 510.0,
+        "dias": 17.0,
+        "fundamento": "Código del Trabajo, arts. 69, 70 y 71"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C08",
+      "http": 200,
+      "esperado": "76.67",
+      "resultado": {
+        "tipo": "horas_extra",
+        "entradas": {
+          "remuneracion_mensual": "800",
+          "horas_suplementarias": "10",
+          "horas_extraordinarias": "4"
+        },
+        "desglose": [
+          "Hora ordinaria sin redondeo intermedio: 800 / 240 = 3.333333333333333333333333333",
+          "Suplementarias: 10 horas con recargo 50.0% = 50.00",
+          "Extraordinarias: 4 horas con recargo 100.0% = 26.67",
+          "Total de rubros redondeados: 50.00 + 26.67 = 76.67",
+          "Alcance: sueldo mensual y jornada completa. Las horas las informa el usuario; no se determina si su distribución diaria o semanal fue legal."
+        ],
+        "total": 76.67,
+        "dias": null,
+        "fundamento": "Código del Trabajo, art. 55; Resolución INEC 021-DIREJ-DIJU-NI-2026, art. 24"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C09",
+      "http": 200,
+      "esperado": "1130.33",
+      "resultado": {
+        "tipo": "liquidacion",
+        "entradas": {
+          "remuneracion_mensual": "700",
+          "fecha_ingreso": "2024-06-01",
+          "fecha_salida": "2026-09-30",
+          "motivo_salida": "renuncia_con_desahucio",
+          "region": "sierra_amazonia",
+          "salario_pendiente": "0",
+          "base_acumulada_decimo_tercero": "7000",
+          "dias_decimo_cuarto_pendientes": "60",
+          "dias_vacaciones_base_pendientes": "5",
+          "dias_vacaciones_adicionales_pendientes": "0",
+          "horas_suplementarias_pendientes": "0",
+          "horas_extraordinarias_pendientes": "0",
+          "descuentos_confirmados": "0",
+          "criterios_confirmados": true
+        },
+        "desglose": [
+          "Años completos de servicio: 2; fracción adicional: sí",
+          "Remuneraciones indemnizables según motivo informado: 0",
+          "Salario pendiente informado: 0.00",
+          "Indemnización por despido intempestivo: 0.00",
+          "Bonificación por desahucio: 350.00",
+          "Décimo tercero pendiente: 583.33",
+          "Décimo cuarto pendiente: 80.33",
+          "Vacaciones base pendientes: 116.67",
+          "Vacaciones adicionales pendientes: 0.00",
+          "Horas suplementarias pendientes: 0.00",
+          "Horas extraordinarias pendientes: 0.00",
+          "Desahucio: 700 x 0.25 x 2 años completos = 350.00",
+          "Décimo tercero: base informada 7000 / 12 = 583.33",
+          "Décimo cuarto: SBU 482.0 x 60 días / 360 = 80.33",
+          "Total bruto: 1130.33; descuentos confirmados: 0.00; total neto estimado: 1130.33",
+          "Criterios: remuneración fija para vacaciones; saldos de días informados por el usuario; no se agrega nuevamente lo ya pagado.",
+          "Desahucio por años completos: criterio conservado del Excel del grupo, pendiente de contraste actualizado. El sistema no decide si el motivo de salida es legal."
+        ],
+        "total": 1130.33,
+        "dias": null,
+        "fundamento": "Código del Trabajo, arts. 184, 185 y 188; Código del Trabajo, arts. 55, 69, 71, 111 y 113; MDT-2023-140, arts. 9 y 10"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    },
+    {
+      "id": "C10",
+      "http": 200,
+      "esperado": "9331.84",
+      "resultado": {
+        "tipo": "liquidacion",
+        "entradas": {
+          "remuneracion_mensual": "1000",
+          "fecha_ingreso": "2020-08-01",
+          "fecha_salida": "2026-08-31",
+          "motivo_salida": "despido_intempestivo",
+          "region": "sierra_amazonia",
+          "salario_pendiente": "0",
+          "base_acumulada_decimo_tercero": "9000",
+          "dias_decimo_cuarto_pendientes": "30",
+          "dias_vacaciones_base_pendientes": "1.25",
+          "dias_vacaciones_adicionales_pendientes": "0",
+          "horas_suplementarias_pendientes": "0",
+          "horas_extraordinarias_pendientes": "0",
+          "descuentos_confirmados": "0",
+          "criterios_confirmados": true
+        },
+        "desglose": [
+          "Años completos de servicio: 6; fracción adicional: sí",
+          "Remuneraciones indemnizables según motivo informado: 7",
+          "Salario pendiente informado: 0.00",
+          "Indemnización por despido intempestivo: 7000.00",
+          "Bonificación por desahucio: 1500.00",
+          "Décimo tercero pendiente: 750.00",
+          "Décimo cuarto pendiente: 40.17",
+          "Vacaciones base pendientes: 41.67",
+          "Vacaciones adicionales pendientes: 0.00",
+          "Horas suplementarias pendientes: 0.00",
+          "Horas extraordinarias pendientes: 0.00",
+          "Desahucio: 1000 x 0.25 x 6 años completos = 1500.00",
+          "Décimo tercero: base informada 9000 / 12 = 750.00",
+          "Décimo cuarto: SBU 482.0 x 30 días / 360 = 40.17",
+          "Total bruto: 9331.84; descuentos confirmados: 0.00; total neto estimado: 9331.84",
+          "Criterios: remuneración fija para vacaciones; saldos de días informados por el usuario; no se agrega nuevamente lo ya pagado.",
+          "Desahucio por años completos: criterio conservado del Excel del grupo, pendiente de contraste actualizado. El sistema no decide si el motivo de salida es legal.",
+          "Se informó saldo cero de vacaciones adicionales pese a la antigüedad. Confirme que fueron gozadas o pagadas; no se presume que no existe el derecho."
+        ],
+        "total": 9331.84,
+        "dias": null,
+        "fundamento": "Código del Trabajo, arts. 184, 185 y 188; Código del Trabajo, arts. 55, 69, 71, 111 y 113; MDT-2023-140, arts. 9 y 10"
+      },
+      "diferencia": "0.00",
+      "correcto": true
+    }
+  ]
+}

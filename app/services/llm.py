@@ -120,7 +120,8 @@ class ClienteLLM:
         self.dormir = dormir  # en las pruebas se reemplaza para no esperar de verdad
         self._clientes = clientes or {
             p.nombre: OpenAI(api_key=p.api_key, base_url=p.base_url,
-                             timeout=self.config.timeout_s, max_retries=0)  # los reintentos los hacemos nosotros
+                             timeout=(self.config.timeout_respaldo_s if p == self.config.respaldo else self.config.timeout_s),
+                             max_retries=0)  # los reintentos los hacemos nosotros
             for p in self.proveedores
         }
 
@@ -136,7 +137,8 @@ class ClienteLLM:
                 r = cliente.chat.completions.create(model=p.modelo, messages=mensajes, **opciones)
                 ms = int((time.monotonic() - t0) * 1000)
                 contenido = (r.choices[0].message.content or "") if r.choices else ""
-                if not contenido.strip():
+                llamadas = getattr(r.choices[0].message, "tool_calls", None) if r.choices else None
+                if not contenido.strip() and not (extra.get("tools") and llamadas):
                     raise _RespuestaVacia()
                 uso = getattr(r, "usage", None)
                 _registrar(evento="ok", proveedor=p.nombre, modelo=p.modelo, intento=intento, latencia_ms=ms,
@@ -171,6 +173,23 @@ class ClienteLLM:
         raise ProveedorNoDisponible()
 
     # ------------------------------------------------------------ API pública
+    def generar_herramientas(self, mensajes: list[dict], herramientas: list[dict],
+                             requerir_herramienta: bool = False) -> Resultado:
+        """Una vuelta del agente: admite llamadas a funciones sin texto asociado."""
+        p, r, ms, intentos = self._con_respaldo(
+            mensajes, {"tools": herramientas, "tool_choice": "required" if requerir_herramienta else "auto"})
+        mensaje = r.choices[0].message
+        datos = {"role": "assistant", "content": mensaje.content or None}
+        llamadas = getattr(mensaje, "tool_calls", None) or []
+        if llamadas:
+            datos["tool_calls"] = [
+                {"id": llamada.id, "type": "function", "function": {
+                    "name": llamada.function.name, "arguments": llamada.function.arguments}}
+                for llamada in llamadas]
+        uso = getattr(r, "usage", None)
+        return Resultado(datos, p.nombre, p.modelo, getattr(uso, "prompt_tokens", None),
+                         getattr(uso, "completion_tokens", None), ms, intentos)
+
     def generar_texto(self, system: str, mensajes: list[dict]) -> Resultado[str]:
         """Respuesta de texto libre (por ejemplo, un chat). mensajes = historial."""
         p, r, ms, intentos = self._con_respaldo([{"role": "system", "content": system}, *mensajes], {})

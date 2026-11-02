@@ -8,7 +8,8 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
-from app.schemas import EntradaVacaciones, ResultadoCalculo
+from app.schemas import (EntradaVacaciones, ResultadoCalculo,
+                         EntradaDiasVacaciones, ResultadoDiasVacaciones)
 from app.tools.parametros import cargar_parametros, dec, redondear
 
 
@@ -27,6 +28,16 @@ def meses_completos(desde: date, hasta: date) -> int:
     return max(0, meses)
 
 
+def calcular_dias_vacaciones(entrada: EntradaDiasVacaciones) -> ResultadoDiasVacaciones:
+    """Días por período anual con años declarados; no calcula un saldo acumulado."""
+    p = cargar_parametros()["vacaciones"]
+    adicionales = min(max(0, entrada.anios_servicio - (p["dia_adicional_desde_anio"] - 1)),
+                       p["max_dias_adicionales"])
+    return ResultadoDiasVacaciones(anios_servicio=entrada.anios_servicio,
+        dias_base=p["dias_base"], dias_adicionales=adicionales,
+        dias_anuales=p["dias_base"] + adicionales, fundamento=p["fuente"])
+
+
 def calcular_vacaciones(entrada: EntradaVacaciones) -> ResultadoCalculo:
     params = cargar_parametros()
     p = params["vacaciones"]
@@ -38,10 +49,7 @@ def calcular_vacaciones(entrada: EntradaVacaciones) -> ResultadoCalculo:
     # no el saldo acumulado de todos los años de servicio.
     meses = meses_completos(entrada.fecha_ingreso, corte) if anios < 1 else 12
 
-    adicionales = min(
-        max(0, anios - (p["dia_adicional_desde_anio"] - 1)),
-        p["max_dias_adicionales"],
-    )
+    adicionales = calcular_dias_vacaciones(EntradaDiasVacaciones(anios_servicio=anios)).dias_adicionales
     dias_base = dec(p["dias_base"]) * dec(meses) / dec(12)
     dias = dias_base + dec(adicionales)
 

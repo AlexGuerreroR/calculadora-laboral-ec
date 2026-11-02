@@ -1,0 +1,20 @@
+{"id":"caso-01","entrada":"TODO: texto real de un solicitud claro y completo","esperado":{"tipo":"TODO","destino":"automatico","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-02","entrada":"TODO: texto real de un solicitud completo, con un dato opcional vacío","esperado":{"tipo":"TODO","destino":"automatico","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-03","entrada":"TODO: texto real de un solicitud con faltas de ortografía","esperado":{"tipo":"TODO","destino":"automatico","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-04","entrada":"TODO: texto real de un solicitud escrito de forma muy informal","esperado":{"tipo":"TODO","destino":"automatico","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-05","entrada":"TODO: texto real de un solicitud con un adjunto de buena calidad","esperado":{"tipo":"TODO","destino":"automatico","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-06","entrada":"TODO: texto real de un solicitud largo, con mucho contexto","esperado":{"tipo":"TODO","destino":"automatico","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-07","entrada":"TODO: texto real de un solicitud breve, pero suficiente","esperado":{"tipo":"TODO","destino":"automatico","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-08","entrada":"TODO: texto real de un dos temas en un mismo mensaje: la IA eligió el equivocado","esperado":{"tipo":"TODO","destino":"revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-09","entrada":"TODO: texto real de un solicitud con una foto inclinada pero legible","esperado":{"tipo":"TODO","destino":"revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-10","entrada":"TODO: texto real de un escaneo borroso: la IA adivinó","esperado":{"tipo":"TODO","destino":"revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-11","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-12","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-13","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-14","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-15","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-16","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-17","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-18","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-19","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}
+{"id":"caso-20","entrada":"TODO: texto real de un caso de su producto","esperado":{"tipo":"TODO","destino":"TODO automatico|revision","resultado":"TODO: valor o acción esperada"}}

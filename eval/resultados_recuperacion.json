@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-10-28",
+  "fecha": "2026-10-30",
   "modelo": "intfloat/multilingual-e5-small",
   "k": 5,
   "hit_at_k": 0.923,

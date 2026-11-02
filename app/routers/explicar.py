@@ -9,8 +9,7 @@ Flujo (el orden lo decide el código, no el modelo · ADR-002):
      servidor (el fundamento sale de config/parametros.yaml).
   4. Recién entonces se crea el cliente del modelo: si falta la configuración (.env), el
      usuario recibe un 503 claro, no un 500.
-  5. llm.py llama al modelo con el prompt versionado, reintentos y respaldo; el modelo
-     devuelve JSON con el esquema Explicacion y nunca escribe la norma.
+  5. El RAG recupera artículos; el modelo explica con citas que el servidor verifica.
 """
 from __future__ import annotations
 
@@ -23,19 +22,22 @@ from functools import lru_cache
 from typing import Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from app.config import ErrorConfiguracion
-from app.schemas import (EntradaDecimoCuarto, EntradaDecimoTercero, EntradaVacaciones, Explicacion,
-                         ResultadoCalculo)
-from app.services.llm import ClienteLLM, ProveedorNoDisponible, SalidaInvalida, cargar_prompt
+from app.schemas import (EntradaDecimoCuarto, EntradaDecimoTercero, EntradaVacaciones,
+                         ResultadoCalculo, ExplicacionRAG, FuenteRAG, EntradaHoras, EntradaLiquidacion)
+from app.services import rag
+from app.services.llm import ClienteLLM, ProveedorNoDisponible, SalidaInvalida
 from app.tools.decimos import calcular_decimo_cuarto, calcular_decimo_tercero
 from app.tools.vacaciones import calcular_vacaciones
+from app.tools.horas import calcular_horas
+from app.tools.liquidacion import estimar_liquidacion
+from app.tools.parametros import cargar_parametros
 
 router = APIRouter(tags=["explicación con IA"])
 log = logging.getLogger("api")
 
-PROMPT = os.getenv("PROMPT_VERSION", "system_v3")  # la versión ganadora de docs/05-prompts.md
 AVISO_IA = ("Explicación generada con inteligencia artificial a partir de un cálculo hecho por el sistema. "
             "Es una orientación: el valor oficial lo determina el empleador conforme a la ley. "
             "Ante un conflicto laboral, acuda al Ministerio del Trabajo.")
@@ -56,16 +58,19 @@ CALCULOS = {
     "decimo_tercero": (EntradaDecimoTercero, calcular_decimo_tercero),
     "decimo_cuarto": (EntradaDecimoCuarto, calcular_decimo_cuarto),
     "vacaciones": (EntradaVacaciones, calcular_vacaciones),
+    "horas_extra": (EntradaHoras, calcular_horas),
+    "liquidacion": (EntradaLiquidacion, estimar_liquidacion),
 }
 
 
 class RespuestaExplicar(BaseModel):
-    explicacion: Explicacion | None
+    explicacion: ExplicacionRAG | None
     fundamento: str            # lo pone el servidor, desde la configuración
     total: float               # el monto recalculado por el servidor
     aviso: str
     mensaje: str
     proveedor: str | None = None
+    fuentes: list[FuenteRAG] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------- cliente del modelo (perezoso)
@@ -78,6 +83,10 @@ def obtener_llm() -> Callable[[], ClienteLLM]:
     """Devuelve una FÁBRICA, no el cliente: así el cliente se crea después de las validaciones
     y un .env incompleto no rompe la solicitud con un 500. En las pruebas se reemplaza."""
     return _crear_llm
+
+
+def obtener_recuperador():
+    return rag.recuperar_calculo
 
 
 # ---------------------------------------------------------------- límite por minuto
@@ -136,9 +145,12 @@ def recalcular(resultado: ResultadoCalculo) -> ResultadoCalculo:
                503: {"description": "Servicio de IA no configurado o ningún proveedor respondió"}},
 )
 def explicar(resultado: ResultadoCalculo, request: Request,
-             fabrica_llm: Callable[[], ClienteLLM] = Depends(obtener_llm)):
-    if len(resultado.model_dump_json()) > MAX_INPUT_CHARS:
-        raise HTTPException(422, f"La entrada supera el máximo de {MAX_INPUT_CHARS} caracteres.")
+             fabrica_llm: Callable[[], ClienteLLM] = Depends(obtener_llm),
+             recuperar=Depends(obtener_recuperador)):
+    limite = (cargar_parametros()["limites"]["explicar_liquidacion_caracteres"]
+              if resultado.tipo == "liquidacion" else MAX_INPUT_CHARS)
+    if len(resultado.model_dump_json()) > limite:
+        raise HTTPException(422, f"La entrada supera el máximo de {limite} caracteres.")
 
     espera = limitador.permitir(_cliente(request))
     if espera is not None:
@@ -148,14 +160,23 @@ def explicar(resultado: ResultadoCalculo, request: Request,
     confiable = recalcular(resultado)  # desde aquí solo se usan datos del servidor
 
     try:
+        fuentes = recuperar(confiable)
+    except Exception:
+        log.exception("No se pudo consultar el índice normativo")
+        raise HTTPException(503, "La base normativa no está disponible. El cálculo sigue visible; "
+                                 "revise la ingesta local antes de solicitar una explicación.")
+    if not fuentes:
+        return RespuestaExplicar(explicacion=None, fundamento=confiable.fundamento,
+                                 total=confiable.total, aviso=AVISO_IA, mensaje=rag.SIN_RESPALDO)
+
+    try:
         llm = fabrica_llm()
     except ErrorConfiguracion as e:
         log.error("configuración del servicio de IA incompleta: %s", e)
         raise HTTPException(503, "El servicio de explicación no está configurado. El cálculo sigue siendo válido.")
 
     try:
-        r = llm.generar_json(cargar_prompt(PROMPT), f"<resultado>{confiable.model_dump_json()}</resultado>",
-                             Explicacion)
+        r, usadas = rag.explicar_calculo(llm, confiable, fuentes)
     except ProveedorNoDisponible as e:
         raise HTTPException(503, e.mensaje_usuario, headers={"Retry-After": "60"})
     except SalidaInvalida:
@@ -163,8 +184,8 @@ def explicar(resultado: ResultadoCalculo, request: Request,
         return RespuestaExplicar(explicacion=None, fundamento=confiable.fundamento, total=confiable.total,
                                  aviso=AVISO_IA, mensaje=SIN_EXPLICACION)
 
-    exp: Explicacion = r.datos
+    exp: ExplicacionRAG = r.datos
     mensaje = ("Explicación generada." if exp.estado == "ok"
                else "El asistente no tiene datos suficientes para explicar este resultado.")
     return RespuestaExplicar(explicacion=exp, fundamento=confiable.fundamento, total=confiable.total,
-                             aviso=AVISO_IA, mensaje=mensaje, proveedor=r.proveedor)
+                             aviso=AVISO_IA, mensaje=mensaje, proveedor=r.proveedor, fuentes=usadas)

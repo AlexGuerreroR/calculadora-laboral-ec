@@ -38,9 +38,26 @@ def modelo_embeddings() -> str:
     return os.getenv("EMBEDDING_MODEL", "").strip() or MODELO_POR_DEFECTO
 
 
+def validar_ruta_copia(ruta: Path) -> Path:
+    """Acepta solo destinos dentro de esta aplicación, incluidos sus enlaces resueltos.
+
+    No crea carpetas ni abre el destino. Una ruta relativa se interpreta desde
+    la raíz de la aplicación, nunca desde el directorio de la terminal.
+    """
+    raiz = _RAIZ.resolve()
+    ruta = Path(ruta)
+    # En Windows, C:indice y \indice dependen del disco/directorio actual.
+    if ruta.anchor and not ruta.is_absolute():
+        raise ValueError("La ruta debe ser relativa a la copia o absoluta dentro de ella.")
+    destino = (ruta if ruta.is_absolute() else raiz / ruta).resolve()
+    if destino == raiz or not destino.is_relative_to(raiz):
+        raise ValueError("La ruta debe permanecer dentro de la copia y no ser su raíz.")
+    return destino
+
+
 def ruta_indice() -> Path:
     ruta = Path(os.getenv("CHROMA_PATH", "").strip() or "./data/chroma")
-    return ruta if ruta.is_absolute() else _RAIZ / ruta
+    return validar_ruta_copia(ruta)
 
 
 def articulos_citados(pregunta: str) -> list[str]:
@@ -52,13 +69,16 @@ def articulos_citados(pregunta: str) -> list[str]:
 def _modelo():
     from sentence_transformers import SentenceTransformer
 
-    return SentenceTransformer(modelo_embeddings())
+    cache = validar_ruta_copia(_RAIZ / ".cache/modelos")
+    return SentenceTransformer(modelo_embeddings(), cache_folder=str(cache), trust_remote_code=False)
 
 
 def _cliente():
+    ruta = ruta_indice()  # validar antes de importar o abrir ChromaDB
     import chromadb
 
-    return chromadb.PersistentClient(path=str(ruta_indice()))
+    from chromadb.config import Settings
+    return chromadb.PersistentClient(path=str(ruta), settings=Settings(anonymized_telemetry=False))
 
 
 def _vectores(textos: list[str], prefijo: str) -> list[list[float]]:
@@ -107,17 +127,18 @@ def buscar(pregunta: str, k: int = 5, tema: str | None = None, solo_vigentes: bo
     filtro = _filtro(tema, solo_vigentes)
     r = col.query(query_embeddings=_vectores([pregunta], "query: "), n_results=k, where=filtro)
     hallados = [
-        {"articulo": m["articulo"], "distancia": d, "texto": t, "tema": m["tema"],
+        {**m, "id": ident, "articulo": m["articulo"], "distancia": d, "texto": t, "tema": m["tema"],
          "capitulo": m.get("capitulo", ""), "origen": "significado"}
-        for t, m, d in zip(r["documents"][0], r["metadatas"][0], r["distances"][0])
+        for ident, t, m, d in zip(r["ids"][0], r["documents"][0], r["metadatas"][0], r["distances"][0])
     ]
     # Búsqueda híbrida: el artículo nombrado en la pregunta va primero.
     exactos = []
     for numero in articulos_citados(pregunta):
         cond = {"articulo": numero}
-        g = col.get(where={"$and": [cond, filtro]} if filtro else cond)
-        exactos += [{"articulo": m["articulo"], "distancia": 0.0, "texto": t, "tema": m["tema"],
+        condiciones = [cond] + (filtro.get("$and", [filtro]) if filtro else [])
+        g = col.get(where={"$and": condiciones} if len(condiciones) > 1 else cond)
+        exactos += [{**m, "id": ident, "articulo": m["articulo"], "distancia": 0.0, "texto": t, "tema": m["tema"],
                      "capitulo": m.get("capitulo", ""), "origen": "exacta"}
-                    for t, m in zip(g["documents"], g["metadatas"])]
+                    for ident, t, m in zip(g["ids"], g["documents"], g["metadatas"])]
     vistos = {e["articulo"] for e in exactos}
     return (exactos + [h for h in hallados if h["articulo"] not in vistos])[:k]

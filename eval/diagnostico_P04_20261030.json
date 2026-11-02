@@ -1,0 +1,50 @@
+{
+  "pregunta_id": "P04",
+  "previas": 24,
+  "maximo_adicional": 3,
+  "limite_total_autorizado": 60,
+  "trazas": [
+    {
+      "numero_global": 25,
+      "entrada_ultimo_mensaje": {
+        "role": "user",
+        "content": "{\"mensaje\": \"¿Cuántas horas al día me pueden hacer trabajar?\", \"calculo_confirmado\": null, \"confirmacion_liquidacion\": false}"
+      },
+      "contenido_propuesto": null,
+      "herramientas_propuestas": [
+        {
+          "nombre": "consultar_normativa",
+          "argumentos": "{\"pregunta\":\"¿Cuántas horas al día me pueden hacer trabajar según la normativa laboral ecuatoriana?\"}"
+        }
+      ]
+    },
+    {
+      "numero_global": 26,
+      "entrada_ultimo_mensaje": {
+        "role": "user",
+        "content": "{\"pregunta\": \"¿Cuántas horas al día me pueden hacer trabajar según la normativa laboral ecuatoriana?\", \"fragmentos\": [{\"id\": \"art-152\", \"documento\": \"Código del Trabajo\", \"articulo\": \"152\", \"texto\": \"Art. 152.-(Sustituido por el Art. 4 de la Ley s/n, R.O. 528-S, 13-II-2009; Reformado por el Art. 24 de la Ley s/n, R.O. 234-S, 20-I-2023; y Reformado por la Disp. Reformatoria Primera del Cap. II y la Disp. Reformatoria Primera del Cap. III de la Ley s/n, R.O. 309-S, 12-V- 2023).- Toda mujer trabajadora tiene derecho a una licencia con remuneración de doce (12) semanas por el nacimiento de su hija o hijo; en caso de nacimientos múltiples el plazo se extiende por diez días adicionales. La ausencia al trabajo se justificará mediante la presentación de un certificado médico otorgado por un facultativo del Instituto Ecuatoriano de Seguridad Social, y, a falta de éste, por otro profesional; certificado en el que debe constar la fecha probable del parto o la fecha en que tal hecho se ha producido. El padre tiene derecho a licencia con remuneración por quince (15) días por el nacimiento de su hija o hijo cuando el nacimiento sea por parto normal; en los casos de nacimientos múltiples o por cesárea se prolongará por cinco días más. En los casos de que la hija o hijo haya nacido prematuro o en condiciones de cuidado especial, se prolongará la licencia por paternidad con remuneración, por ocho días más y cuando la hija o hijo haya nacido con una enfermedad, degenerativa, terminal o irreversible, o con un grado de discapacidad severa, el padre podrá tener una licencia con remuneración por veinte y cinco días, hecho que se justificará con la presentación de un certificado médico otorgado por un facultativo del Instituto Ecuatoriano de Seguridad Social, y, a falta de éste, por otro profesional. En caso de fallecimiento de la madre durante el parto o mientras goza de la licencia por maternidad, el padre podrá hacer uso de la totalidad, o en su caso, de la parte que reste del período de licencia que le hubiere correspondido a la madre si no hubiese fallecido.\", \"fuente\": \"https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf\", \"version\": \"Codificación 2005-017, última reforma RO 309-S 2023-05-12\"}, {\"id\": \"art-1\", \"documento\": \"Código del Trabajo\", \"articulo\": \"1\", \"texto\": \"Art. 1.- Ámbito de este Código.- Los preceptos de este Código regulan las relaciones entre empleadores y trabajadores y se aplican a las diversas modalidades y condiciones de trabajo. Las normas relativas al trabajo contenidas en leyes especiales o en convenios internacionales ratificados por el Ecuador, serán aplicadas en los casos específicos a las que ellas se refieren.\", \"fuente\": \"https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf\", \"version\": \"Codificación 2005-017, última reforma RO 309-S 2023-05-12\"}, {\"id\": \"art-sn-tras-156-(5)\", \"documento\": \"Código del Trabajo\", \"articulo\": \"s/n tras 156 (5)\", \"texto\": \"Art. ... (5).- (Agregado por el Art. 1 de la Ley 2006-40, R.O. 259, 27-IV-2006).- Los trabajadores en general, tienen derecho a conocer los resultados de los exámenes médicos practicados, así como los de laboratorio y los estudios especiales. También tendrán derecho a la confidencialidad de sus resultados, salvo en el caso de enfermedades que, por su naturaleza, alta probabilidad de contagio, que deberán ser puestos a disposición de las autoridades de salud, y de ese particular se informará al empleador. Si los exámenes médicos revelaren condiciones de especial vulnerabilidad o se detectare algún impedimento psicofísico para el desempeño de las actividades propias de la actividad, las instancias competentes del Ministerio de Trabajo y Empleo y del Instituto Ecuatoriano de Seguridad Social, determinarán las medidas necesarias para su readaptación y formación profesional.\", \"fuente\": \"https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf\", \"version\": \"Codificación 2005-017, última reforma RO 309-S 2023-05-12\"}, {\"id\": \"art-20\", \"documento\": \"Código del Trabajo\", \"articulo\": \"20\", \"texto\": \"Art. 20.- Cruce de información.- (Reformado por el Art. 2 de la Ley 2006-39, R.O. 250, 13- IV-2006; y, por el Art. 6 de la Ley s/n, R.O. 483-3S, 20-IV-2015).- Para efectos del ejercicio de las facultades legales conferidas al Ministerio rector del trabajo, este podrá solicitar el intercambio o cruce de información con la base de datos del Instituto Ecuatoriano de Seguridad Social. No se registrarán los contratos que deban celebrarse por escrito en el Ministerio rector de trabajo. En caso de no haberse celebrado contrato escrito, el adolescente podrá probar la relación laboral por cualquier medio, inclusive con el juramento deferido. Siempre que una persona se beneficie del trabajo de un adolescente, se presume, para todos los efectos legales, la existencia de una relación laboral.\", \"fuente\": \"https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf\", \"version\": \"Codificación 2005-017, última reforma RO 309-S 2023-05-12\"}, {\"id\": \"art-sn-tras-156-(3)\", \"documento\": \"Código del Trabajo\", \"articulo\": \"s/n tras 156 (3)\", \"texto\": \"Art. ... (3).- (Agregado por el Art. 1 de la Ley 2006-40, R.O. 259, 27-IV-2006).- Previo a la incorporación de adolescentes mayores de quince años a las actividades permitidas por la legislación ecuatoriana, deberán practicarse los exámenes médicos de aptitud para el empleo, con la finalidad de evaluar minuciosamente su condición psicofísica, establecer su real estado de salud y recomendar las medidas preventivas frente a los riesgos potenciales de la actividad industrial o no industrial. Estos exámenes médicos, a los cuales se los denominará de preempleo, serán practicados por especialistas de la Unidad Técnica de Seguridad y Salud del Ministerio de Trabajo y Empleo, del Servicio de Medicina del Trabajo del Instituto Ecuatoriano de Seguridad Social, especialistas en Seguridad y Salud de las Direcciones Provinciales de Salud y los Concejos Municipales, a través de las dependencias competentes o de los Patronatos Municipales y Provinciales de Amparo Social.\", \"fuente\": \"https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf\", \"version\": \"Codificación 2005-017, última reforma RO 309-S 2023-05-12\"}]}"
+      },
+      "contenido_propuesto": "{\n  \"estado\": \"no_disponible\",\n  \"respuesta\": \"\",\n  \"citas\": []\n}",
+      "herramientas_propuestas": []
+    }
+  ],
+  "total_acumulado": 26,
+  "respuesta_real": {
+    "estado": "abstencion",
+    "mensaje": "No encontré respaldo suficiente en las fuentes cargadas para explicar este resultado. Puede consultar al Ministerio del Trabajo. El cálculo sigue visible por separado.",
+    "calculos": [],
+    "explicaciones": [],
+    "normativa": [],
+    "pasos": [
+      {
+        "herramienta": "consultar_normativa",
+        "estado": "abstencion"
+      }
+    ],
+    "faltantes": [],
+    "resumen_confirmacion": [],
+    "iteraciones": 1,
+    "llamadas_modelo": 2,
+    "resumen_pdf": null
+  }
+}

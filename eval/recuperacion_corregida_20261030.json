@@ -1,0 +1,240 @@
+{
+  "fecha_utc": "2026-10-30T22:54:56.024510+00:00",
+  "usa_api": false,
+  "alcance": "recuperacion con ayudas por tema, sin medir respuesta generativa",
+  "aciertos_todos": 13,
+  "total": 13,
+  "detalle": [
+    {
+      "id": "P01",
+      "esperados": [
+        "111"
+      ],
+      "recuperados": [
+        "111"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P02",
+      "esperados": [
+        "69"
+      ],
+      "recuperados": [
+        "69",
+        "71"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P03",
+      "esperados": [
+        "55"
+      ],
+      "recuperados": [
+        "55",
+        "47"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P04",
+      "esperados": [
+        "47"
+      ],
+      "recuperados": [
+        "47",
+        "55"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P05",
+      "esperados": [
+        "113"
+      ],
+      "recuperados": [
+        "113"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P06",
+      "esperados": [
+        "185"
+      ],
+      "recuperados": [
+        "185",
+        "184"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P07",
+      "esperados": [
+        "188",
+        "71"
+      ],
+      "recuperados": [
+        "69",
+        "71",
+        "188"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P08",
+      "esperados": [
+        "47",
+        "55"
+      ],
+      "recuperados": [
+        "47",
+        "55"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P09",
+      "esperados": [
+        "111",
+        "185"
+      ],
+      "recuperados": [
+        "111",
+        "185",
+        "184"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P10",
+      "esperados": [
+        "69",
+        "75"
+      ],
+      "recuperados": [
+        "75",
+        "69",
+        "71"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P11",
+      "esperados": [
+        "188"
+      ],
+      "recuperados": [
+        "188"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P12",
+      "esperados": [
+        "71"
+      ],
+      "recuperados": [
+        "71",
+        "69"
+      ],
+      "todos": true
+    },
+    {
+      "id": "P13",
+      "esperados": [],
+      "recuperados": [
+        "239",
+        "237",
+        "238",
+        "242",
+        "260"
+      ],
+      "todos": null
+    },
+    {
+      "id": "P14",
+      "esperados": [],
+      "recuperados": [
+        "34.3",
+        "113",
+        "143",
+        "201",
+        "395"
+      ],
+      "todos": null
+    },
+    {
+      "id": "P15",
+      "esperados": [],
+      "recuperados": [
+        "64",
+        "514",
+        "428",
+        "295",
+        "466"
+      ],
+      "todos": null
+    },
+    {
+      "id": "P16",
+      "esperados": [],
+      "recuperados": [
+        "355",
+        "497",
+        "172",
+        "249",
+        "4"
+      ],
+      "todos": null
+    },
+    {
+      "id": "P17",
+      "esperados": [],
+      "recuperados": [
+        "158",
+        "165",
+        "34.3",
+        "157",
+        "152"
+      ],
+      "todos": null
+    },
+    {
+      "id": "P18",
+      "esperados": [],
+      "recuperados": [
+        "42",
+        "344",
+        "218",
+        "340",
+        "551"
+      ],
+      "todos": null
+    },
+    {
+      "id": "P19",
+      "esperados": [],
+      "recuperados": [
+        "413",
+        "412",
+        "426",
+        "219",
+        "494"
+      ],
+      "todos": null
+    },
+    {
+      "id": "P20",
+      "esperados": [
+        "69"
+      ],
+      "recuperados": [
+        "69",
+        "71"
+      ],
+      "todos": true
+    }
+  ]
+}

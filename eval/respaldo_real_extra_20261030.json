@@ -1,0 +1,14 @@
+{
+  "fecha_utc": "2026-10-30T21:55:27.467696+00:00",
+  "principal_configurado": "groq",
+  "respaldo_real": "gemini",
+  "modelo_respaldo": "gemini-3.8-flash",
+  "fallo_principal": "simulado, sin llamada real a Groq",
+  "maximo_logico_reservado": 1,
+  "solicitudes_logicas_usadas": 1,
+  "timeout_respaldo_s": 45,
+  "techo_global_autorizado": 61,
+  "reintentos_configurados_por_proveedor": 2,
+  "correcto": false,
+  "error_tipo": "ProveedorNoDisponible"
+}

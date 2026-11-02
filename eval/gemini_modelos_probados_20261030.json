@@ -1,0 +1,22 @@
+{
+  "fecha_utc": "2026-10-30T22:02:51.035234+00:00",
+  "limite_adicional": 3,
+  "techo_global_autorizado": 64,
+  "usadas": 1,
+  "detalle": [
+    {
+      "modelo": "gemini-3.6-flash",
+      "correcto": true,
+      "proveedor_efectivo": "gemini",
+      "resultado": {
+        "estado": "no_disponible",
+        "respuesta": "",
+        "citas": []
+      },
+      "latencia_ms": 2162
+    }
+  ],
+  "metodo": "fallo Groq simulado sin red; Gemini real con configuración de la aplicación",
+  "modelo_elegido": "gemini-3.6-flash",
+  "configuracion_local_actualizada": true
+}

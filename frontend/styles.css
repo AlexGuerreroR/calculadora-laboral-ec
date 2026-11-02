@@ -19,6 +19,13 @@ footer{max-width:1136px;margin:26px auto 0;border-top:1px solid var(--borde);pad
 @media(max-width:480px){.etiqueta-cabecera{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
+.consulta-agente{margin-top:24px}
+.consulta-agente textarea{display:block;width:100%;margin-top:8px;padding:14px;border:1px solid var(--borde);border-radius:9px;font:inherit;resize:vertical;background:#fafcfb;color:var(--texto)}
+.consulta-agente input[type=checkbox]{width:20px;height:20px;accent-color:var(--primario)}
+#respuestaAgente{margin-top:22px;overflow-wrap:anywhere}
+#fuentesAgente details{margin:12px 0}
+#confirmacionAgente{margin-top:20px}
+
 /* Lectura cómoda y composición equilibrada */
 body { font-size:18px; }
 .etiqueta-cabecera { font-size:15px; }

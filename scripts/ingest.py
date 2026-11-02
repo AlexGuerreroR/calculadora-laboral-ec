@@ -11,6 +11,8 @@ Se corre una vez, y otra vez si cambia el documento o el modelo de embeddings
 (en ese caso se reconstruye la colección completa).
 """
 import sys
+import json
+import hashlib
 import urllib.request
 from pathlib import Path
 
@@ -22,9 +24,10 @@ from app.services import retriever  # noqa: E402
 retriever.cargar_entorno()  # respeta EMBEDDING_MODEL y CHROMA_PATH del .env
 from app.services.normativa import cortar  # noqa: E402
 
-PDF = RAIZ / "data/raw/CODIGO_DEL_TRABAJO.pdf"
-URL = "https://www.trabajo.gob.ec/wp-content/uploads/downloads/2024/01/CODIGO_DEL_TRABAJO.pdf"
-VERSION = "Codificación 2005-017, última reforma RO 309-S 2023-05-12"
+CORPUS = json.loads((RAIZ / "config/corpus.json").read_text(encoding="utf-8"))
+PDF = RAIZ / CORPUS["archivo"]
+URL = CORPUS["url"]
+VERSION = CORPUS["version"]
 
 
 def leer_pdf(ruta: Path) -> str:
@@ -35,13 +38,21 @@ def leer_pdf(ruta: Path) -> str:
 
 
 def main() -> None:
-    if not PDF.exists():
+    # Comprobar todos los destinos antes de descargar, leer o reconstruir.
+    retriever.ruta_indice()
+    pdf = retriever.validar_ruta_copia(PDF)
+    if not pdf.exists():
         # El PDF no se sube al repositorio (restricción de redistribución, ver data/raw/README.md).
-        print(f"No está {PDF.name}: se descarga de la fuente oficial…")
-        PDF.parent.mkdir(parents=True, exist_ok=True)
-        urllib.request.urlretrieve(URL, PDF)
+        print(f"No está {pdf.name}: se descarga de la fuente oficial…")
+        pdf.parent.mkdir(parents=True, exist_ok=True)
+        urllib.request.urlretrieve(URL, pdf)
 
-    fragmentos = cortar(leer_pdf(PDF), fuente=URL, version=VERSION)
+    if hashlib.sha256(pdf.read_bytes()).hexdigest() != CORPUS["sha256"]:
+        sys.exit("El PDF no coincide con la edición registrada: revisar origen y actualizar el manifiesto antes de indexar.")
+    fragmentos = cortar(leer_pdf(pdf), fuente=URL, version=VERSION)
+    for f in fragmentos:
+        f.metadatos.update({k: CORPUS[k] for k in ("fecha_publicacion", "fecha_corte_normativa", "fecha_consulta", "alcance_vigencia")})
+        f.metadatos["estado_vigencia_fuente"] = "vigente según edición" if f.metadatos["vigente"] else "derogado según edición"
     vigentes = sum(f.metadatos["vigente"] for f in fragmentos)
     print(f"1) Corte: {len(fragmentos)} artículos detectados ({vigentes} vigentes, "
           f"{len(fragmentos) - vigentes} derogados)")
