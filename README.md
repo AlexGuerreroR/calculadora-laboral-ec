@@ -93,6 +93,18 @@ En `.env`, pegue **su** clave de Gemini (<https://aistudio.google.com/apikey>) y
 
 Si PowerShell bloquea `activate`, ejecute una vez `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
+## Crear el índice del RAG (una sola vez)
+
+El índice vectorial (`data/chroma-2026/`) y el PDF del Código del Trabajo no se suben a Git. Antes de la primera ejecución, créelos con:
+
+```powershell
+python scripts/ingest.py
+```
+
+El script descarga el Código del Trabajo de la URL registrada en `config/corpus.json`, verifica su SHA-256, lo corta por artículo y guarda los fragmentos con sus metadatos en ChromaDB. La primera vez también descarga el modelo de embeddings `intfloat/multilingual-e5-small`, por lo que puede tardar algunos minutos. Al final muestra una búsqueda de prueba con los artículos recuperados. Sin este paso, la consulta normativa no encuentra fuentes y responde que no tiene respaldo.
+
+Vuelva a ejecutarlo solo si cambia el documento o el modelo de embeddings.
+
 ## Ejecución
 
 ```powershell
