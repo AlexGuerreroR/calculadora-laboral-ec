@@ -1,7 +1,16 @@
 # Comparación de versiones del system prompt
 
 Actualización de semana 3: la comparación siguiente es histórica, del 23/10.
-Los prompts activos de la copia son `agente_v4`, `normativa_v3` y `rag_v3`.
+Los prompts activos son `agente_v4`, `normativa_v4` y `rag_v3`.
+
+**Semana 4 · `normativa_v4`.** La corrida nueva de las 20 preguntas (2/11) mostró que el
+modelo multiplicaba cantidades de la pregunta pese a la prohibición de `normativa_v3`
+(«25 % × 5», «4 × 15 = 60 días»). Las validaciones de `consultar_normativa` bloquearon
+esas salidas, y el agente se abstuvo en preguntas que tenían respuesta (P06, P07).
+`normativa_v4` conserva todo `normativa_v3` y agrega un ejemplo incorrecto/correcto
+sin operaciones y la regla de responder por separado cada tema de una pregunta
+combinada. Las validaciones no cambian. Resultados en [07-evaluacion.md](07-evaluacion.md).
+
 La corrida de línea base empleó `agente_v3` y `normativa_v1`; no se atribuyen sus
 resultados a las versiones nuevas. `agente_v4` distingue orientación de cálculo
 monetario, conserva la pregunta original y mantiene permisos/confirmación.

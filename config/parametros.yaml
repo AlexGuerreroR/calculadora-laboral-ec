@@ -44,7 +44,7 @@ resumen:
 
 agente:
   prompt: agente_v4
-  prompt_normativa: normativa_v3
+  prompt_normativa: normativa_v4
   fuentes_no_cargadas:
     - '\b(contrato colectivo|reglamento interno)\b.{0,60}\b(mi|nuestra|empresa)\b'
     - '\b(descuent\w*|aport\w*)\b.{0,60}\biess\b'
