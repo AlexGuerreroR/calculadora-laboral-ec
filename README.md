@@ -50,10 +50,15 @@ Resultados guardados del cierre de la semana 3 (`eval/metricas_cierre_20261030.j
 recuperación 13/13, respuestas con cita correcta 11/13 (84,6 %), abstenciones 4/4,
 fuera de dominio 2/2, inyección 2/2 y cálculos 10/10 dentro de USD 0,01.
 
+Corrida completa nueva de la semana 4, de punta a punta con `normativa_v4`
+(`eval/resultados_agente_s4_v4_20261102.json`): respuestas correctas con cita 11/13
+(84,6 %), abstenciones 4/4, fuera de dominio 2/2 e inyección 2/2. Comparación y
+diagnóstico en [docs/07-evaluacion.md](docs/07-evaluacion.md).
+
 ### Lo que NO hace todavía
 
 - No está desplegada: la URL pública es tarea de la semana 4.
-- La evaluación de cierre reutiliza decisiones de herramienta grabadas; falta una corrida completa nueva del agente sobre la versión final. P06 y P07 siguen fallando.
+- P04 y P07 todavía terminan en abstención segura (ver `docs/07-evaluacion.md`); P07 necesita mejorar la recuperación de preguntas combinadas.
 - Las sesiones y la vista previa del PDF viven en memoria: se pierden al reiniciar y no sirven con varios procesos.
 - No registra, envía ni paga nada; tampoco reemplaza la asesoría legal en casos litigiosos.
 

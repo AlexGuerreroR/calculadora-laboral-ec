@@ -1,4 +1,57 @@
-# Evaluación de la semana 3 — 30 de octubre de 2026
+# Evaluación del sistema — semanas 3 y 4
+
+## Semana 4: corrida completa nueva y calibración — 2 de noviembre de 2026
+
+A diferencia del cierre de la semana 3, estas corridas ejecutan el agente **de punta a
+punta** sobre la versión de `main`: planificación, herramientas y generación nuevas para
+las 20 preguntas de `eval/preguntas.csv`, sin reutilizar decisiones grabadas. Proveedor:
+Groq `openai/gpt-oss-120b`, sin respaldo; 26 solicitudes lógicas por corrida.
+
+```powershell
+python eval/run_agente_real.py eval/resultados_agente_s4_v4_20261102.json
+```
+
+| Indicador | S3 cierre (30/10) | S4 con `normativa_v3` | **S4 con `normativa_v4`** | Meta |
+| --- | --- | --- | --- | --- |
+| Artículos esperados en el top-5 (pregunta original) | 13/13 | 12/13 | 12/13 | — |
+| Respuesta correcta con cita (revisión manual) | 11/13 — 84,6 % | 9/13 — 69,2 % | **11/13 — 84,6 %** | ≥ 80 % |
+| Abstención o derivación esperada (P13–P16) | 4/4 | 4/4 | **4/4** | 100 % |
+| Fuera de dominio (P17, P18) | 2/2 | 2/2 | **2/2** | 100 % |
+| Inyección (P19 rechaza; P20 ignora la orden y responde) | 2/2 | 2/2 | **2/2** | 100 % |
+| Cálculos de referencia (`tests/test_liquidacion.py`) | 10/10 | 10/10 | **10/10** | 100 % |
+
+Evidencia: `eval/resultados_agente_s4_20261102.json` (v3),
+`eval/resultados_agente_s4_v4_20261102.json` (v4) y `eval/diagnostico_s4_20261102.json`.
+La recuperación de S3 (13/13) se midió dentro del agente; la de S4 es el top-5 de la
+pregunta original, por eso P07 cuenta como fallo de recuperación.
+
+### Fallos diagnosticados: ¿recuperación o generación?
+
+| Pregunta | v3 | v4 | Diagnóstico |
+| --- | --- | --- | --- |
+| P02 · vacaciones con 7 años | Abstención | Correcta (17 días, Art. 69) | **Generación, variable.** En el diagnóstico con v3 también pasó: el modelo no responde igual en cada corrida. |
+| P04 · horas por día | Abstención | Abstención | **Generación, variable.** El Art. 47 se recupera primero; en el diagnóstico con v3 la respuesta sí pasó las validaciones. |
+| P06 · desahucio con 5 años | Abstención | Correcta (25 % por año, Art. 185) | **Generación.** El modelo escribió «25 % × 5»; la validación de cantidades (`agente.py`, línea 288) lo bloqueó. |
+| P07 · despido y vacaciones no gozadas | Abstención | Abstención | **Recuperación y generación.** El top-5 de la pregunta original no trae los Art. 188 ni 71; la consulta interna sí, pero el modelo escribió «4 × 15 = 60 días», que además es jurídicamente incorrecto, y la validación de operaciones (línea 272) lo bloqueó. |
+
+### Qué se cambió
+
+`normativa_v4` conserva `normativa_v3` y agrega: (1) un ejemplo incorrecto/correcto que
+prohíbe combinar cantidades de la pregunta y remite el monto al formulario, y (2) la regla
+de responder cada tema de una pregunta combinada con su artículo. **Las validaciones no
+cambiaron**: siguen bloqueando montos, operaciones y cantidades que no estén en la fuente.
+El cambio se activa en `config/parametros.yaml` (`prompt_normativa`) y se revierte en esa línea.
+
+### Limitaciones
+
+- Una corrida por versión: con un modelo no determinista, una diferencia de una o dos
+  preguntas puede deberse a la variabilidad (P02 y P04 lo muestran).
+- La revisión de «correcta con cita» es manual, contra `respuesta_esperada`, y no es una
+  revisión jurídica.
+- P07 sigue sin respuesta; para resolverla hace falta mejorar la recuperación de preguntas
+  combinadas (buscar por cada tema) y no solo el prompt.
+
+# Semana 3 — 30 de octubre de 2026
 
 ## Cierre: mínimos funcionales medidos de la semana 3
 
