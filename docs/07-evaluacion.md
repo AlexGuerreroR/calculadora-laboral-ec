@@ -11,19 +11,26 @@ Groq `openai/gpt-oss-120b`, sin respaldo; 26 solicitudes lógicas por corrida.
 python eval/run_agente_real.py eval/resultados_agente_s4_v4_20261102.json
 ```
 
-| Indicador | S3 cierre (30/10) | S4 con `normativa_v3` | **S4 con `normativa_v4`** | Meta |
+| Indicador | S3 cierre (30/10) | S4 con `normativa_v3` | S4 con `normativa_v4` | Meta |
 | --- | --- | --- | --- | --- |
 | Artículos esperados en el top-5 (pregunta original) | 13/13 | 12/13 | 12/13 | — |
-| Respuesta correcta con cita (revisión manual) | 11/13 — 84,6 % | 9/13 — 69,2 % | **11/13 — 84,6 %** | ≥ 80 % |
-| Abstención o derivación esperada (P13–P16) | 4/4 | 4/4 | **4/4** | 100 % |
-| Fuera de dominio (P17, P18) | 2/2 | 2/2 | **2/2** | 100 % |
-| Inyección (P19 rechaza; P20 ignora la orden y responde) | 2/2 | 2/2 | **2/2** | 100 % |
-| Cálculos de referencia (`tests/test_liquidacion.py`) | 10/10 | 10/10 | **10/10** | 100 % |
+| Respuesta correcta con cita (revisión manual) | 11/13 — 84,6 % | 8/13 — 61,5 % | 8/13 — 61,5 % | ≥ 80 % |
+| Abstención o derivación esperada (P13–P16) | 4/4 | 4/4 | 4/4 | 100 % |
+| Fuera de dominio (P17, P18) | 2/2 | 2/2 | 2/2 | 100 % |
+| Inyección (P19 rechaza; P20 ignora la orden y responde) | 2/2 | 2/2 | 2/2 | 100 % |
+| Cálculos de referencia (`tests/test_liquidacion.py`) | 10/10 | 10/10 | 10/10 | 100 % |
 
 Evidencia: `eval/resultados_agente_s4_20261102.json` (v3),
 `eval/resultados_agente_s4_v4_20261102.json` (v4) y `eval/diagnostico_s4_20261102.json`.
 La recuperación de S3 (13/13) se midió dentro del agente; la de S4 es el top-5 de la
 pregunta original, por eso P07 cuenta como fallo de recuperación.
+
+**Criterio de calificación** (el mismo de la semana 3, sección «Criterios»): la respuesta
+publicada se compara con `respuesta_esperada`. Si omite un dato que la referencia exige,
+cuenta como incompleta aunque cite el artículo correcto. La primera versión de este informe
+contó P01 y P12 de v4 como correctas; la revisión del PR #65 (Alexander Guerrero) mostró que
+omiten la doceava y la veinticuatroava parte, y P09 se recalificó por atribuir al Art. 185
+algo que ese artículo no dice. Los números de esta tabla ya están corregidos.
 
 ### Fallos diagnosticados: ¿recuperación o generación?
 
@@ -32,6 +39,9 @@ pregunta original, por eso P07 cuenta como fallo de recuperación.
 | P02 · vacaciones con 7 años | Abstención | Correcta (17 días, Art. 69) | **Generación, variable.** En el diagnóstico con v3 también pasó: el modelo no responde igual en cada corrida. |
 | P04 · horas por día | Abstención | Abstención | **Generación, variable.** El Art. 47 se recupera primero; en el diagnóstico con v3 la respuesta sí pasó las validaciones. |
 | P06 · desahucio con 5 años | Abstención | Correcta (25 % por año, Art. 185) | **Generación.** El modelo escribió «25 % × 5»; la validación de cantidades (`agente.py`, línea 288) lo bloqueó. |
+| P01 · décimo tercero | Correcta (párrafo literal del Art. 111) | Incompleta: omite la doceava parte | **Publicación.** `completar_condiciones_publicadas` no exigía «doceava» en los Art. 111 y 113. |
+| P09 · décimo acumulado y desahucio | Correcta | Incorrecta: atribuye al Art. 185 la parte acumulada del décimo | **Generación.** |
+| P12 · vacaciones no gozadas | Incompleta: omite la veinticuatroava parte | Incompleta: igual | **Publicación.** No había regla de condiciones esenciales para el Art. 71. |
 | P07 · despido y vacaciones no gozadas | Abstención | Abstención | **Recuperación y generación.** El top-5 de la pregunta original no trae los Art. 188 ni 71; la consulta interna sí, pero el modelo escribió «4 × 15 = 60 días», que además es jurídicamente incorrecto, y la validación de operaciones (línea 272) lo bloqueó. |
 
 ### Qué se cambió
@@ -41,6 +51,14 @@ prohíbe combinar cantidades de la pregunta y remite el monto al formulario, y (
 de responder cada tema de una pregunta combinada con su artículo. **Las validaciones no
 cambiaron**: siguen bloqueando montos, operaciones y cantidades que no estén en la fuente.
 El cambio se activa en `config/parametros.yaml` (`prompt_normativa`) y se revierte en esa línea.
+
+Con `normativa_v4` desaparecieron las multiplicaciones (P02 y P06 pasaron a correctas), pero
+el total no subió porque P01, P12 y P09 quedaron incompletas o incorrectas. Por eso, tras la
+revisión del PR #65, `completar_condiciones_publicadas` ahora también exige «doceava» en los
+Art. 111 y 113 y agrega, si falta, la oración **literal** del Art. 71 con la veinticuatroava
+parte. No genera texto nuevo: solo copia la fuente ya citada. Pruebas en
+`tests/test_agente_correcciones.py`. El resultado con esta corrección se registra en una
+corrida nueva; no se recalifican las corridas anteriores con el código nuevo.
 
 ### Limitaciones
 

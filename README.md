@@ -51,9 +51,9 @@ recuperación 13/13, respuestas con cita correcta 11/13 (84,6 %), abstenciones 4
 fuera de dominio 2/2, inyección 2/2 y cálculos 10/10 dentro de USD 0,01.
 
 Corrida completa nueva de la semana 4, de punta a punta con `normativa_v4`
-(`eval/resultados_agente_s4_v4_20261102.json`): respuestas correctas con cita 11/13
-(84,6 %), abstenciones 4/4, fuera de dominio 2/2 e inyección 2/2. Comparación y
-diagnóstico en [docs/07-evaluacion.md](docs/07-evaluacion.md).
+(`eval/resultados_agente_s4_v4_20261102.json`): respuestas correctas con cita 8/13
+(61,5 %), por debajo de la meta del 80 %; abstenciones 4/4, fuera de dominio 2/2 e
+inyección 2/2. Diagnóstico y corrección en [docs/07-evaluacion.md](docs/07-evaluacion.md).
 
 ### Lo que NO hace todavía
 
