@@ -140,13 +140,13 @@ El backend necesita las claves de Gemini y Groq para llamar al modelo, y el repo
  
 ### Opciones consideradas
  
-1. Claves en variables de entorno (`.env` local incluido en `.gitignore`; panel de variables de Render en producción) y minimización de datos: ventaja: la clave nunca entra al repositorio, al prompt ni al navegador, y al proveedor solo sale lo necesario / desventaja: cada integrante debe configurar su propio `.env` y, si alguien sube el `.env` por error, hay que revocar la clave.
+1. Claves en variables de entorno (`.env` local incluido en `.gitignore`; variables o secretos de la plataforma en producción, ver ADR-005) y minimización de datos: ventaja: la clave nunca entra al repositorio, al prompt ni al navegador, y al proveedor solo sale lo necesario / desventaja: cada integrante debe configurar su propio `.env` y, si alguien sube el `.env` por error, hay que revocar la clave.
 2. Clave escrita en el código o en el system prompt: ventaja: configuración inmediata / desventaja: queda en el historial público de Git y puede filtrarse en una respuesta del modelo; criterio de integración en 0.
 3. Llamar al modelo desde el frontend (JavaScript) con la clave en el navegador: ventaja: no requiere backend para la IA / desventaja: cualquier usuario puede ver la clave en las herramientas del navegador y gastar la cuota.
  
 ### Decisión
  
-Usaremos variables de entorno porque es la única opción en la que la clave no queda en el repositorio, en el prompt ni en el navegador. Cada integrante guarda sus claves en un `.env` local, ignorado por `.gitignore`; el repositorio solo contiene `.env.example` sin valores, y en Render las claves irán en el panel de variables. Las claves no se comparten por chat ni por WhatsApp. Aplicaremos minimización de datos según este inventario:
+Usaremos variables de entorno porque es la única opción en la que la clave no queda en el repositorio, en el prompt ni en el navegador. Cada integrante guarda sus claves en un `.env` local, ignorado por `.gitignore`; el repositorio solo contiene `.env.example` sin valores, y en producción las claves irán en las variables o secretos de la plataforma (ADR-005). Las claves no se comparten por chat ni por WhatsApp. Aplicaremos minimización de datos según este inventario:
  
 | Dato | Se recibe | Se almacena | Se envía al modelo | Finalidad |
 | --- | --- | --- | --- | --- |
@@ -198,3 +198,39 @@ En la semana 2 elegimos un workflow (ADR-002). En la semana 3 el caso pide un ag
 **Positivas:** los montos siguen saliendo del código y coinciden con los 10 casos de referencia; el agente se prueba con dobles del modelo (`tests/test_agente.py`, `tests/test_agente_correcciones.py`).
 
 **Negativas:** el agente es menos flexible que una conversación libre y pide usar el formulario cuando faltan datos. Cada vuelta consume solicitudes del proveedor.
+
+## ADR-005: Plataforma de despliegue
+
+*Semana 4 · taller «Tablero, credenciales y riesgos», misión 5 (4/11/2026)*
+
+### Contexto
+
+La aplicación es FastAPI en Python, genera los embeddings localmente con torch y
+`intfloat/multilingual-e5-small` (unos 470 MB) y en ejecución solo lee un índice ya construido.
+Necesita entre 1 y 2 GiB de RAM. Hay un integrante que puede registrar una tarjeta y nadie
+administra servidores Linux.
+
+### Opciones consideradas
+
+1. Hugging Face Spaces: los Spaces con Docker y Gradio ahora requieren plan PRO.
+2. Railway: la prueba gratuita está pausada para cuentas nuevas.
+3. Render Free: 512 MB de RAM no alcanzan para torch y el modelo de embeddings.
+4. Google Cloud Run: Docker nativo, RAM configurable y escala a cero dentro del plan gratuito.
+5. Azure for Students: sin tarjeta, con 100 USD de crédito; alternativa si Cloud Run falla.
+
+### Decisión
+
+Usaremos **Google Cloud Run** con el `Dockerfile` del repositorio. El índice del RAG y el modelo
+de embeddings se construyen dentro de la imagen, así que no se necesita disco persistente. Las
+claves de Groq y Gemini van como variables o secretos del servicio, nunca en la imagen.
+
+### Consecuencias
+
+**Positivas:** sin servidor que administrar; la app sobrevive a reinicios con el índice incluido;
+sin costo sin tráfico.
+
+**Negativas y riesgos:** arranque en frío de varios segundos al despertar, porque carga el
+modelo, así que se llama a `/health` antes de la demo. Se registra una tarjeta: se configura
+una alerta de presupuesto para detectar cualquier consumo fuera del plan gratuito. Las sesiones
+de la vista previa del PDF viven en memoria y se pierden al reiniciar.
+
