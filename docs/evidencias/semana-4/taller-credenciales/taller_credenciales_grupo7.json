@@ -1,0 +1,200 @@
+{
+  "taller": "credenciales",
+  "v": 1,
+  "grupo": 7,
+  "integrantes": "BLADIMIR ALEJANDRO VELASCO CEVALLOS, DORIAN JOSUE ZAMBRANO PACHACAMA, ALEXANDER JAVIER GUERRERO RIZO ",
+  "m1": {
+    "url": "https://github.com/users/bladi23/projects/3",
+    "iss": [
+      {
+        "resp": "ALEXANDER JAVIER GUERRERO RIZO",
+        "col": "Por hacer"
+      },
+      {
+        "resp": "BLADIMIR ALEJANDRO VELASCO CEVALLOS",
+        "col": "Revisión"
+      },
+      {
+        "resp": "BLADIMIR ALEJANDRO VELASCO CEVALLOS",
+        "col": "Por hacer"
+      },
+      {
+        "resp": "DORIAN JOSUE ZAMBRANO PACHACAMA",
+        "col": "Por hacer"
+      },
+      {
+        "resp": "DORIAN JOSUE ZAMBRANO PACHACAMA",
+        "col": "Por hacer"
+      },
+      {
+        "resp": "ALEXANDER JAVIER GUERRERO RIZO",
+        "col": "En curso"
+      }
+    ],
+    "quiz": {
+      "resp": {
+        "0": 1,
+        "1": 2,
+        "2": 0
+      },
+      "comp": true,
+      "primer": 3
+    }
+  },
+  "m2": {
+    "sel": [
+      "0-2",
+      "0-4",
+      "0-5",
+      "1-3",
+      "2-4",
+      "3-1"
+    ],
+    "ver": true,
+    "primer": 6,
+    "antes": "0",
+    "salida": "8:06PM INF no leaks found",
+    "hall": [
+      {
+        "archivo": "",
+        "tipo": "",
+        "real": ""
+      }
+    ]
+  },
+  "m3": {
+    "orden": [
+      "rotar",
+      "limpiar",
+      "prevenir"
+    ],
+    "ordenPrimer": 3,
+    "quiz": {
+      "resp": {
+        "0": 1,
+        "1": 0
+      },
+      "comp": true,
+      "primer": 2
+    },
+    "sinHall": true,
+    "env": "   LLM_PRINCIPAL=groq\n   LLM_RESPALDO=gemini\n   GEMINI_API_KEY=\n   GEMINI_MODEL=gemini-3.6-flash\n   GROQ_API_KEY=\n   GROQ_MODEL=openai/gpt-oss-120b\n   LLM_TIMEOUT_S=15\n   LLM_MAX_TOKENS=2048\n   LLM_REINTENTOS=2\n   LLM_RAZONAMIENTO=low\n   MAX_INPUT_CHARS=2000\n   RATE_LIMIT_POR_MINUTO=4\n   EMBEDDING_MODEL=intfloat/multilingual-e5-small\n   CHROMA_PATH=./data/chroma-2026\n   ALLOWED_ORIGINS=http://localhost:8000",
+    "gi": "   # Secretos\n   .env\n   .env.*\n   !.env.example\n   *.key",
+    "fr": ""
+  },
+  "m4": {
+    "quiz": {
+      "resp": {
+        "0": "LLM01",
+        "1": "LLM03",
+        "2": "LLM06",
+        "3": "LLM02",
+        "4": "LLM10",
+        "5": "ASI09"
+      },
+      "comp": true,
+      "primer": 6
+    },
+    "filas": [
+      {
+        "r": "Un texto copiado del empleador ordena ignorar las reglas o revelar las instrucciones",
+        "o": "LLM01",
+        "p": "Media",
+        "i": "Alto",
+        "m": "Patrones de inyección, órdenes citadas apartadas y lista cerrada PERMITIDAS; el modelo no puede ejecutar acciones",
+        "ev": "config/parametros.yaml, app/services/agente.py, pruebas P19, P20, T15 y T16",
+        "resp": "ALEXANDER JAVIER GUERRERO RIZO"
+      },
+      {
+        "r": "Respuesta legal incompleta o con operaciones inventadas (“4 × 15 = 60 días”)\t",
+        "o": "LLM07",
+        "p": "Media",
+        "i": "Alto",
+        "m": "Cita obligatoria, validación de cantidades y operaciones, condiciones literales del artículo y abstención; evaluación 11/13",
+        "ev": "app/services/agente.py (consultar_normativa), docs/07-evaluacion.md",
+        "resp": "BLADIMIR ALEJANDRO VELASCO CEVALLOS"
+      },
+      {
+        "r": "El usuario escribe nombre, cédula o sueldo en la consulta libre y se envía al proveedor",
+        "o": "LLM02",
+        "p": "Media",
+        "i": "Medio",
+        "m": "Aviso en la interfaz de no ingresar datos personales, logs sin el texto del usuario, sesiones solo en memoria",
+        "ev": "frontend/index.html, app/services/llm.py, ADR-003 en docs/09-decisiones.md",
+        "resp": "DORIAN JOSUE ZAMBRANO PACHACAMA"
+      },
+      {
+        "r": "Muchas consultas agotan la cuota gratuita de Groq",
+        "o": "LLM06",
+        "p": "Media",
+        "i": "Medio",
+        "m": "Límite de 4 por minuto por IP (429), tope de 8 llamadas y 6 vueltas, máximo de tokens, tiempo límite y respaldo Gemini",
+        "ev": "config/parametros.yaml, app/routers/agente.py, prueba T21",
+        "resp": "BLADIMIR ALEJANDRO VELASCO CEVALLOS"
+      },
+      {
+        "r": "El agente estima la liquidación o genera el PDF sin que el usuario confirme",
+        "o": "LLM03",
+        "p": "Baja",
+        "i": "Alto",
+        "m": "8 herramientas que solo calculan o leen, confirmación humana en estimar_liquidacion y generar_resumen, tope de 6 vueltas",
+        "ev": "app/services/agente.py, ADR-004, prueba T19",
+        "resp": "ALEXANDER JAVIER GUERRERO RIZO"
+      }
+    ]
+  },
+  "m5": {
+    "resp": {
+      "emb": "local",
+      "tarjeta": "si",
+      "stack": "py",
+      "persist": "no",
+      "linux": "no"
+    },
+    "quiz": {
+      "resp": {
+        "0": 1,
+        "1": 1,
+        "2": 0
+      },
+      "comp": true,
+      "primer": 3
+    },
+    "plat": "Google Cloud Run",
+    "porque": "La app necesita entre 1 y 2 GiB para torch y e5-small. Cloud Run ejecuta nuestro Dockerfile, permite configurar la RAM y escala a cero dentro del plan gratuito, así que no consume nada sin tráfico",
+    "alt": "Al preparar el despliegue encontramos que las tres plataformas gratuitas de la guía cambiaron sus condiciones: Hugging Face Spaces ahora cobra los Spaces con Docker y Gradio, Railway pausó la prueba gratuita para cuentas nuevas, y el plan gratis de Render tiene 512 MB de RAM, que no alcanzan para el modelo de embeddings local (multilingual-e5-small con torch).",
+    "cons": "Arranque en frío de varios segundos al despertar, porque carga el modelo; se pide una llamada a /health antes de la demo. La tarjeta se registra pero no se cobra mientras estemos dentro del plan gratuito"
+  },
+  "m6": {
+    "despues": "0",
+    "salida": "8:06PM INF no leaks found",
+    "subido": true,
+    "clonado": false
+  },
+  "envios": [
+    {
+      "tipo": "avance",
+      "hora": "07:59 p. m."
+    },
+    {
+      "tipo": "avance",
+      "hora": "08:04 p. m."
+    },
+    {
+      "tipo": "avance",
+      "hora": "08:07 p. m."
+    },
+    {
+      "tipo": "avance",
+      "hora": "08:17 p. m."
+    },
+    {
+      "tipo": "avance",
+      "hora": "08:26 p. m."
+    },
+    {
+      "tipo": "versión final",
+      "hora": "08:26 p. m."
+    }
+  ]
+}
