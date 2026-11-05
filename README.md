@@ -31,7 +31,7 @@ Los trabajadores consultados (12 de 15 en nuestro levantamiento) no saben cómo 
 
 - **Calcula** (código determinista, sin IA): décimo tercero, décimo cuarto, vacaciones y horas suplementarias/extraordinarias. Estima liquidaciones por renuncia con desahucio o despido intempestivo con saldos informados explícitamente.
 - **Explica con RAG** el resultado ya calculado (`/explicar`): recupera los artículos necesarios, valida las citas del modelo y muestra los fragmentos y fuentes en la interfaz. Sin respaldo suficiente, se abstiene.
-- **Agente:** consulta normativa y utiliza ocho herramientas cerradas, con argumentos validados y límites. `agente_v4` conserva la pregunta original y `normativa_v3` explica las fuentes pertinentes. Los importes requieren formulario; días anuales y exceso de jornada pueden calcularse en Python con datos explícitos declarados. Cada consulta es independiente.
+- **Agente:** consulta normativa y utiliza ocho herramientas cerradas, con argumentos validados y límites. `agente_v4` conserva la pregunta original y `normativa_v4` explica las fuentes pertinentes sin hacer operaciones. Los importes requieren formulario; días anuales y exceso de jornada pueden calcularse en Python con datos explícitos declarados. Cada consulta es independiente.
 - **Resumen PDF:** el botón «Descargar PDF» prepara y descarga el documento con un solo clic. Si se solicita al agente, se muestra una vista previa con confirmación o cancelación. Ambos caminos usan un token de sesión de un solo uso; el modelo no confirma la descarga.
 - **Pendiente:** evaluación generativa completa del agente y validación final del producto.
 - **Despliegue previsto:** Render (semana 4).
@@ -50,10 +50,16 @@ Resultados guardados del cierre de la semana 3 (`eval/metricas_cierre_20261030.j
 recuperación 13/13, respuestas con cita correcta 11/13 (84,6 %), abstenciones 4/4,
 fuera de dominio 2/2, inyección 2/2 y cálculos 10/10 dentro de USD 0,01.
 
+Corrida completa nueva de la semana 4, de punta a punta con `normativa_v4` y condiciones
+literales de los Art. 71, 111 y 113 (`eval/resultados_agente_s4_v4b_20261103.json`):
+respuestas correctas con cita 11/13 (84,6 %), abstenciones 4/4, fuera de dominio 2/2 e
+inyección 2/2. Comparación con las corridas anteriores y diagnóstico en
+[docs/07-evaluacion.md](docs/07-evaluacion.md).
+
 ### Lo que NO hace todavía
 
 - No está desplegada: la URL pública es tarea de la semana 4.
-- La evaluación de cierre reutiliza decisiones de herramienta grabadas; falta una corrida completa nueva del agente sobre la versión final. P06 y P07 siguen fallando.
+- P04 y P06 alternan entre respuesta y abstención segura según la corrida, porque el modelo no es determinista (ver `docs/07-evaluacion.md`).
 - Las sesiones y la vista previa del PDF viven en memoria: se pierden al reiniciar y no sirven con varios procesos.
 - No registra, envía ni paga nada; tampoco reemplaza la asesoría legal en casos litigiosos.
 

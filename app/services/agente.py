@@ -207,10 +207,20 @@ def completar_condiciones_publicadas(texto, fuentes, pregunta):
     No inventa un resumen legal ni añade una norma que el modelo no haya citado.
     """
     for fuente in fuentes:
+        if fuente.articulo == "71":
+            # La forma de liquidar (veinticuatroava parte) es esencial y se cita literal.
+            if "veinticuatroava" in _normalizar(texto):
+                continue
+            inicio = fuente.texto.find("La liquidación")
+            oraciones = re.split(r"(?<=[.!?])\s+", fuente.texto[inicio:]) if inicio >= 0 else []
+            regla = next((o for o in oraciones if "veinticuatroava" in _normalizar(o)), None)
+            if regla:
+                texto += f" Según {fuente.documento}, Art. 71: «{regla.strip()}»"
+            continue
         if fuente.articulo not in {"111", "113"}:
             continue
         normal = _normalizar(texto)
-        requisitos = ["mensual", "acumul", "escrit"]
+        requisitos = ["doceava", "mensual", "acumul", "escrit"]
         requisitos += ["diciembre"] if fuente.articulo == "111" else ["marzo", "agosto", "jubil"]
         if all(r in normal for r in requisitos):
             continue

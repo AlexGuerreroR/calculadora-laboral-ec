@@ -1,0 +1,79 @@
+[
+  {
+    "id": "P02",
+    "pregunta": "Llevo 7 años en la empresa, ¿cuántos días de vacaciones tengo?",
+    "fuente_esperada": "Código del Trabajo, Art. 69",
+    "recuperados": [
+      "69",
+      "71"
+    ],
+    "resultado": "publicada",
+    "respuesta_publicada": "Según el Art. 69 del Código del Trabajo, todo trabajador tiene derecho a 15 días de vacaciones anuales. Por cada año de servicio que exceda los cinco años, se añade un día adicional. Con 7 años de servicio, se suman 2 días adicionales (uno por cada año excedente), por lo que el trabajador tiene derecho a 17 días de vacaciones anuales.",
+    "propuesta_del_modelo": {
+      "estado": "ok",
+      "respuesta": "Según el Art. 69 del Código del Trabajo, todo trabajador tiene derecho a 15 días de vacaciones anuales. Por cada año de servicio que exceda los cinco años, se añade un día adicional. Con 7 años de servicio, se suman 2 días adicionales (uno por cada año excedente), por lo que el trabajador tiene derecho a 17 días de vacaciones anuales.",
+      "citas": [
+        "art-69"
+      ]
+    }
+  },
+  {
+    "id": "P04",
+    "pregunta": "¿Cuántas horas al día me pueden hacer trabajar?",
+    "fuente_esperada": "Código del Trabajo, Art. 47",
+    "recuperados": [
+      "47",
+      "55"
+    ],
+    "resultado": "publicada",
+    "respuesta_publicada": "La jornada máxima de trabajo es de ocho horas diarias, sin exceder de cuarenta horas semanales (Art. 47). Sólo se permite prolongar la jornada con horas suplementarias o extraordinarias, que pueden ser hasta una hora adicional bajo ciertas condiciones (Art. 55).",
+    "propuesta_del_modelo": {
+      "estado": "ok",
+      "respuesta": "La jornada máxima de trabajo es de ocho horas diarias, sin exceder de cuarenta horas semanales (Art. 47). Sólo se permite prolongar la jornada con horas suplementarias o extraordinarias, que pueden ser hasta una hora adicional bajo ciertas condiciones (Art. 55).",
+      "citas": [
+        "art-47",
+        "art-55"
+      ]
+    }
+  },
+  {
+    "id": "P06",
+    "pregunta": "Me dieron el desahucio después de 5 años, ¿me toca alguna bonificación?",
+    "fuente_esperada": "Código del Trabajo, Art. 185",
+    "recuperados": [
+      "185",
+      "184"
+    ],
+    "resultado": "rechazada por validación",
+    "linea_agente_py": 288,
+    "codigo_de_la_validacion": "raise SalidaInvalida()",
+    "propuesta_del_modelo": {
+      "estado": "ok",
+      "respuesta": "Sí, corresponde una bonificación por desahucio. Según el Art. 185 del Código del Trabajo, el empleador debe bonificar al trabajador con el veinticinco por ciento del equivalente a la última remuneración mensual por cada año de servicio. Por 5 años de servicio, la bonificación sería del 25 % × 5 de la última remuneración mensual.",
+      "citas": [
+        "art-185"
+      ]
+    }
+  },
+  {
+    "id": "P07",
+    "pregunta": "Me despidieron después de 4 años y nunca tomé vacaciones, ¿qué me tienen que pagar?",
+    "fuente_esperada": "Código del Trabajo, Art. 188; Art. 71",
+    "recuperados": [
+      "69",
+      "71",
+      "188"
+    ],
+    "resultado": "rechazada por validación",
+    "linea_agente_py": 272,
+    "codigo_de_la_validacion": "raise SalidaInvalida()",
+    "propuesta_del_modelo": {
+      "estado": "ok",
+      "respuesta": "Según el Art. 69 del Código del Trabajo, el trabajador tiene derecho a quince días de vacaciones anuales. Después de cuatro años de servicio corresponde el período de 4 × 15 = 60 días de vacaciones. El Art. 71 establece que, si el trabajador es separado sin haber gozado de vacaciones, debe recibir la liquidación proporcional al tiempo de servicios, calculada sobre la veinticuatroava parte de lo percibido en el último año. Por lo tanto, el empleador debe pagar la remuneración correspondiente a esos 60 días de vacaciones no gozadas, conforme a la forma de cálculo indicada en el Art. 71.",
+      "citas": [
+        "art-69",
+        "art-71"
+      ]
+    }
+  }
+]

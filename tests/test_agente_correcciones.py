@@ -118,3 +118,38 @@ def test_exceso_de_horas_no_lo_inventa_el_modelo(monkeypatch):
     cliente = ModeloFalso(respuestas=[TextoNormativo(estado="ok", respuesta="Art. 47: declara 9 horas diarias, una hora sobre la referencia general de 8 horas, calculada por Python.", citas=["art-47"])])
     r = agente.consultar_normativa(cliente, "Trabajo 9 horas diarias, ¿esa hora de más se paga?")
     assert r.calculo_jornada.exceso_sobre_referencia == 1
+
+
+# --- Revisión del PR #65: condiciones esenciales que el modelo omitió (P01, P12) ---
+ART_111 = ("Art. 111.-Derecho a la décima tercera remuneración o bono navideño.- Los trabajadores tienen "
+           "derecho a que sus empleadores les paguen mensualmente, la parte proporcional a la doceava parte de "
+           "las remuneraciones que perciban durante el año calendario. A pedido escrito de la trabajadora o el "
+           "trabajador, este valor podrá recibirse de forma acumulada, hasta el veinte y cuatro de diciembre de cada año.")
+ART_71 = ("Art. 71.- Liquidación para pago de vacaciones.- La liquidación para el pago de vacaciones se hará en "
+          "forma general y única, computando la veinticuatroava parte de lo percibido por el trabajador durante "
+          "un año completo de trabajo. Si el trabajador fuere separado o saliere del trabajo sin haber gozado de "
+          "vacaciones, percibirá por tal concepto la parte proporcional al tiempo de servicios.")
+
+
+def _fuente(articulo, texto):
+    return FUENTE.model_copy(update={"id": "art-" + articulo, "articulo": articulo, "texto": texto})
+
+
+def test_decimo_tercero_sin_doceava_publica_el_parrafo_literal():
+    modelo = ("Según el Art. 111 del Código del Trabajo, el décimo tercero debe pagarse mensualmente de forma "
+              "proporcional y, a pedido escrito, puede recibirse acumulado hasta el 24 de diciembre de cada año.")
+    r = agente.completar_condiciones_publicadas(modelo, [_fuente("111", ART_111)], "¿Hasta cuándo me pagan el décimo tercero?")
+    assert "doceava parte" in r and "veinte y cuatro de diciembre" in r
+
+
+def test_vacaciones_no_gozadas_agrega_la_veinticuatroava_parte_literal():
+    modelo = ("Según el Art. 71 del Código del Trabajo, si el trabajador deja la empresa sin haber gozado de sus "
+              "vacaciones, tiene derecho a la parte proporcional correspondiente al tiempo de servicio.")
+    r = agente.completar_condiciones_publicadas(modelo, [_fuente("71", ART_71)], "Me voy y no tomé mis vacaciones")
+    assert r.startswith(modelo) and "veinticuatroava parte de lo percibido" in r
+    assert "Art. 71: «La liquidación para el pago de vacaciones" in r
+
+
+def test_no_duplica_condiciones_cuando_ya_estan():
+    modelo = "Según el Art. 71, se liquida con la veinticuatroava parte de lo percibido en el año."
+    assert agente.completar_condiciones_publicadas(modelo, [_fuente("71", ART_71)], "¿Cómo se pagan las vacaciones?") == modelo

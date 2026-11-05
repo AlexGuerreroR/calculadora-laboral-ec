@@ -61,7 +61,7 @@ El índice permanece en `data/chroma/`. Las rutas se validan antes de abrir Chro
 
 `consultar_normativa` usa `recuperar_normativa`, que combina la pregunta original
 con artículos por tema configurados, entrega sus
-identificadores al prompt `normativa_v3` y valida `TextoNormativo`. Sin respaldo
+identificadores al prompt `normativa_v4` y valida `TextoNormativo`. Sin respaldo
 o con una cita ajena a los fragmentos, se abstiene. La consulta normativa no
 publica dinero ni operaciones aritméticas nuevas: los valores personalizados
 se resuelven mediante las herramientas con datos del formulario. Dos comparaciones

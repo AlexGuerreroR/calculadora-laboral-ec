@@ -1,4 +1,90 @@
-# Evaluación de la semana 3 — 30 de octubre de 2026
+# Evaluación del sistema — semanas 3 y 4
+
+## Semana 4: corrida completa nueva y calibración — 2 de noviembre de 2026
+
+A diferencia del cierre de la semana 3, estas corridas ejecutan el agente **de punta a
+punta** sobre la versión de `main`: planificación, herramientas y generación nuevas para
+las 20 preguntas de `eval/preguntas.csv`, sin reutilizar decisiones grabadas. Proveedor:
+Groq `openai/gpt-oss-120b`, sin respaldo; 26 solicitudes lógicas por corrida.
+
+```powershell
+python eval/run_agente_real.py eval/resultados_agente_s4_v4_20261102.json
+```
+
+| Indicador | S3 cierre (30/10) | S4 con `normativa_v3` | S4 con `normativa_v4` | **S4 con v4 + condiciones literales (3/11)** | Meta |
+| --- | --- | --- | --- | --- | --- |
+| Artículos esperados en el top-5 (pregunta original) | 13/13 | 12/13 | 12/13 | 12/13 | — |
+| Respuesta correcta con cita (revisión manual) | 11/13 — 84,6 % | 8/13 — 61,5 % | 8/13 — 61,5 % | **11/13 — 84,6 %** | ≥ 80 % |
+| Abstención o derivación esperada (P13–P16) | 4/4 | 4/4 | 4/4 | **4/4** | 100 % |
+| Fuera de dominio (P17, P18) | 2/2 | 2/2 | 2/2 | **2/2** | 100 % |
+| Inyección (P19 rechaza; P20 ignora la orden y responde) | 2/2 | 2/2 | 2/2 | **2/2** | 100 % |
+| Cálculos de referencia (`tests/test_liquidacion.py`) | 10/10 | 10/10 | 10/10 | **10/10** | 100 % |
+
+Evidencia: `eval/resultados_agente_s4_20261102.json` (v3),
+`eval/resultados_agente_s4_v4_20261102.json` (v4),
+`eval/resultados_agente_s4_v4b_20261103.json` (v4 + condiciones literales) y
+`eval/diagnostico_s4_20261102.json`.
+La recuperación de S3 (13/13) se midió dentro del agente; la de S4 es el top-5 de la
+pregunta original, por eso P07 cuenta como fallo de recuperación.
+
+**Criterio de calificación** (el mismo de la semana 3, sección «Criterios»): la respuesta
+publicada se compara con `respuesta_esperada`. Si omite un dato que la referencia exige,
+cuenta como incompleta aunque cite el artículo correcto. La primera versión de este informe
+contó P01 y P12 de v4 como correctas; la revisión del PR #65 (Alexander Guerrero) mostró que
+omiten la doceava y la veinticuatroava parte, y P09 se recalificó por atribuir al Art. 185
+algo que ese artículo no dice. Los números de esta tabla ya están corregidos.
+La calificación de las 20 preguntas de cada corrida, con el motivo de cada una, está en
+`eval/revision_agente_s4_20261103.json`.
+
+### Fallos diagnosticados: ¿recuperación o generación?
+
+| Pregunta | v3 | v4 | v4 + condiciones literales | Diagnóstico |
+| --- | --- | --- | --- | --- |
+| P02 · vacaciones con 7 años | Abstención | Correcta (17 días, Art. 69) | Correcta | **Generación, variable.** En el diagnóstico con v3 también pasó: el modelo no responde igual en cada corrida. |
+| P04 · horas por día | Abstención | Abstención | Abstención | **Generación, variable.** El Art. 47 se recupera primero; en el diagnóstico con v3 la respuesta sí pasó las validaciones. |
+| P06 · desahucio con 5 años | Abstención | Correcta (25 % por año, Art. 185) | Abstención | **Generación.** El modelo escribió «25 % × 5»; la validación de cantidades (`agente.py`, línea 288) lo bloqueó. |
+| P01 · décimo tercero | Correcta (párrafo literal del Art. 111) | Incompleta: omite la doceava parte | Correcta (párrafo literal) | **Publicación.** `completar_condiciones_publicadas` no exigía «doceava» en los Art. 111 y 113. |
+| P09 · décimo acumulado y desahucio | Correcta | Incorrecta: atribuye al Art. 185 la parte acumulada del décimo | Correcta | **Generación.** |
+| P12 · vacaciones no gozadas | Incompleta: omite la veinticuatroava parte | Incompleta: igual | Correcta (veinticuatroava parte) | **Publicación.** No había regla de condiciones esenciales para el Art. 71. |
+| P07 · despido y vacaciones no gozadas | Abstención | Abstención | **Correcta** (Art. 71 y 188) | **Recuperación y generación.** El top-5 de la pregunta original no trae los Art. 188 ni 71; la consulta interna sí, pero el modelo escribió «4 × 15 = 60 días», que además es jurídicamente incorrecto, y la validación de operaciones (línea 272) lo bloqueó. |
+
+### Qué se cambió
+
+`normativa_v4` conserva `normativa_v3` y agrega: (1) un ejemplo incorrecto/correcto que
+prohíbe combinar cantidades de la pregunta y remite el monto al formulario, y (2) la regla
+de responder cada tema de una pregunta combinada con su artículo. **Las validaciones no
+cambiaron**: siguen bloqueando montos, operaciones y cantidades que no estén en la fuente.
+El cambio se activa en `config/parametros.yaml` (`prompt_normativa`) y se revierte en esa línea.
+
+Con `normativa_v4` desaparecieron las multiplicaciones (P02 y P06 pasaron a correctas), pero
+el total no subió porque P01, P12 y P09 quedaron incompletas o incorrectas. Por eso, tras la
+revisión del PR #65, `completar_condiciones_publicadas` ahora también exige «doceava» en los
+Art. 111 y 113 y agrega, si falta, la oración **literal** del Art. 71 con la veinticuatroava
+parte. No genera texto nuevo: solo copia la fuente ya citada. Pruebas en
+`tests/test_agente_correcciones.py`. El resultado con esta corrección se registra en una
+corrida nueva; no se recalifican las corridas anteriores con el código nuevo.
+
+### Resultado tras la revisión del PR #65 (3 de noviembre)
+
+Con la corrección de `completar_condiciones_publicadas`, la corrida nueva obtuvo **11/13
+(84,6 %)**, sobre la meta del caso, con seguridad 4/4, 2/2 y 2/2. P01 y P12 quedaron
+completas; P07 respondió por primera vez sus dos partes (Art. 71 y 188). P04 y P06 terminaron
+en abstención segura: en corridas anteriores sí respondieron, lo que confirma que su fallo
+depende de la variabilidad del modelo y no de la recuperación (el artículo esperado se
+recupera en primer lugar).
+
+### Limitaciones
+
+- Una corrida por versión: con un modelo no determinista, una diferencia de una o dos
+  preguntas puede deberse a la variabilidad (P02 y P04 lo muestran).
+- La revisión de «correcta con cita» es manual, contra `respuesta_esperada`, y no es una
+  revisión jurídica.
+- P04 y P06 alternan entre respuesta correcta y abstención según la corrida; una medición
+  más sólida requeriría varias repeticiones por pregunta.
+- P07 respondió en la última corrida, pero el top-5 de la pregunta original sigue sin traer
+  los Art. 188 y 71; depende de la búsqueda por temas que hace el agente.
+
+# Semana 3 — 30 de octubre de 2026
 
 ## Cierre: mínimos funcionales medidos de la semana 3
 
