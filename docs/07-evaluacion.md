@@ -33,6 +33,8 @@ cuenta como incompleta aunque cite el artículo correcto. La primera versión de
 contó P01 y P12 de v4 como correctas; la revisión del PR #65 (Alexander Guerrero) mostró que
 omiten la doceava y la veinticuatroava parte, y P09 se recalificó por atribuir al Art. 185
 algo que ese artículo no dice. Los números de esta tabla ya están corregidos.
+La calificación de las 20 preguntas de cada corrida, con el motivo de cada una, está en
+`eval/revision_agente_s4_20261103.json`.
 
 ### Fallos diagnosticados: ¿recuperación o generación?
 
