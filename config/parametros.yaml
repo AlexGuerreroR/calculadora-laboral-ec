@@ -103,6 +103,7 @@ jornada:
 
 salario_basico_unificado:
   valor: 482.00
+  anio: 2026
   fuente: "Acuerdo Ministerial MDT-2025-195 (15-dic-2025), vigente desde 1-ene-2026"
   verificado: true
 
@@ -120,9 +121,11 @@ decimo_cuarto:
   valor_anual: "1 SBU"
   regiones:
     costa_galapagos:
+      mes_inicio: 3
       periodo: "1 de marzo al último día de febrero"
       fecha_maxima_pago: "15-03"
     sierra_amazonia:
+      mes_inicio: 8
       periodo: "1 de agosto al 31 de julio"
       fecha_maxima_pago: "15-08"
   fuente: "Código del Trabajo, art. 113; MDT-2023-140, arts. 9 y 10"
