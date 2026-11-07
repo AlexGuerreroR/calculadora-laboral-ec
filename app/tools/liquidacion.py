@@ -21,19 +21,24 @@ def antiguedad(ingreso, salida):
     return anios, salida > aniversario(ingreso.year + anios)
 
 
+def rubros_terminacion(motivo, sueldo, anios, fraccion, regla):
+    anios_indemnizables = 0
+    if motivo == "despido_intempestivo":
+        anios_indemnizables = min(max(regla["despido_minimo_remuneraciones"], anios + int(fraccion)),
+                                 regla["despido_tope_remuneraciones"])
+    indemnizacion = redondear(sueldo * dec(anios_indemnizables))
+    desahucio = redondear(sueldo * dec(regla["desahucio_porcentaje_por_anio"]) * dec(anios))
+    return anios_indemnizables, indemnizacion, desahucio
+
+
 def estimar_liquidacion(entrada: EntradaLiquidacion) -> ResultadoCalculo:
     p = cargar_parametros()
     regla = p["liquidacion"]
     anios, fraccion = antiguedad(entrada.fecha_ingreso, entrada.fecha_salida)
     sueldo = entrada.remuneracion_mensual
     cero = Decimal("0.00")
-    indemnizacion = cero
-    anios_indemnizables = 0
-    if entrada.motivo_salida == "despido_intempestivo":
-        anios_indemnizables = min(max(regla["despido_minimo_remuneraciones"], anios + int(fraccion)),
-                                 regla["despido_tope_remuneraciones"])
-        indemnizacion = redondear(sueldo * dec(anios_indemnizables))
-    desahucio = redondear(sueldo * dec(regla["desahucio_porcentaje_por_anio"]) * dec(anios))
+    anios_indemnizables, indemnizacion, desahucio = rubros_terminacion(
+        entrada.motivo_salida, sueldo, anios, fraccion, regla)
     decimo_tercero = redondear(entrada.base_acumulada_decimo_tercero / dec(p["decimo_tercero"]["divisor"]))
     decimo_cuarto = redondear(dec(p["salario_basico_unificado"]["valor"]) * entrada.dias_decimo_cuarto_pendientes
                              / dec(p["calendario"]["dias_anio"]))
