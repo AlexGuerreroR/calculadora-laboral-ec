@@ -244,6 +244,90 @@ def test_guardas_no_crean_cliente_real(mensaje, estado):
     fabrica.assert_not_called()
 
 
+@pytest.mark.parametrize("pregunta,articulo,texto", [
+    ("Me corrieron y no me han pagado la liquidación, ¿cuánto tiempo tienen para pagarme?", "19",
+     "Según el Art. 19, el empleador tiene 15 días desde la terminación para registrar el acta con el comprobante de pago."),
+    ("¿Cuándo se paga el finiquito por consignación?", "20",
+     "Según el Art. 20, si no acude a cobrar o se niega a recibir el pago, vencidos los primeros 15 días el empleador tiene otros 15 días para consignar."),
+])
+def test_plazo_finiquito_usa_acuerdo_y_publica_texto_del_modelo(monkeypatch, pregunta, articulo, texto):
+    buscar = Mock(side_effect=AssertionError("No debe buscar el plazo en el Código del Trabajo"))
+    monkeypatch.setattr(agente, "recuperar_normativa", buscar)
+    cita = f"mdt-2025-053-art-{articulo}"
+    modelo = ModeloFalso(respuestas=[TextoNormativo(estado="ok", respuesta=texto, citas=[cita])])
+    app.dependency_overrides[ruta.obtener_llm] = lambda: lambda: modelo
+    respuesta = TestClient(app).post("/agente", json={"mensaje": pregunta})
+    assert respuesta.status_code == 200
+    datos = respuesta.json()
+    assert datos["estado"] == "completado" and datos["llamadas_modelo"] == 1
+    assert datos["normativa"][0]["respuesta"] == texto
+    assert [f["id"] for f in datos["normativa"][0]["fuentes"]] == [cita]
+    assert not datos["faltantes"]
+    buscar.assert_not_called()
+
+
+def test_plazo_finiquito_rechaza_cita_de_sueldos():
+    modelo = ModeloFalso(respuestas=[TextoNormativo(
+        estado="ok", respuesta="El Art. 83 da un mes para pagar.", citas=["art-83"])])
+    app.dependency_overrides[ruta.obtener_llm] = lambda: lambda: modelo
+    datos = TestClient(app).post("/agente", json={"mensaje": "¿Cuánto tiempo tienen para pagar mi finiquito?"}).json()
+    assert datos["estado"] == "abstencion"
+    assert not datos["normativa"]
+
+
+def test_sueldo_y_monto_de_liquidacion_no_son_consultas_de_plazo():
+    assert not agente.consulta_plazo_finiquito("¿Cuánto tiempo tienen para pagar mi sueldo?")
+    assert not agente.consulta_plazo_finiquito("¿Cuánto me toca de liquidación?")
+
+
+@pytest.mark.parametrize("mensaje,remuneracion,antiguedad", [
+    ("Trabajé 4 años y me botaron, ¿cuánto me toca?", False, True),
+    ("Ganaba 1200$ y me botaron, ¿cuánto me toca?", True, False),
+    ("Ganaba $1.200 y trabajé 4 años y me botaron, ¿cuánto me toca?", True, True),
+    ("Me echaron del trabajo, ¿cuánto me corresponde?", False, False),
+])
+def test_orientacion_para_estimar_liquidacion(mensaje, remuneracion, antiguedad):
+    fabrica = Mock(side_effect=AssertionError("La indicación del formulario es local"))
+    app.dependency_overrides[ruta.obtener_llm] = lambda: fabrica
+    respuesta = TestClient(app).post("/agente", json={"mensaje": mensaje})
+    assert respuesta.status_code == 200
+    datos = respuesta.json()
+    assert datos["estado"] == "pedir_datos"
+    texto = datos["faltantes"][0]
+    assert "Liquidación estimada" in texto and "saldos pendientes de nómina" in texto
+    assert ("remuneración que indicó" in texto) == remuneracion
+    assert ("tiempo trabajado que indicó" in texto) == antiguedad
+    assert not datos["calculos"] and datos["llamadas_modelo"] == 0
+    fabrica.assert_not_called()
+
+
+@pytest.mark.parametrize("mensaje", [
+    "¿Cuánto tiempo tienen para pagarme la liquidación?",
+    "Me despidieron, ¿cuánto me toca de vacaciones?",
+    "¿Qué hago si me botaron?",
+])
+def test_orientacion_de_monto_no_desvia_otras_consultas(mensaje):
+    assert agente.orientar_monto_liquidacion(mensaje) is None
+
+
+def test_despido_coloquial_responde_desde_la_fuente_local(monkeypatch):
+    fuente = FUENTE.model_copy(update={"id": "art-188", "articulo": "188"})
+    buscar = Mock(return_value=[{**fuente.model_dump(), "vigente": True}])
+    monkeypatch.setattr(agente.retriever, "buscar_articulo_vigente", buscar)
+    fabrica = Mock(side_effect=AssertionError("La orientación con cita local no usa el modelo"))
+    app.dependency_overrides[ruta.obtener_llm] = lambda: fabrica
+
+    r = TestClient(app).post("/agente", json={"mensaje": "Me sacaron del trabajo sin razon"})
+
+    assert r.status_code == 200
+    datos = r.json()
+    assert datos["estado"] == "completado"
+    assert datos["normativa"][0]["fuentes"][0]["articulo"] == "188"
+    assert "Art. 188" in datos["normativa"][0]["respuesta"]
+    buscar.assert_called_once_with("188")
+    fabrica.assert_not_called()
+
+
 def test_endpoint_recalcula_contexto_y_rechaza_manipulacion():
     fabrica = Mock(side_effect=AssertionError("No debe gastar API"))
     app.dependency_overrides[ruta.obtener_llm] = lambda: fabrica
