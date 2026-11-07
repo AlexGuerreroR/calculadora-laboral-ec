@@ -4,7 +4,9 @@ from app.routers.resumen import preparar_para_usuario
 
 from app.config import ErrorConfiguracion
 from app.schemas import ConsultaAgente, RespuestaAgente
-from app.services.agente import controlar_alcance, ejecutar_agente
+from app.services.agente import (
+    controlar_alcance, ejecutar_agente, orientar_despido_coloquial, orientar_monto_liquidacion,
+)
 from app.services.llm import ProveedorNoDisponible, SalidaInvalida
 from app.routers.explicar import LimitadorPorMinuto, obtener_llm, recalcular
 from app.tools.parametros import cargar_parametros
@@ -27,6 +29,14 @@ def consultar(consulta: ConsultaAgente, request: Request, response: Response, fa
     if consulta.calculo:
         consulta = consulta.model_copy(update={"calculo": recalcular(consulta.calculo)})
     try:
+        if consulta.calculo is None:
+            indicacion = orientar_monto_liquidacion(consulta.mensaje)
+            if indicacion:
+                return RespuestaAgente(estado="pedir_datos", mensaje=indicacion, faltantes=[indicacion])
+            orientacion = orientar_despido_coloquial(consulta.mensaje)
+            if orientacion:
+                return RespuestaAgente(
+                    estado="completado", mensaje="Orientación sobre su salida laboral.", normativa=[orientacion])
         cliente = fabrica_llm()
         resultado = ejecutar_agente(consulta, cliente)
         if resultado.calculo_para_resumen is not None:
