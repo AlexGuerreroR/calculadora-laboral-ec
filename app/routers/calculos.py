@@ -9,13 +9,16 @@ Si la entrada es inválida, FastAPI responde 422 antes de calcular. Los parámet
 (salario básico, divisores, días) se leen de config/parametros.yaml.
 """
 from __future__ import annotations
+from datetime import date
+from decimal import Decimal
 
 from fastapi import APIRouter, HTTPException
 
 from app.schemas import (EntradaDecimoCuarto, EntradaDecimoTercero, EntradaVacaciones, ResultadoCalculo,
-                         SolicitudDecimos, EntradaHoras, EntradaLiquidacion)
+                         SolicitudDecimos, EntradaHoras, EntradaLiquidacion, EntradaLiquidacionBasica)
 from app.tools.horas import calcular_horas
 from app.tools.liquidacion import estimar_liquidacion
+from app.tools.liquidacion_basica import estimar_liquidacion_basica, sugerir_vacaciones
 from app.tools.decimos import calcular_decimo_cuarto, calcular_decimo_tercero
 from app.tools.vacaciones import calcular_vacaciones
 
@@ -48,5 +51,21 @@ def horas(entrada: EntradaHoras) -> ResultadoCalculo:
 def liquidacion(entrada: EntradaLiquidacion) -> ResultadoCalculo:
     try:
         return estimar_liquidacion(entrada)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+
+@router.post("/liquidacion/basica", response_model=ResultadoCalculo, responses=ERRORES)
+def liquidacion_basica(entrada: EntradaLiquidacionBasica) -> ResultadoCalculo:
+    try:
+        return estimar_liquidacion_basica(entrada)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+
+@router.get("/liquidacion/basica/vacaciones")
+def vacaciones_sugeridas(fecha_ingreso: date, fecha_salida: date) -> dict[str, Decimal]:
+    try:
+        return {"dias": sugerir_vacaciones(fecha_ingreso, fecha_salida)}
     except ValueError as e:
         raise HTTPException(422, str(e))
