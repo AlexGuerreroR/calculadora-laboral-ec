@@ -16,7 +16,7 @@ def test_raiz_sirve_el_frontend():
 
 def test_archivos_del_frontend():
     assert cliente.get("/app.js").status_code == 200
-    assert cliente.get("/styles.css").status_code == 200
+    assert cliente.get("/styles-rediseno.css").status_code == 200
 
 
 def test_la_api_sigue_respondiendo():
