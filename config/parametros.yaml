@@ -12,7 +12,7 @@ rag:
       articulos: ["75"]
     - patron: '\b(despid\w*|despido|botaron)\b'
       articulos: ["188"]
-    - patron: '\bme\s+(?:botan|sacan|sacaron|corrieron)\s+(?:sin\s+(?:razon|motivo|causa|justificacion)|(?:del|de\s+(?:mi|la|el))\s+(?:trabajo|empresa|puesto|empleo))\b'
+    - patron: '\bme\s+(?:botan|botaron|sacan|sacaron|corrieron)\s+(?:sin\s+(?:razon|motivo|causa|justificacion)|(?:del|de\s+(?:mi|la|el))\s+(?:trabajo|empresa|puesto|empleo))\b'
       articulos: ["188"]
       admite_consulta: true
     - patron: '\bdesahucio\b'
