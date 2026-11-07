@@ -388,3 +388,33 @@ def test_reclamacion_finiquito_orienta_sin_usar_modelo(pregunta):
     assert not datos["normativa"]
     assert not agente.consulta_plazo_finiquito(pregunta)
     fabrica.assert_not_called()
+
+@pytest.mark.parametrize("pregunta", [
+    "Me botan del trabajo",
+    "Me botaron del trabajo",
+])
+def test_variantes_de_botan_usan_la_misma_orientacion(monkeypatch, pregunta):
+    fuente = FUENTE.model_copy(update={
+        "id": "art-188",
+        "articulo": "188",
+        "texto": "Art. 188.- Indemnización por despido intempestivo.",
+    })
+    buscar = Mock(return_value=[{
+        **fuente.model_dump(),
+        "vigente": True,
+    }])
+    monkeypatch.setattr(
+        agente.retriever, "buscar_articulo_vigente", buscar
+    )
+    fabrica = Mock(side_effect=AssertionError("No debe llamar al modelo"))
+    app.dependency_overrides[ruta.obtener_llm] = lambda: fabrica
+
+    respuesta = TestClient(app).post("/agente", json={"mensaje": pregunta})
+
+    assert respuesta.status_code == 200
+    datos = respuesta.json()
+    assert datos["estado"] == "completado"
+    assert datos["llamadas_modelo"] == 0
+    assert datos["normativa"][0]["fuentes"][0]["articulo"] == "188"
+    buscar.assert_called_once_with("188")
+    fabrica.assert_not_called()
