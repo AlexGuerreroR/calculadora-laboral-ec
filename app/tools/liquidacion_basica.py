@@ -11,14 +11,36 @@ from app.tools.parametros import cargar_parametros, dec, redondear
 def sugerir_vacaciones(ingreso: date, salida: date) -> Decimal:
     if not ingreso <= salida <= date.today():
         raise ValueError("revise las fechas de ingreso y salida")
+
     p = cargar_parametros()
     anios, fraccion = antiguedad(ingreso, salida)
-    # En el aniversario exacto se muestra el período que acaba de completarse.
-    anio = ingreso.year + (anios if fraccion else max(0, anios - 1))
-    inicio = ingreso.replace(year=anio, day=min(ingreso.day, monthrange(anio, ingreso.month)[1]))
-    dias_anio = p["calendario"]["dias_anio"]
-    dias = min((salida - inicio).days, dias_anio)
-    return redondear(dec(p["vacaciones"]["dias_base"]) * dec(dias) / dec(dias_anio))
+    dias_base = dec(p["vacaciones"]["dias_base"])
+
+    # En el aniversario exacto mostramos el período anual completo.
+    if anios > 0 and not fraccion:
+        return redondear(dias_base)
+
+    anio = ingreso.year + anios
+    inicio = ingreso.replace(
+        year=anio,
+        day=min(ingreso.day, monthrange(anio, ingreso.month)[1]),
+    )
+    calendario = p["calendario"]
+    dias_mes = calendario["dias_mes"]
+    dias_anio = calendario["dias_anio"]
+
+    meses = (salida.year - inicio.year) * 12 + salida.month - inicio.month
+    dia_inicio = min(inicio.day, dias_mes)
+    dia_fin = (
+        dias_mes
+        if salida.day == monthrange(salida.year, salida.month)[1]
+        else min(salida.day, dias_mes)
+    )
+    dias = meses * dias_mes + dia_fin - dia_inicio + 1
+
+    # La aproximación comercial no completa el año antes del aniversario.
+    dias = min(max(dias, 0), dias_anio - 1)
+    return redondear(dias_base * dec(dias) / dec(dias_anio))
 
 
 def _dias_decimo(ingreso, salida, mes_inicio, mensualiza, calendario):
