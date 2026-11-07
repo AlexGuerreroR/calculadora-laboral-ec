@@ -104,6 +104,15 @@ def controlar_alcance(mensaje, con_calculo=False):
     texto = _normalizar(consulta_sin_ordenes_citadas(mensaje))
     if any(re.search(p, texto) for p in config["patrones_inyeccion"]):
         return "rechazado", "No puedo cambiar mis instrucciones, revelar claves ni ejecutar órdenes. Puedo orientarle sobre beneficios laborales de Ecuador."
+    if requiere_orientacion_finiquito(texto):
+        return (
+            "abstencion",
+            "Para revisar una liquidación pendiente o consultar el plazo para "
+            "reclamar o demandar, solicite orientación al Ministerio del Trabajo. "
+            "Conserve las fechas de su relación laboral y las comunicaciones "
+            "sobre su salida. Si dispone del acta de finiquito y del comprobante "
+            "de pago, téngalos a mano para la revisión de su caso.",
+        )
     if any(re.search(p, texto) for p in config["patrones_disputa"]):
         return "abstencion", "No puedo determinar quién tiene razón ni dictaminar un conflicto laboral. Acuda a la Inspectoría del Ministerio del Trabajo."
     if any(re.search(p, texto) for p in config.get("fuentes_no_cargadas", [])):
@@ -269,12 +278,39 @@ def orientar_despido_coloquial(pregunta: str) -> NormativaAgente | None:
     return None
 
 
+def requiere_orientacion_finiquito(pregunta):
+    texto = _normalizar(pregunta)
+    if not re.search(r"\b(?:finiquito|liquidacion)\b", texto):
+        return False
+
+    consulta_legal = re.search(
+        r"\b(?:demand\w*|reclam\w*|juicio\w*|prescrib\w*|prescrip\w*)\b",
+        texto,
+    )
+    impago = re.search(
+        r"\bno\s+(?:me\s+)?(?:han\s+pagado|pagaron|pagan|he\s+recibido)\b",
+        texto,
+    )
+    pide_orientacion = re.search(
+        r"\bque\s+(?:(?:puedo|debo)\s+)?hacer\b|\bque\s+hago\b",
+        texto,
+    )
+    return bool(consulta_legal or (impago and pide_orientacion))
+
+
 def consulta_plazo_finiquito(pregunta):
+    if requiere_orientacion_finiquito(pregunta):
+        return False
+
     texto = _normalizar(pregunta)
     return bool(
         re.search(r"\b(?:finiquito|liquidacion)\b", texto)
-        and re.search(r"\b(?:plazo|cuanto tiempo|cuantos dias|hasta cuando|cuando (?:me |deben |tienen |se )?pag\w*|"
-                      r"no me (?:han pagado|pagan|pagaron)|registr\w*|consigna\w*)\b", texto)
+        and re.search(
+            r"\b(?:plazo|cuanto tiempo|cuantos dias|hasta cuando|"
+            r"cuando (?:me |deben |tienen |se )?pag\w*|"
+            r"no me (?:han pagado|pagan|pagaron)|registr\w*|consigna\w*)\b",
+            texto,
+        )
     )
 
 
