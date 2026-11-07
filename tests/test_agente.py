@@ -368,3 +368,23 @@ def test_cliente_admite_tool_calls_sin_contenido():
     llm.generar_herramientas([{"role": "user", "content": "Consulta laboral"}],
                             agente.esquemas_herramientas(), requerir_herramienta=True)
     assert crear.call_args.kwargs["tool_choice"] == "required"
+
+   @pytest.mark.parametrize("pregunta", [
+    "¿Cuánto tiempo tengo para demandar por mi liquidación?",
+    "¿Qué plazo tengo para reclamar mi liquidación si no me pagaron?",
+    "No me han pagado la liquidación y pasaron 2 meses, ¿qué hago?",
+])
+def test_reclamacion_finiquito_orienta_sin_usar_modelo(pregunta):
+    fabrica = Mock(side_effect=AssertionError("No debe llamar al modelo"))
+    app.dependency_overrides[ruta.obtener_llm] = lambda: fabrica
+
+    respuesta = TestClient(app).post("/agente", json={"mensaje": pregunta})
+
+    assert respuesta.status_code == 200
+    datos = respuesta.json()
+    assert datos["estado"] == "abstencion"
+    assert "Ministerio del Trabajo" in datos["mensaje"]
+    assert datos["llamadas_modelo"] == 0
+    assert not datos["normativa"]
+    assert not agente.consulta_plazo_finiquito(pregunta)
+    fabrica.assert_not_called()
