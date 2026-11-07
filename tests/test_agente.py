@@ -369,7 +369,7 @@ def test_cliente_admite_tool_calls_sin_contenido():
                             agente.esquemas_herramientas(), requerir_herramienta=True)
     assert crear.call_args.kwargs["tool_choice"] == "required"
 
-   @pytest.mark.parametrize("pregunta", [
+@pytest.mark.parametrize("pregunta", [
     "¿Cuánto tiempo tengo para demandar por mi liquidación?",
     "¿Qué plazo tengo para reclamar mi liquidación si no me pagaron?",
     "No me han pagado la liquidación y pasaron 2 meses, ¿qué hago?",
