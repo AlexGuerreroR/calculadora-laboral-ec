@@ -66,6 +66,12 @@ def validar_explicacion(exp: ExplicacionRAG, fuentes: list[FuenteRAG], resultado
                 agregar(item)
     for valor in resultado.entradas.values():
         agregar(valor)
+    # Las entradas monetarias Decimal de liquidación se serializan como texto.
+    # El servidor ya revalidó esta remuneración antes de pedir la explicación.
+    if resultado.tipo == "liquidacion":
+        remuneracion = resultado.entradas.get("remuneracion_mensual")
+        if isinstance(remuneracion, str):
+            permitidos.add(Decimal(remuneracion))
     for paso in resultado.desglose:
         permitidos.update(Decimal(n) for n in re.findall(r"(?<![\w.])\d+(?:\.\d+)?", paso))
     # El prompt exige formato USD; otras notaciones monetarias se rechazan.
