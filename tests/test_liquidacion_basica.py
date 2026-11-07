@@ -19,9 +19,9 @@ RUTA = "/calculos/liquidacion/basica"
 
 
 @pytest.mark.parametrize(("ingreso", "dias"), [
-    ("2026-01-01", "12.83"),
-    ("2026-05-01", "7.83"),
-    ("2026-07-01", "5.29"),
+    ("2026-01-01", "12.71"),
+    ("2026-05-01", "7.71"),
+    ("2026-07-01", "5.21"),
 ])
 def test_sugerencia_de_vacaciones(ingreso, dias):
     respuesta = TestClient(app).get(f"{RUTA}/vacaciones", params={
@@ -32,9 +32,9 @@ def test_sugerencia_de_vacaciones(ingreso, dias):
 
 
 @pytest.mark.parametrize(("cambios", "total"), [
-    ({}, "2179.14"),
-    ({"region": "costa_galapagos"}, "2379.98"),
-    ({"mensualiza_decimo_tercero": True, "mensualiza_decimo_cuarto": True}, "1658.64"),
+    ({}, "2177.22"),
+    ({"region": "costa_galapagos"}, "2378.06"),
+    ({"mensualiza_decimo_tercero": True, "mensualiza_decimo_cuarto": True}, "1656.72"),
     ({"dias_vacaciones_pendientes": "1"}, "1989.86"),
     ({"dias_vacaciones_pendientes": "0"}, "1973.86"),
 ])
@@ -72,3 +72,19 @@ def test_pdf_basico_recalcula_y_requiere_confirmacion(monkeypatch):
     pdf = cliente.post("/resumen/confirmar", json={"token": token, "confirmar": True})
     assert pdf.status_code == 200, pdf.text
     assert pdf.content.startswith(b"%PDF-")
+
+@pytest.mark.parametrize(("ingreso", "salida", "dias"), [
+    ("2026-03-01", "2026-08-31", "7.50"),
+    ("2025-02-28", "2026-02-27", "14.96"),
+    ("2025-02-28", "2026-02-28", "15.00"),
+])
+def test_vacaciones_comerciales_y_limite_del_aniversario(
+    ingreso, salida, dias
+):
+    respuesta = TestClient(app).get(
+        f"{RUTA}/vacaciones",
+        params={"fecha_ingreso": ingreso, "fecha_salida": salida},
+    )
+
+    assert respuesta.status_code == 200
+    assert Decimal(respuesta.json()["dias"]) == Decimal(dias)
