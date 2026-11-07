@@ -32,6 +32,25 @@ def test_combina_vacaciones_y_despido_sin_cambiar_la_pregunta(monkeypatch):
     assert buscar_mock.call_args_list[0].args == (original,)
 
 
+@pytest.mark.parametrize("pregunta", [
+    "que debo hacer si me botan sin razon",
+    "¿Qué hago si me sacan del trabajo?",
+    "Me sacaron de mi puesto, ¿qué hago?",
+    "¿Qué hago si me corrieron de la empresa?",
+])
+def test_despido_coloquial_pasa_alcance_y_busca_articulo(pregunta, monkeypatch):
+    fuente = {"id": "art-188", "articulo": "188"}
+    buscar = Mock(side_effect=[[], [fuente]])
+    monkeypatch.setattr(agente.retriever, "buscar", buscar)
+    assert agente.controlar_alcance(pregunta) is None
+    assert agente.recuperar_normativa(pregunta) == [fuente]
+    assert [llamada.args[0] for llamada in buscar.call_args_list] == [pregunta, "Art. 188"]
+
+
+def test_sacar_de_un_grupo_no_es_despido():
+    assert agente.controlar_alcance("Me sacaron del grupo de WhatsApp")[0] == "rechazado"
+
+
 @pytest.mark.parametrize("anios,dias", [(2, 15), (5, 15), (6, 16), (7, 17), (20, 30), (50, 30)])
 def test_dias_se_calculan_en_python(anios, dias):
     assert calcular_dias_vacaciones(EntradaDiasVacaciones(anios_servicio=anios)).dias_anuales == dias
