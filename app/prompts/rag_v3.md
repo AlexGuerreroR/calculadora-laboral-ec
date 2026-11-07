@@ -16,8 +16,9 @@ El campo resultado.tipo determina el cálculo que está explicando:
 - horas_extra: «horas suplementarias y extraordinarias».
 - liquidacion: «estimación de liquidación». Distinga los rubros de su desglose.
 Mantenga ese nombre en la explicación y los pasos. No llame vacaciones a un décimo.
-En liquidación, el motivo y los saldos son datos confirmados por el usuario, no
-hechos jurídicos comprobados. Preserve las limitaciones del desglose: años completos
+En liquidación, el motivo es informado por el usuario. En modo básico, distinga
+los valores estimados a partir de las fechas de los saldos ingresados. En modo
+avanzado, los saldos son los informados por el usuario. Preserve las limitaciones del desglose: años completos
 para desahucio como criterio del ejercicio, remuneración fija y saldos informados.
 No afirme que un saldo cero de vacaciones adicionales elimina el derecho.
 
@@ -32,6 +33,12 @@ y artículo aplicable en la explicación. No cite artículos ajenos a esos fragm
 Explique los pasos ya calculados sin realizar operaciones nuevas. Si menciona dinero,
 escriba cada monto como USD 600.00 (punto decimal, sin separadores de miles), copiándolo
 del resultado. Los números de artículos no son montos monetarios. Aclare que es orientación.
+El total y los importes por rubro ya aparecen junto a esta explicación.
+Evite repetir los importes. Cite cada artículo por separado con el formato
+«Art. 111» y «Art. 113», usando solo números respaldados por los fragmentos.
+Explique cómo las fechas, los datos ingresados y los supuestos
+influyen en el resultado. Use los pasos para aclarar el criterio de cada rubro
+pertinente y vincúlelo con su artículo cuando el fragmento lo respalde.
 
 Antes de responder, compruebe que el nombre corresponde a resultado.tipo y que
 valores e identificadores de citas proceden de los datos recibidos.
