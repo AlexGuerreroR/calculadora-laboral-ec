@@ -26,13 +26,15 @@ from pydantic import BaseModel, Field, ValidationError
 
 from app.config import ErrorConfiguracion
 from app.schemas import (EntradaDecimoCuarto, EntradaDecimoTercero, EntradaVacaciones,
-                         ResultadoCalculo, ExplicacionRAG, FuenteRAG, EntradaHoras, EntradaLiquidacion)
+                         ResultadoCalculo, ExplicacionRAG, FuenteRAG, EntradaHoras, EntradaLiquidacion,
+                         EntradaLiquidacionBasica)
 from app.services import rag
 from app.services.llm import ClienteLLM, ProveedorNoDisponible, SalidaInvalida
 from app.tools.decimos import calcular_decimo_cuarto, calcular_decimo_tercero
 from app.tools.vacaciones import calcular_vacaciones
 from app.tools.horas import calcular_horas
 from app.tools.liquidacion import estimar_liquidacion
+from app.tools.liquidacion_basica import estimar_liquidacion_basica
 from app.tools.parametros import cargar_parametros
 
 router = APIRouter(tags=["explicación con IA"])
@@ -123,6 +125,8 @@ def recalcular(resultado: ResultadoCalculo) -> ResultadoCalculo:
     """Vuelve a calcular desde `entradas`. Lo que mande el cliente en total, desglose o
     fundamento no se usa: solo se comprueba que el total coincida."""
     esquema, calcular = CALCULOS[resultado.tipo]
+    if resultado.tipo == "liquidacion" and resultado.entradas.get("modo") == "basico":
+        esquema, calcular = EntradaLiquidacionBasica, estimar_liquidacion_basica
     datos = {k: v for k, v in resultado.entradas.items() if k in esquema.model_fields}
     try:
         servidor = calcular(esquema(**datos))
