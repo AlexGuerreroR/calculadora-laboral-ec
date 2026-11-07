@@ -121,6 +121,20 @@ def _filtro(tema: str | None, solo_vigentes: bool) -> dict | None:
     return condiciones[0] if len(condiciones) == 1 else {"$and": condiciones}
 
 
+def _buscar_articulo(col, numero: str, filtro: dict | None) -> list[dict]:
+    condiciones = [{"articulo": numero}] + (filtro.get("$and", [filtro]) if filtro else [])
+    where = {"$and": condiciones} if len(condiciones) > 1 else condiciones[0]
+    resultado = col.get(where=where)
+    return [{**m, "id": ident, "articulo": m["articulo"], "distancia": 0.0, "texto": t, "tema": m["tema"],
+             "capitulo": m.get("capitulo", ""), "origen": "exacta"}
+            for ident, t, m in zip(resultado["ids"], resultado["documents"], resultado["metadatas"])]
+
+
+def buscar_articulo_vigente(numero: str) -> list[dict]:
+    """Consulta por número exacto sin generar un vector de búsqueda."""
+    return _buscar_articulo(_coleccion(), numero, _filtro(None, True))
+
+
 def buscar(pregunta: str, k: int = 5, tema: str | None = None, solo_vigentes: bool = True) -> list[dict]:
     """Devuelve los k fragmentos más cercanos: artículo, distancia, texto y etiquetas."""
     col = _coleccion()
@@ -134,11 +148,6 @@ def buscar(pregunta: str, k: int = 5, tema: str | None = None, solo_vigentes: bo
     # Búsqueda híbrida: el artículo nombrado en la pregunta va primero.
     exactos = []
     for numero in articulos_citados(pregunta):
-        cond = {"articulo": numero}
-        condiciones = [cond] + (filtro.get("$and", [filtro]) if filtro else [])
-        g = col.get(where={"$and": condiciones} if len(condiciones) > 1 else cond)
-        exactos += [{**m, "id": ident, "articulo": m["articulo"], "distancia": 0.0, "texto": t, "tema": m["tema"],
-                     "capitulo": m.get("capitulo", ""), "origen": "exacta"}
-                    for ident, t, m in zip(g["ids"], g["documents"], g["metadatas"])]
+        exactos.extend(_buscar_articulo(col, numero, filtro))
     vistos = {e["articulo"] for e in exactos}
     return (exactos + [h for h in hallados if h["articulo"] not in vistos])[:k]
