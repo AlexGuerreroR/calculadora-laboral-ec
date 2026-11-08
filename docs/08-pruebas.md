@@ -20,7 +20,10 @@ python scripts/probar_produccion.py https://SU-URL-PUBLICA
 
 El mismo script sirve antes del despliegue contra `http://127.0.0.1:8000`. Las consultas
 al agente se espacian 16 s para respetar el límite de 4 por minuto; en total usa unas
-8 llamadas al modelo. Los casos T22–T25 son manuales y se registran con captura en
+8 llamadas al modelo. T10 y T11 dependen del cálculo de T03, y T19 del de T07: si ese
+cálculo falla, el caso dependiente se registra como **BLOQUEADO** (no cumple) y el total
+sigue siendo 21, para que el informe muestre qué quedó sin verificar. T12 exige, además de
+la cita del Art. 113, que la respuesta diga «15 de marzo». Los casos T22–T25 son manuales y se registran con captura en
 `docs/evidencias/semana-4/`.
 
 ## Casos
