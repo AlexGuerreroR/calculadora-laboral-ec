@@ -5,7 +5,7 @@
 También sirve en local:  python scripts/probar_produccion.py http://127.0.0.1:8000
 
 Ejecuta los casos automatizables (T01–T21) y guarda el resultado obtenido de cada uno en
-eval/pruebas_produccion_<fecha>.json. Los casos T22–T25 son manuales y se registran a mano.
+eval/pruebas_produccion_<fecha>_<hora>.json (cada corrida en su propio archivo). Los casos T22–T25 son manuales y se registran a mano.
 Las consultas al agente se espacian para respetar el límite de 4 por minuto; usan el
 proveedor configurado en la plataforma (unas 8 llamadas al modelo en total).
 """
@@ -122,7 +122,7 @@ def main(base):
     limitado = [x for x in codigos if x.status_code == 429]
     registrar("T21", "Límite de tasa: 429 con Retry-After y mensaje propio", bool(limitado) and "Retry-After" in limitado[0].headers, f"códigos={[x.status_code for x in codigos]}")
 
-    salida = RAIZ / f"eval/pruebas_produccion_{datetime.now().strftime('%Y%m%d')}.json"
+    salida = RAIZ / f"eval/pruebas_produccion_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
     salida.write_text(json.dumps({"url": base, "fecha_utc": datetime.now(timezone.utc).isoformat(),
                                   "aprobadas": sum(f["cumple"] for f in filas), "total": len(filas),
                                   "bloqueadas": sum(f["estado"] == "bloqueado" for f in filas),

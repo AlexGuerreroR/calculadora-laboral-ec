@@ -12,7 +12,7 @@ con resultado esperado y obtenido».
 ## Cómo se ejecutan
 
 Los casos T01–T21 se ejecutan con un comando y guardan lo obtenido en
-`eval/pruebas_produccion_<fecha>.json`:
+`eval/pruebas_produccion_<fecha>_<hora>.json` (cada corrida en su propio archivo):
 
 ```powershell
 python scripts/probar_produccion.py https://SU-URL-PUBLICA
