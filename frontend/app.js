@@ -464,45 +464,74 @@ $("formAgente").addEventListener("submit", async (evento) => {
   }
 });
 
+let vistaResumen = null;
+
 $("btnResumen").addEventListener("click", async () => {
   const calculo = ultimoResultado;
   const boton = $("btnResumen");
-  if (!calculo || boton.disabled) return;
-  boton.disabled = true;
-  $("textoBotonResumen").textContent = "Generando PDF…";
-  ocultar($("estadoResumenPDF"));
+  if (!calculo || boton.disabled || vistaResumen) return;
+  ocultar($("estadoResumenPDF"), $("mensajeVistaResumen"), $("errorVistaResumen"));
   try {
-    const preparada = await fetch("/resumen/preparar", {
-      method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({calculo}),
-    });
-    if (!preparada.ok) throw new Error(await mensajeDeError(preparada));
-    const vista = await preparada.json();
-    if (calculo !== ultimoResultado) return;
-    const respuesta = await fetch("/resumen/confirmar", {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({token: vista.token, confirmar: true}),
-    });
-    if (!respuesta.ok) throw new Error(await mensajeDeError(respuesta));
-    if (!(respuesta.headers.get("Content-Type") || "").startsWith("application/pdf")) {
-      throw new Error("El servidor no devolvió un PDF válido.");
-    }
-    const archivo = await respuesta.blob();
-    if (calculo !== ultimoResultado) return;
-    const url = URL.createObjectURL(archivo);
-    const enlace = document.createElement("a");
-    enlace.href = url;
-    enlace.download = vista.nombre_archivo;
-    document.body.append(enlace);
-    enlace.click();
-    enlace.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    $("estadoResumenPDF").textContent = "PDF generado. Revise la descarga del navegador.";
-    $("estadoResumenPDF").hidden = false;
+    const vista = await enviar("/resumen/preparar", {calculo}, boton, "Preparando vista previa…");
+    vistaResumen = vista;
+    $("confirmarDatosPDF").checked = false;
+    $("btnConfirmarResumenPDF").disabled = true;
+    $("totalVistaResumen").textContent = "Total: " + usd(vista.calculo.total);
+    llenarLista($("desgloseVistaResumen"), vista.calculo.desglose);
+    $("avisoVistaResumen").textContent = vista.advertencia_fuentes;
+    $("avisoVistaResumen").hidden = !vista.advertencia_fuentes;
+    $("vistaResumenPDF").hidden = false;
+    $("tituloVistaResumen").focus();
   } catch (e) {
     if (calculo === ultimoResultado) mostrarError($("estadoResumenPDF"), e.message);
-  } finally {
-    boton.disabled = false;
-    $("textoBotonResumen").textContent = "Descargar PDF";
   }
 });
 
+async function resolverVistaResumen(confirmar) {
+  const vista = vistaResumen;
+  const aceptar = $("btnConfirmarResumenPDF");
+  const cancelar = $("btnCancelarResumenPDF");
+  const casilla = $("confirmarDatosPDF");
+  if (!vista || cancelar.disabled || (confirmar && !casilla.checked)) return;
+  casilla.disabled = true;
+  aceptar.disabled = cancelar.disabled = true;
+  ocultar($("errorVistaResumen"));
+  try {
+    const respuesta = await fetch(confirmar ? "/resumen/confirmar" : "/resumen/cancelar", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(confirmar ? {token: vista.token, confirmar: true} : {token: vista.token}),
+    });
+    if (respuesta.ok || respuesta.status === 404 || (confirmar && respuesta.status === 503)) {
+      vistaResumen = null;
+      ocultar($("vistaResumenPDF"));
+    }
+    if (!respuesta.ok) throw new Error(await mensajeDeError(respuesta));
+    if (confirmar) {
+      if (!(respuesta.headers.get("Content-Type") || "").startsWith("application/pdf")) {
+        throw new Error("El servidor no devolvió un PDF válido.");
+      }
+      const url = URL.createObjectURL(await respuesta.blob());
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = vista.nombre_archivo;
+      document.body.append(enlace);
+      enlace.click();
+      enlace.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    mostrarError($("mensajeVistaResumen"), confirmar ? "PDF generado. Revise las descargas del navegador." : "Vista previa cancelada.");
+    ($("btnResumen").hidden ? $("mensajeAgente") : $("btnResumen")).focus();
+  } catch (e) {
+    mostrarError($(vistaResumen ? "errorVistaResumen" : "mensajeVistaResumen"), e.message);
+  } finally {
+    casilla.disabled = cancelar.disabled = false;
+    aceptar.disabled = !casilla.checked;
+  }
+}
+
+$("confirmarDatosPDF").addEventListener("change", (evento) => {
+  $("btnConfirmarResumenPDF").disabled = !evento.target.checked || $("btnCancelarResumenPDF").disabled;
+});
+
+$("btnConfirmarResumenPDF").addEventListener("click", () => resolverVistaResumen(true));
+$("btnCancelarResumenPDF").addEventListener("click", () => resolverVistaResumen(false));
