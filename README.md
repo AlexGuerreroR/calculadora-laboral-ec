@@ -34,7 +34,7 @@ Los trabajadores consultados (12 de 15 en nuestro levantamiento) no saben cómo 
 - **Agente:** consulta normativa y utiliza ocho herramientas cerradas, con argumentos validados y límites. `agente_v4` conserva la pregunta original y `normativa_v4` explica las fuentes pertinentes sin hacer operaciones. Los importes requieren formulario; días anuales y exceso de jornada pueden calcularse en Python con datos explícitos declarados. Cada consulta es independiente.
 - **Resumen PDF:** el botón «Descargar PDF» prepara y descarga el documento con un solo clic. Si se solicita al agente, se muestra una vista previa con confirmación o cancelación. Ambos caminos usan un token de sesión de un solo uso; el modelo no confirma la descarga.
 - **Pendiente:** evaluación generativa completa del agente y validación final del producto.
-- **Despliegue previsto:** Render (semana 4).
+- **Despliegue previsto:** Google Cloud Run (semana 4, ADR-005 en `docs/09-decisiones.md`).
 
 ## Estado real de la Entrega 3
 
