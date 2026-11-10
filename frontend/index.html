@@ -175,7 +175,7 @@
       </div>
       <div class="acciones-resultado">
         <button id="btnExplicarCalculo" class="boton-secundario" type="button" aria-controls="explicacionCalculo" aria-expanded="false"><svg class="icono" aria-hidden="true"><use href="#icono-info"/></svg><span id="textoBotonExplicar">Explicar cálculo</span></button>
-        <button id="btnResumen" type="button" hidden><svg class="icono" aria-hidden="true"><use href="#icono-documento"/></svg><span id="textoBotonResumen">Descargar PDF</span></button>
+        <button id="btnResumen" type="button" hidden><svg class="icono" aria-hidden="true"><use href="#icono-documento"/></svg><span id="textoBotonResumen">Preparar PDF</span></button>
       </div>
       <p id="esperaExplicacionCalculo" class="ayuda ayuda-destacada" role="status" hidden>Estamos preparando la explicación de su cálculo. Esto puede tomar unos segundos.</p>
       <p id="errorExplicacionCalculo" class="error" role="alert" hidden></p>
@@ -201,6 +201,19 @@
       <p id="avisoExplicacionCalculo" class="ayuda" hidden></p>
     </section>
 
+    <section id="vistaResumenPDF" class="tarjeta" aria-labelledby="tituloVistaResumen" hidden>
+      <h3 id="tituloVistaResumen" tabindex="-1">Revise los datos para el PDF</h3>
+      <p id="totalVistaResumen"></p>
+      <ul id="desgloseVistaResumen"></ul>
+      <p id="avisoVistaResumen" class="ayuda" hidden></p>
+      <label class="ayuda"><input id="confirmarDatosPDF" type="checkbox"> Si est&aacute; de acuerdo con la informaci&oacute;n mostrada, <strong>marque esta casilla y pulse Descargar</strong> para generar el PDF.</label>
+      <div class="acciones-resultado">
+        <button id="btnConfirmarResumenPDF" type="button" disabled>Descargar</button>
+        <button id="btnCancelarResumenPDF" type="button">Cancelar</button>
+      </div>
+      <p id="errorVistaResumen" class="error" role="alert" hidden></p>
+    </section>
+    <p id="mensajeVistaResumen" class="ayuda" role="status" hidden></p>
     <section id="asistenteLaboral" class="tarjeta consulta-agente">
       <h2><svg class="icono" aria-hidden="true"><use href="#icono-consulta"/></svg> Asistente laboral</h2>
       <p class="ayuda">Consulte sobre derechos, requisitos y plazos laborales en Ecuador.</p>
@@ -232,6 +245,6 @@
   </main>
 
   <footer>Calculadora Laboral EC · Orientación sobre beneficios laborales en Ecuador</footer>
-  <script src="app.js?v=espera-asistente"></script>
+  <script src="app.js?v=confirmar-datos-pdf"></script>
 </body>
 </html>
