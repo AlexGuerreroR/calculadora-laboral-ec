@@ -164,7 +164,7 @@ Patrón: **cálculo en código + IA que explica** (ADR-002). El orden de los pas
 | Patrón de integración | Cálculo en código + IA que explica |
 | Registro | Logs estructurados sin datos personales |
 | Pruebas | pytest, con un doble del modelo (sin internet ni cuota) |
-| Despliegue previsto | Render |
+| Despliegue previsto | Google Cloud Run (ADR-005) |
 
 ## Endpoints
 
