@@ -1,5 +1,12 @@
 # Evaluación del sistema — semanas 3 y 4
 
+## Verificación de la rama de mejora
+
+Se probó manualmente la demo con ambos modos de liquidación y con el flujo del PDF. **Preparar PDF** abre una tarjeta con el total y el desglose. Marcar la casilla de conformidad habilita **Descargar**. La tarjeta también permite **Cancelar**.
+
+`tests/test_liquidacion_basica.py` documenta los casos automatizados de sugerencia de vacaciones, períodos de décimos, saldos informados, rechazo de entradas inválidas y confirmación del PDF en la API. Las métricas de las secciones siguientes corresponden a las versiones evaluadas en las semanas 3 y 4. La verificación de la demo se registra como evidencia manual.
+
+
 ## Semana 4: corrida completa nueva y calibración — 2 de noviembre de 2026
 
 A diferencia del cierre de la semana 3, estas corridas ejecutan el agente **de punta a
@@ -89,7 +96,7 @@ recupera en primer lugar).
 ## Cierre: mínimos funcionales medidos de la semana 3
 
 Las secciones posteriores conservan las corridas históricas y sus fallos.
-El cierre vigente está en `eval/cierre_real_20261030.json` y su publicación en
+El registro del cierre de la semana 3 está en `eval/cierre_real_20261030.json` y su publicación en
 `eval/cierre_publicado_20261030.json`. Revisión explícita por fila:
 `eval/revision_cierre_20261030.json`; consolidación reproducible sin API:
 `py -3.14 -B eval/resumir_cierre.py`.
@@ -287,3 +294,4 @@ Orden propuesto para la siguiente etapa; aún **no implementado**:
 
 La aplicación habitual conserva Groq principal y Gemini de respaldo. Esta
 corrida no comprueba la disponibilidad actual de Gemini ni el failover real.
+
