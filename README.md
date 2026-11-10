@@ -324,7 +324,7 @@ sus dos páginas. Es un archivo de demostración local, no un archivo para Git.
 
 ## Evaluación real de la copia, 30/10/2026
 
-**Cierre vigente:** 11/13 respuestas correctas con cita (84,62 %), abstención
+**Resultado de la evaluación histórica:** 11/13 respuestas correctas con cita (84,62 %), abstención
 4/4, recuperación completa 13/13 y cálculos 10/10. El método reutiliza decisiones
 de herramienta, genera trece respuestas nuevas y aplica condiciones literales
 de las fuentes al publicar; no se presenta como otra planificación nueva.
