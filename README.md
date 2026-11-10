@@ -296,10 +296,6 @@ El navegador solicita los datos de revisión a `/resumen/preparar`. Al pulsar
 **Descargar**, envía el token y la confirmación a `/resumen/confirmar`. El
 servidor genera el PDF a partir de los datos preparados, sin llamar a la IA.
 El botón **Cancelar** invalida la solicitud mediante `/resumen/cancelar`.
-En ambos casos, el navegador llama primero a `/resumen/preparar` y después a
-`/resumen/confirmar` con el token y la aprobación. El servidor genera el PDF
-con los datos preparados, sin aceptar nuevos montos en la confirmación y sin
-llamar a IA para crear el archivo.
 
 Cada solicitud vence según `resumen.vigencia_segundos` (300 s actualmente),
 pertenece a una sesión de navegador y solo puede usarse una vez. Los pendientes
