@@ -94,7 +94,9 @@ def main(base):
 
     r = agente("¿Hasta qué fecha se puede recibir acumulado el décimo cuarto en la Costa?")
     d = r.json() if r.status_code == 200 else {}
-    fecha_ok = "15 de marzo" in d.get("mensaje", "").lower()
+    # La respuesta del agente va en normativa[].respuesta; «mensaje» es solo el encabezado.
+    texto = " ".join([d.get("mensaje", "")] + [n.get("respuesta", "") for n in d.get("normativa", [])])
+    fecha_ok = "15 de marzo" in texto.lower()
     registrar("T12", "Pregunta normativa: 15 de marzo con cita (Art. 113)", d.get("estado") == "completado" and "113" in articulos(r) and fecha_ok, f"HTTP {r.status_code} {d.get('estado')} arts={articulos(r)} 15_de_marzo={fecha_ok}")
     r = agente("¿Qué bonos me da el contrato colectivo de mi empresa?")
     registrar("T13", "Abstención: documento no cargado", r.status_code == 200 and r.json()["estado"] == "abstencion", f"HTTP {r.status_code} {r.json().get('estado')}")
