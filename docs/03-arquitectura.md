@@ -3,17 +3,23 @@
 **Caso 07:** Calculadora Inteligente de Beneficios y Liquidaciones Laborales
 **Tipo de producto:** Automatización de proceso con agente
 **Repositorio:** https://github.com/AlexGuerreroR/calculadora-laboral-ec
-**Etapa actual de la copia:** Semana 3 · RAG, agente y evaluación (30/10/2026)
+**Versión descrita:** rama `mejora/liquidacion-basica`
 
 > Este documento tiene dos partes. La **parte A** describe el MVP de la semana 2 (C4 niveles 1 y 2), generado con la plantilla *Estudio de Arquitectura del MVP* y ajustado por el grupo. La **parte B** conserva el diseño completo de la semana 1, que se implementa en las semanas 3 y 4.
 
-## Implementación actual de la copia — semana 3
+## Implementación de la rama de mejora
 
-Las partes A y B se conservan como historia del diseño. Actualmente FastAPI sirve
-los cinco formularios, el agente y el PDF. Los importes los calcula Python; el
-modelo explica y selecciona herramientas de una lista cerrada con Pydantic.
-Groq es el principal y Gemini el respaldo; la disponibilidad de cada servicio
-se distingue de la configuración y del manejo local de fallos.
+Las partes A y B documentan la evolución del diseño. FastAPI valida los datos y Python calcula los importes. La liquidación básica estima con remuneración, fechas, motivo de salida, región y modalidad de los décimos. La sugerencia de vacaciones se puede editar. La avanzada usa los saldos y descuentos informados. Ambos modos comparten las reglas de terminación.
+
+| Ruta | Función |
+| --- | --- |
+| `POST /calculos/liquidacion` | Calcula la liquidación avanzada. |
+| `POST /calculos/liquidacion/basica` | Estima la liquidación básica. |
+| `GET /calculos/liquidacion/basica/vacaciones` | Sugiere días de vacaciones según las fechas. |
+| `POST /explicar` | Recalcula el resultado y verifica las citas y los valores de la explicación. |
+| `POST /agente` | Atiende consultas de texto independientes del cálculo. |
+
+Groq es el proveedor principal y Gemini el respaldo.
 
 ```mermaid
 flowchart LR
@@ -30,8 +36,9 @@ flowchart LR
     LLM --> VAL[Validación de citas, cantidades y esquema]
     VAL --> UI
     CALC --> UI
-    API --> PRE[Vista previa del resumen]
-    PRE --> HUM[Confirmación humana de un solo uso]
+    UI --> PRE[Preparar PDF y revisar total y desglose]
+    PRE --> HUM[Marcar la casilla y pulsar Descargar]
+    PRE --> CAN[Cancelar e invalidar la solicitud]
     HUM --> PDF[ReportLab: PDF en memoria]
     PDF --> UI
 ```
@@ -49,7 +56,7 @@ del PDF no puede provenir del modelo: corresponde a una sesión, caduca y solo
 se consume una vez. Esta implementación usa un único proceso para los pendientes.
 
 Validación y limitaciones reales: [07-evaluacion.md](07-evaluacion.md).
-La nube y el despliegue de semana 4 no se dan por realizados.
+La versión desplegada corresponde a `main`. Esta sección describe la rama de mejora.
 
 ## Problema
 
@@ -199,7 +206,7 @@ Valores definidos en `.env` (el código del kit no se modifica) y contrastados c
 - **Todavía no calcula:** horas suplementarias y extraordinarias (C08) ni liquidación completa (C09 y C10). Se implementan en la semana 3 como herramientas del agente (`estimar_liquidacion`). El MVP no se presenta como cumplimiento total del alcance del caso.
 - **Límites conocidos:** remuneración fija por mes en vacaciones, meses completos (sin fracciones de mes) y sin jornada nocturna ni trabajo en días de descanso (preguntas P12 y P13 del levantamiento).
 
-## Semana 3: herramientas del agente (previstas)
+## Semana 3: incorporación de herramientas del agente
 
 Actualización de la copia, 30/10/2026: ya existen `calcular_horas` y
 `estimar_liquidacion`, con endpoints `/calculos/horas` y `/calculos/liquidacion`
@@ -212,19 +219,7 @@ resultados verificables. Los esquemas salen de Pydantic; las ocho funciones
 permitidas están en `app/services/agente.py`. La verificación inicial usa dobles;
 posteriormente se completó una consulta real con Groq, dos vueltas y tres
 solicitudes lógicas para explicar el décimo tercero.
-Posteriormente se añadió el resumen PDF: el agente solo pide su preparación;
-el endpoint `/resumen/preparar` guarda una instantánea en memoria y devuelve una
-vista previa. `/resumen/confirmar` consume una autorización aleatoria, de un solo
-uso y ligada a la sesión, y genera los bytes del PDF. `/resumen/cancelar` invalida
-la solicitud. No se permite al modelo invocar el endpoint de confirmación.
-La verificación de esta extensión usó dobles y PDFs reales, sin API generativa.
-
-En la interfaz actual hay dos recorridos. El botón «Descargar PDF» encadena
-preparación y confirmación con un solo clic, sin mostrar una segunda tarjeta.
-Cuando el resumen se solicita al agente, se conserva la vista previa con los
-botones de confirmar y cancelar. Ambos recorridos usan los mismos endpoints y
-el token de sesión de un solo uso. La segunda pantalla de confirmación solo
-corresponde al recorrido del agente.
+En la rama de mejora, **Preparar PDF** llama a `/resumen/preparar` desde la tarjeta del resultado y muestra el total y el desglose. Marcar la casilla de conformidad habilita **Descargar**. `/resumen/confirmar` consume el token de un solo uso ligado a la sesión y genera el PDF en memoria con ReportLab. **Cancelar** invalida la solicitud mediante `/resumen/cancelar`.
 
 - `calcular_decimos(remuneraciones, periodo)`
 - `calcular_vacaciones(fecha_ingreso, remuneracion)`
@@ -321,4 +316,5 @@ Límites: máximo de iteraciones del agente, rechazo de consultas fuera de domin
 | Redacción de la explicación en lenguaje sencillo | Modelo generativo |
 | Decisión de derivar un caso | Guardrail en código + instrucción del prompt |
 
-Las tecnologías vigentes están en la tabla **Tecnologías** de la parte A.
+La tabla **Tecnologías** de la parte A registra las decisiones del MVP de la semana 2.
+
