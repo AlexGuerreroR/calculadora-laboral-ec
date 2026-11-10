@@ -201,36 +201,44 @@ En la semana 2 elegimos un workflow (ADR-002). En la semana 3 el caso pide un ag
 
 ## ADR-005: Plataforma de despliegue
 
-*Semana 4 · taller «Tablero, credenciales y riesgos», misión 5 (4/11/2026)*
+*Semana 4 · taller «Tablero, credenciales y riesgos» (4/11/2026) · Decisión actualizada el 9/11/2026*
 
 ### Contexto
 
-La aplicación es FastAPI en Python, genera los embeddings localmente con torch y
-`intfloat/multilingual-e5-small` (unos 470 MB) y en ejecución solo lee un índice ya construido.
-Necesita entre 1 y 2 GiB de RAM. Hay un integrante que puede registrar una tarjeta y nadie
-administra servidores Linux.
+La aplicación usa FastAPI y consulta un índice RAG con ChromaDB. El índice y el
+modelo de embeddings se preparan al construir la imagen Docker. La aplicación
+ya está publicada en Azure Container Apps y la próxima versión incorporará
+las mejoras de la PR #74.
 
 ### Opciones consideradas
 
-1. Hugging Face Spaces: los Spaces con Docker y Gradio ahora requieren plan PRO.
-2. Railway: la prueba gratuita está pausada para cuentas nuevas.
-3. Render Free: 512 MB de RAM no alcanzan para torch y el modelo de embeddings.
-4. Google Cloud Run: Docker nativo, RAM configurable y escala a cero dentro del plan gratuito.
-5. Azure for Students: sin tarjeta, con 100 USD de crédito; alternativa si Cloud Run falla.
+Evaluamos Hugging Face Spaces, Railway, Render, Google Cloud Run y Azure.
+Cloud Run fue la opción inicial del taller. Elegimos Azure Container Apps
+para reutilizar el servicio que ya está operativo.
 
 ### Decisión
 
-Usaremos **Google Cloud Run** con el `Dockerfile` del repositorio. El índice del RAG y el modelo
-de embeddings se construyen dentro de la imagen, así que no se necesita disco persistente. Las
-claves de Groq y Gemini van como variables o secretos del servicio, nunca en la imagen.
+Mantendremos Azure Container Apps como plataforma de despliegue. La imagen
+Docker se construirá desde un commit que reúna la configuración de la rama
+`despliegue/azure` y el código de la mejora. GitHub Actions publicará la imagen
+en GitHub Container Registry (GHCR) con el SHA del commit como etiqueta.
+
+Actualizaremos manualmente la aplicación existente en Azure con esa imagen.
+Las claves de Groq y Gemini se configurarán como secretos de la Container App.
 
 ### Consecuencias
 
-**Positivas:** sin servidor que administrar; la app sobrevive a reinicios con el índice incluido;
-sin costo sin tráfico.
+**Positivas:** reutilizamos la aplicación existente en Azure Container Apps.
+La etiqueta permite identificar qué versión del código corresponde a cada
+imagen. El índice RAG y el modelo de embeddings quedan incluidos en la imagen
+y están disponibles después de un reinicio.
 
-**Negativas y riesgos:** arranque en frío de varios segundos al despertar, porque carga el
-modelo, así que se llama a `/health` antes de la demo. Se registra una tarjeta: se configura
-una alerta de presupuesto para detectar cualquier consumo fuera del plan gratuito. Las sesiones
-de la vista previa del PDF viven en memoria y se pierden al reiniciar.
+**Negativas y riesgos:** si la aplicación escala a cero, el primer acceso
+puede tardar mientras arranca el contenedor. Las solicitudes de PDF pendientes
+de confirmación se guardan en memoria y pueden perderse al reiniciar o cambiar
+de revisión.
+
+Después del despliegue registraremos el SHA del commit usado como etiqueta y
+la revisión activa en Azure. En la URL pública verificaremos `/health`, el
+cálculo básico, las respuestas con citas y la confirmación y descarga del PDF.
 

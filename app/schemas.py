@@ -126,6 +126,27 @@ class EntradaLiquidacion(Estricto):
         return self
 
 
+class EntradaLiquidacionBasica(Estricto):
+    modo: Literal["basico"] = "basico"
+    remuneracion_mensual: Decimal = Field(gt=0, le=SUELDO_MAXIMO)
+    fecha_ingreso: date
+    fecha_salida: date
+    motivo_salida: Literal["renuncia_con_desahucio", "despido_intempestivo"]
+    region: Literal["costa_galapagos", "sierra_amazonia"]
+    mensualiza_decimo_tercero: bool
+    mensualiza_decimo_cuarto: bool
+    dias_vacaciones_pendientes: Decimal | None = Field(default=None, ge=0, decimal_places=2)
+
+    @model_validator(mode="after")
+    def fechas_y_vacaciones_coherentes(self) -> "EntradaLiquidacionBasica":
+        if not self.fecha_ingreso <= self.fecha_salida <= date.today():
+            raise ValueError("revise las fechas: el ingreso debe ser anterior o igual a la salida y la salida no puede ser futura")
+        dias_servicio = (self.fecha_salida - self.fecha_ingreso).days + 1
+        if self.dias_vacaciones_pendientes is not None and self.dias_vacaciones_pendientes > dias_servicio:
+            raise ValueError("los días de vacaciones pendientes superan la duración del empleo")
+        return self
+
+
 class ResultadoCalculo(Estricto):
     tipo: Literal["decimo_tercero", "decimo_cuarto", "vacaciones", "horas_extra", "liquidacion"]
     entradas: dict

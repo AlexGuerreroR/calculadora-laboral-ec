@@ -9,6 +9,7 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from decimal import Decimal
+from pathlib import Path
 
 from pydantic import ValidationError
 
@@ -98,17 +99,31 @@ def _cantidades_normativas(texto):
 
 
 def controlar_alcance(mensaje, con_calculo=False):
-    config = cargar_parametros()["agente"]
+    parametros = cargar_parametros()
+    config = parametros["agente"]
     texto = _normalizar(consulta_sin_ordenes_citadas(mensaje))
     if any(re.search(p, texto) for p in config["patrones_inyeccion"]):
         return "rechazado", "No puedo cambiar mis instrucciones, revelar claves ni ejecutar órdenes. Puedo orientarle sobre beneficios laborales de Ecuador."
+    if requiere_orientacion_finiquito(texto):
+        return (
+            "abstencion",
+            "Para revisar una liquidación pendiente o consultar el plazo para "
+            "reclamar o demandar, solicite orientación al Ministerio del Trabajo. "
+            "Conserve las fechas de su relación laboral y las comunicaciones "
+            "sobre su salida. Si dispone del acta de finiquito y del comprobante "
+            "de pago, téngalos a mano para la revisión de su caso.",
+        )
     if any(re.search(p, texto) for p in config["patrones_disputa"]):
         return "abstencion", "No puedo determinar quién tiene razón ni dictaminar un conflicto laboral. Acuda a la Inspectoría del Ministerio del Trabajo."
     if any(re.search(p, texto) for p in config.get("fuentes_no_cargadas", [])):
         return "abstencion", "No dispongo del documento necesario en las fuentes cargadas. Necesito el reglamento o contrato de su empresa, o la normativa específica de aportes al IESS, según su consulta. Puede consultar al Ministerio del Trabajo o al IESS."
     referencia = con_calculo and (("calculo" in texto and any(v in texto for v in ("explic", "revis", "calcul")))
                                  or "pdf" in texto or "resumen" in texto)
-    if not referencia and not any(t in texto for t in config["terminos_dominio"]):
+    orientacion_laboral = any(
+        regla.get("admite_consulta") and re.search(regla["patron"], texto)
+        for regla in parametros["rag"].get("orientacion", [])
+    )
+    if not referencia and not orientacion_laboral and not any(t in texto for t in config["terminos_dominio"]) and not consulta_monto_liquidacion(texto):
         return "rechazado", "Esta consulta está fuera del alcance laboral. Puedo ayudarle con décimos, vacaciones, horas adicionales y estimaciones de liquidación de Ecuador."
     return None
 
@@ -239,13 +254,115 @@ def completar_condiciones_publicadas(texto, fuentes, pregunta):
     return texto
 
 
+def orientar_despido_coloquial(pregunta: str) -> NormativaAgente | None:
+    texto = _normalizar(pregunta).strip(" ¿?¡!.")
+    texto = re.sub(r"^que (?:debo |puedo )?hacer si |^que hago si ", "", texto)
+    texto = re.sub(r"(\b(?:trabajo|empresa|puesto|empleo)) sin (?:razon|motivo|causa|justificacion)$", r"\1", texto)
+    for regla in cargar_parametros()["rag"]["orientacion"]:
+        if not regla.get("admite_consulta") or not re.fullmatch(regla["patron"], texto):
+            continue
+        fuentes = [
+            FuenteRAG.model_validate({campo: hit[campo] for campo in FuenteRAG.model_fields})
+            for hit in retriever.buscar_articulo_vigente("188")
+            if hit.get("articulo") == "188" and hit.get("vigente") is True
+            and all(hit.get(campo) for campo in FuenteRAG.model_fields)
+        ]
+        if fuentes:
+            return NormativaAgente(
+                respuesta="El Código del Trabajo, Art. 188, trata la indemnización por despido intempestivo. "
+                          "Para orientar su caso, conviene precisar si le comunicaron por escrito el motivo "
+                          "de la salida. Conserve la comunicación y, si le entregaron un finiquito, su detalle. "
+                          "Puede solicitar orientación al Ministerio del Trabajo con esos documentos.",
+                fuentes=fuentes,
+            )
+    return None
+
+
+def requiere_orientacion_finiquito(pregunta):
+    texto = _normalizar(pregunta)
+    if not re.search(r"\b(?:finiquito|liquidacion)\b", texto):
+        return False
+
+    consulta_legal = re.search(
+        r"\b(?:demand\w*|reclam\w*|juicio\w*|prescrib\w*|prescrip\w*)\b",
+        texto,
+    )
+    impago = re.search(
+        r"\bno\s+(?:me\s+)?(?:han\s+pagado|pagaron|pagan|he\s+recibido)\b",
+        texto,
+    )
+    pide_orientacion = re.search(
+        r"\bque\s+(?:(?:puedo|debo)\s+)?hacer\b|\bque\s+hago\b",
+        texto,
+    )
+    return bool(consulta_legal or (impago and pide_orientacion))
+
+
+def consulta_plazo_finiquito(pregunta):
+    if requiere_orientacion_finiquito(pregunta):
+        return False
+
+    texto = _normalizar(pregunta)
+    return bool(
+        re.search(r"\b(?:finiquito|liquidacion)\b", texto)
+        and re.search(
+            r"\b(?:plazo|cuanto tiempo|cuantos dias|hasta cuando|"
+            r"cuando (?:me |deben |tienen |se )?pag\w*|"
+            r"no me (?:han pagado|pagan|pagaron)|registr\w*|consigna\w*)\b",
+            texto,
+        )
+    )
+
+
+def consulta_monto_liquidacion(texto):
+    contexto = re.search(r"\b(?:liquidacion|finiquito|despido|me\s+(?:despidieron|botaron|botan|"
+                         r"(?:sacaron|sacan|corrieron|echaron)\s+del\s+trabajo))\b", texto)
+    monto = re.search(r"\bcuanto\s+(?:me\s+(?:toca|corresponde|deben pagar)|debo recibir|"
+                      r"(?:es|seria)\s+(?:mi|la)\s+(?:liquidacion|finiquito))"
+                      r"(?:\s+de\s+(?:liquidacion|finiquito))?[\s?!.]*$", texto)
+    return bool(contexto and monto and not consulta_plazo_finiquito(texto))
+
+
+def orientar_monto_liquidacion(pregunta):
+    texto = _normalizar(consulta_sin_ordenes_citadas(pregunta))
+    if not consulta_monto_liquidacion(texto):
+        return None
+    remuneracion = re.search(r"\b(?:ganaba|gano|sueldo|remuneracion)\s+(?:(?:mensual|era|es|de)\s+)*\$?\s*\d", texto)
+    antiguedad = re.search(r"\b\d+\s+(?:anos?|mes(?:es)?)\b", texto)
+    indicacion = "Vaya a Liquidación estimada para obtener un monto referencial. "
+    if remuneracion:
+        indicacion += "Ingrese la remuneración que indicó, si era mensual. "
+    else:
+        indicacion += "Ingrese su remuneración mensual. "
+    if antiguedad:
+        indicacion += "Para usar el tiempo trabajado que indicó, ingrese las fechas exactas de ingreso y salida. "
+    else:
+        indicacion += "Complete las fechas de ingreso y salida. "
+    return (indicacion + "Seleccione el motivo de terminación que corresponda. "
+            "Puede usar el cálculo básico o elegir el avanzado si conoce sus saldos pendientes de nómina.")
+
+
+def fuentes_plazo_finiquito(pregunta):
+    ruta = Path(__file__).resolve().parents[2] / "config" / "fuentes_finiquito.json"
+    try:
+        fuentes = [FuenteRAG.model_validate(f) for f in json.loads(ruta.read_text(encoding="utf-8"))]
+    except (OSError, ValueError, TypeError):
+        return []
+    especial = re.search(r"\b(?:consigna\w*|(?:no (?:acud\w*|fui|voy)|me neg\w*).{0,30}\b(?:cobrar|recibir))\b",
+                         _normalizar(pregunta))
+    articulo = "20" if especial else "19"
+    return [f for f in fuentes if f.id == f"mdt-2025-053-art-{articulo}" and f.articulo == articulo]
+
+
 def consultar_normativa(cliente, pregunta):
     if controlar_alcance(pregunta):
         return None
     cfg = cargar_parametros()
     pregunta = consulta_sin_ordenes_citadas(pregunta)
-    hits = recuperar_normativa(pregunta)
-    fuentes = [FuenteRAG(id=h["id"], documento=h["documento"], articulo=h["articulo"],
+    plazo_finiquito = consulta_plazo_finiquito(pregunta)
+    hits = [] if plazo_finiquito else recuperar_normativa(pregunta)
+    fuentes = fuentes_plazo_finiquito(pregunta) if plazo_finiquito else [
+               FuenteRAG(id=h["id"], documento=h["documento"], articulo=h["articulo"],
                         texto=h["texto"], fuente=h["fuente"], version=h["version"])
                for h in hits if h.get("vigente") is True
                and all(h.get(k) for k in ("id", "documento", "articulo", "texto", "fuente", "version"))]
@@ -258,7 +375,15 @@ def consultar_normativa(cliente, pregunta):
                           "resultado_herramienta_jornada": jornada.model_dump() if jornada else None}, ensure_ascii=False)
     if len(contexto) > cfg["agente"]["max_caracteres_contexto"]:
         return None
-    respuesta = cliente.generar_json(cargar_prompt(cfg["agente"]["prompt_normativa"]), contexto, TextoNormativo).datos
+    prompt = cargar_prompt(cfg["agente"]["prompt_normativa"])
+    if plazo_finiquito:
+        prompt += ("\nLa fuente es una síntesis del acuerdo ministerial. Si el fragmento es del Art. 19, "
+                   "explica que los 15 días desde el fin de la relación laboral son para registrar el acta "
+                   "y que el registro exige el comprobante de pago. No presentes ese plazo como un plazo "
+                   "general de pago independiente del registro. Si es del Art. 20, explica ambos plazos "
+                   "solo para cuando el trabajador no acude a cobrar o se niega a recibir el pago. "
+                   "Cita el artículo 19 o 20 según el fragmento. No solicites datos para calcular montos.")
+    respuesta = cliente.generar_json(prompt, contexto, TextoNormativo).datos
     if respuesta.estado == "no_disponible":
         if respuesta.respuesta or respuesta.citas:
             raise SalidaInvalida()
@@ -296,7 +421,11 @@ def consultar_normativa(cliente, pregunta):
             raise SalidaInvalida()
     if not _cantidades_normativas(respuesta.respuesta) <= cantidades_fuente:
         raise SalidaInvalida()
-    publicada = completar_condiciones_publicadas(respuesta.respuesta, usadas, pregunta)
+    if plazo_finiquito and usadas[0].articulo == "19":
+        texto = _normalizar(respuesta.respuesta)
+        if "registr" not in texto or "comprobante de pago" not in texto:
+            raise SalidaInvalida()
+    publicada = respuesta.respuesta if plazo_finiquito else completar_condiciones_publicadas(respuesta.respuesta, usadas, pregunta)
     return NormativaAgente(respuesta=publicada, fuentes=usadas, calculo_dias=dias, calculo_jornada=jornada)
 
 
@@ -307,6 +436,13 @@ def ejecutar_agente(consulta: ConsultaAgente, cliente) -> RespuestaAgente:
         return RespuestaAgente(estado=bloqueo[0], mensaje=bloqueo[1])
     config = cargar_parametros()["agente"]
     llm = ClienteAcotado(cliente, config["max_llamadas_modelo"])
+    if consulta.calculo is None and consulta_plazo_finiquito(consulta.mensaje):
+        resultado = consultar_normativa(llm, consulta.mensaje)
+        if resultado is None:
+            return RespuestaAgente(estado="abstencion", llamadas_modelo=llm.usadas,
+                                   mensaje="Las fuentes disponibles no permiten confirmar el plazo del finiquito.")
+        return RespuestaAgente(estado="completado", mensaje="Orientación sobre el plazo del finiquito.",
+                               normativa=[resultado], llamadas_modelo=llm.usadas)
     calculos = {"calculo-0": consulta.calculo} if consulta.calculo else {}
     publicados, explicaciones, normativa, pasos, faltantes = {}, [], [], [], []
     pendiente, agotado, rechazado = False, False, False
@@ -321,7 +457,9 @@ def ejecutar_agente(consulta: ConsultaAgente, cliente) -> RespuestaAgente:
         resumen = []
         if pendiente and consulta.calculo and consulta.calculo.tipo == "liquidacion":
             d = consulta.calculo.entradas
-            resumen = ["Se usarán los saldos del último formulario, sin modificarlos.",
+            basico = d.get("modo") == "basico"
+            resumen = ["Se usará la estimación del cálculo básico y los supuestos de su desglose."
+                       if basico else "Se usarán los saldos del último formulario, sin modificarlos.",
                        f"Motivo informado: {d['motivo_salida'].replace('_', ' ')}.",
                        f"Ingreso: {d['fecha_ingreso']}; salida: {d['fecha_salida']}.",
                        f"Total estimado del formulario: USD {consulta.calculo.total:.2f}."]
@@ -362,8 +500,14 @@ def ejecutar_agente(consulta: ConsultaAgente, cliente) -> RespuestaAgente:
                 return {"estado": "ok", **r.model_dump(mode="json")}
             return {"estado": "abstencion", "mensaje": rag.SIN_RESPALDO}
         if nombre == "solicitar_datos":
+            if datos.tipo_calculo == "liquidacion":
+                mensaje = ("En Liquidación estimada, elija Cálculo básico. Ingrese su remuneración, fechas, "
+                           "motivo y región, e indique cómo recibe sus décimos. Después puede adjuntar "
+                           "el resultado para pedir una explicación.")
+                faltantes.append(mensaje)
+                return {"estado": "pedir_datos", "mensaje": mensaje}
             esquemas = {"decimo_tercero": EntradaDecimoTercero, "decimo_cuarto": EntradaDecimoCuarto,
-                        "vacaciones": EntradaVacaciones, "horas_extra": EntradaHoras, "liquidacion": EntradaLiquidacion}
+                        "vacaciones": EntradaVacaciones, "horas_extra": EntradaHoras}
             campos = [nombre for nombre, campo in esquemas[datos.tipo_calculo].model_fields.items() if campo.is_required()]
             faltantes.append("Complete el formulario de " + datos.tipo_calculo.replace("_", " ") +
                              ": " + ", ".join(c.replace("_", " ") for c in campos) + ".")
@@ -379,7 +523,7 @@ def ejecutar_agente(consulta: ConsultaAgente, cliente) -> RespuestaAgente:
                 return {"estado": "requiere_confirmacion", "mensaje": "Se preparará la vista previa. Solo un clic humano en confirmar y descargar generará el PDF."}
             if resultado.tipo == "liquidacion" and not consulta.confirmar_liquidacion:
                 pendiente = True
-                return {"estado": "requiere_confirmacion", "mensaje": "Confirme el uso de los saldos del formulario."}
+                return {"estado": "requiere_confirmacion", "mensaje": "Confirme el uso del resultado del formulario."}
             fuentes = rag.recuperar_calculo(resultado)
             if not fuentes:
                 return {"estado": "abstencion", "mensaje": rag.SIN_RESPALDO}

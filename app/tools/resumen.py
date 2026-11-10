@@ -11,6 +11,9 @@ from io import BytesIO
 NOMBRES = {"decimo_tercero": "Décimo tercero", "decimo_cuarto": "Décimo cuarto", "vacaciones": "Vacaciones",
            "horas_extra": "Horas adicionales", "liquidacion": "Liquidación estimada"}
 ETIQUETAS = {
+    "modo": "Modo de cálculo", "mensualiza_decimo_tercero": "Recibe el décimo tercero cada mes",
+    "mensualiza_decimo_cuarto": "Recibe el décimo cuarto cada mes",
+    "dias_vacaciones_pendientes": "Días de vacaciones informados",
     "remuneraciones": "Remuneraciones del período (USD)", "remuneracion_mensual": "Remuneración mensual",
     "meses_trabajados": "Meses trabajados", "region": "Región", "fecha_ingreso": "Fecha de ingreso",
     "fecha_corte": "Fecha de corte", "fecha_salida": "Fecha de salida", "anios_completos": "Años completos",
@@ -103,7 +106,10 @@ def generar_resumen(pendiente) -> bytes:
 
     historia = [p(NOMBRES[calculo.tipo], "titulo"),
                 p("Preparado el " + fecha.strftime("%d/%m/%Y a las %H:%M") + " (Ecuador continental).", "pequeno")]
-    total = Table([[p("TOTAL DEL CÁLCULO" if calculo.tipo != "liquidacion" else "TOTAL NETO ESTIMADO", "etiqueta"),
+    titulo_total = "TOTAL DEL CÁLCULO"
+    if calculo.tipo == "liquidacion":
+        titulo_total = "TOTAL REFERENCIAL" if calculo.entradas.get("modo") == "basico" else "TOTAL NETO ESTIMADO"
+    total = Table([[p(titulo_total, "etiqueta"),
                     p(monto(calculo.total), "total")]], colWidths=[ancho * .43, ancho * .57])
     total.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), fondo), ("BOX", (0, 0), (-1, -1), .6, borde),
                               ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("LEFTPADDING", (0, 0), (-1, -1), 14),

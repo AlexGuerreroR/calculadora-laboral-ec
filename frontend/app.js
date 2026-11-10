@@ -6,10 +6,7 @@
 
 const $ = (id) => document.getElementById(id);
 let ultimoResultado = null;
-let solicitudAgentePendiente = null;
-let consultandoAgente = false;
-let vistaResumenActual = null;
-let gestionandoResumen = false;
+let versionFormulario = 0;
 
 // ---------------------------------------------------------------- utilidades
 const usd = (n) => n.toLocaleString("es-EC", { style: "currency", currency: "USD" });
@@ -27,20 +24,15 @@ function ocultar(...elementos) {
   elementos.forEach((e) => { e.hidden = true; });
 }
 
-function limpiarConsultaAnterior() {
-  solicitudAgentePendiente = null;
-  ocultar($("respuestaAgente"), $("confirmacionAgente"), $("errorAgente"));
-  ["mensajeRespuestaAgente", "faltantesAgente", "calculosAgente", "textosAgente",
-    "listaFuentesAgente", "resumenConfirmacionAgente"].forEach((id) => $(id).replaceChildren());
-  $("fuentesAgente").hidden = true;
-  $("mensajeAgente").value = "";
-}
-
 function limpiarAlCambiarCalculo() {
-  limpiarConsultaAnterior();
-  vistaResumenActual = null;
-  ocultar($("vistaResumenPDF"), $("estadoResumenPDF"), $("btnResumen"));
-  actualizarBotonesResumen();
+  $("supuestosLiqBasica").open = false;
+  $("btnExplicarCalculo").setAttribute("aria-expanded", "false");
+  $("textoBotonExplicar").textContent = "Explicar cálculo";
+  $("tituloFuentesSupuestos").textContent = "Ver supuestos del cálculo";
+  $("listaSupuestosLiqBasica").replaceChildren();
+  ocultar($("panelDetalle"), $("referenciasExplicacion"), $("avisoExplicacionCalculo"),
+    $("explicacionCalculo"), $("esperaExplicacionCalculo"), $("errorExplicacionCalculo"),
+    $("estadoResumenPDF"), $("btnResumen"));
 }
 
 function llenarLista(lista, textos) {
@@ -95,9 +87,10 @@ async function mensajeDeError(respuesta) {
 }
 
 async function enviar(ruta, cuerpo, boton, textoEspera) {
-  const original = boton.textContent;
+  const etiqueta = boton.querySelector("span") || boton;
+  const original = etiqueta.textContent;
   boton.disabled = true;
-  boton.textContent = textoEspera;
+  etiqueta.textContent = textoEspera;
   try {
     const r = await fetch(ruta, {
       method: "POST",
@@ -111,22 +104,67 @@ async function enviar(ruta, cuerpo, boton, textoEspera) {
     throw e;
   } finally {
     boton.disabled = false;
-    boton.textContent = original;
+    etiqueta.textContent = original;
   }
 }
 
 // ---------------------------------------------------------------- formulario según el tipo
+function reiniciarResultado() {
+  versionFormulario += 1;
+  ultimoResultado = null;
+  limpiarAlCambiarCalculo();
+  document.querySelectorAll("[data-para]").forEach((bloque) => {
+    bloque.hidden = bloque.dataset.para !== tipoElegido();
+  });
+  ocultar($("resultado"), $("errorCalculo"), $("estadoResumenPDF"));
+  $("estadoVacio").hidden = false;
+}
+
 document.querySelectorAll('input[name="tipo"]').forEach((radio) => {
   radio.addEventListener("change", () => {
-    ultimoResultado = null;
-    limpiarAlCambiarCalculo();
-    actualizarAdjuntoAgente();
-    document.querySelectorAll("[data-para]").forEach((bloque) => {
-      bloque.hidden = bloque.dataset.para !== tipoElegido();
-    });
-    ocultar($("resultado"), $("errorCalculo"), $("estadoResumenPDF"));
-    $("estadoVacio").hidden = false;
+    reiniciarResultado();
   });
+});
+
+$("modoLiq").addEventListener("change", () => {
+  const basico = $("modoLiq").value === "basico";
+  $("liquidacionBasica").hidden = !basico;
+  $("liquidacionAvanzada").hidden = basico;
+  reiniciarResultado();
+});
+
+let solicitudVacaciones = 0;
+let vacacionesAutocompletadas = false;
+$("vacacionesLiqBasico").addEventListener("input", () => {
+  vacacionesAutocompletadas = false;
+});
+
+async function actualizarSugerenciaVacaciones() {
+  const solicitud = ++solicitudVacaciones;
+  const ingreso = $("ingresoLiqBasico").value;
+  const salida = $("salidaLiqBasico").value;
+  const campo = $("vacacionesLiqBasico");
+  if (vacacionesAutocompletadas) {
+    campo.value = "";
+    vacacionesAutocompletadas = false;
+  }
+  if (!ingreso || !salida || ingreso > salida) return;
+  const parametros = new URLSearchParams({fecha_ingreso: ingreso, fecha_salida: salida});
+  try {
+    const respuesta = await fetch(`/calculos/liquidacion/basica/vacaciones?${parametros}`);
+    if (!respuesta.ok) return;
+    const {dias} = await respuesta.json();
+    if (solicitud === solicitudVacaciones && campo.value === "" && !campo.validity.badInput) {
+      campo.value = String(dias);
+      vacacionesAutocompletadas = true;
+    }
+  } catch {
+    // El cálculo final vuelve a estimar los días si el campo queda vacío.
+  }
+}
+
+["ingresoLiqBasico", "salidaLiqBasico"].forEach((id) => {
+  $(id).addEventListener("change", actualizarSugerenciaVacaciones);
 });
 
 function numeroObligatorio(id, nombre, positivo = false) {
@@ -160,6 +198,22 @@ function armarSolicitud() {
     }];
   }
   if (tipo === "liquidacion") {
+    if ($("modoLiq").value === "basico") {
+      const fecha_ingreso = $("ingresoLiqBasico").value;
+      const fecha_salida = $("salidaLiqBasico").value;
+      const motivo_salida = $("motivoLiqBasico").value;
+      const region = $("regionLiqBasico").value;
+      if (!fecha_ingreso || !fecha_salida) throw new Error("Complete las fechas de ingreso y salida.");
+      if (!motivo_salida || !region) throw new Error("Seleccione el motivo de salida y la región.");
+      return ["/calculos/liquidacion/basica", {
+        remuneracion_mensual: numeroObligatorio("sueldoLiqBasico", "la remuneración", true),
+        fecha_ingreso, fecha_salida, motivo_salida, region,
+        mensualiza_decimo_tercero: $("mensualiza13Liq").checked,
+        mensualiza_decimo_cuarto: $("mensualiza14Liq").checked,
+        dias_vacaciones_pendientes: vacacionesAutocompletadas || $("vacacionesLiqBasico").value === "" ? null
+          : numeroObligatorio("vacacionesLiqBasico", "los días de vacaciones"),
+      }];
+    }
     if (!$("ingresoLiq").value || !$("salidaLiq").value) throw new Error("Complete las fechas de ingreso y salida.");
     if (!$("motivoLiq").value || !$("regionLiq").value) throw new Error("Seleccione el motivo de salida y la región.");
     if (!$("confirmarLiq").checked) throw new Error("Revise y confirme el motivo de salida y los saldos pendientes.");
@@ -189,23 +243,44 @@ function armarSolicitud() {
 // ---------------------------------------------------------------- 1) calcular (sin IA)
 $("formulario").addEventListener("submit", async (evento) => {
   evento.preventDefault();
+  const version = ++versionFormulario;
   ultimoResultado = null;
   limpiarAlCambiarCalculo();
-  actualizarAdjuntoAgente();
   $("estadoVacio").hidden = false;
   ocultar($("errorCalculo"), $("resultado"), $("estadoResumenPDF"));
   try {
     // Esta validación solo ayuda al usuario; la que cuenta es la del backend (Pydantic).
     const [ruta, cuerpo] = armarSolicitud();
     const r = await enviar(ruta, cuerpo, $("btnCalcular"), "Calculando…");
+    if (version !== versionFormulario) return;
     ultimoResultado = r;
-    actualizarAdjuntoAgente();
     $("total").textContent = usd(r.total);
+    $("etiquetaTotal").textContent = r.tipo === "liquidacion" ? "TOTAL REFERENCIAL" : "BENEFICIO CALCULADO";
+    const basico = r.tipo === "liquidacion" && r.entradas.modo === "basico";
+    $("resultadoLiqBasica").hidden = !basico;
+    if (basico) {
+      const inicioSupuestos = r.desglose.findIndex(texto => texto.startsWith("Supuestos:"));
+      const corte = inicioSupuestos === -1 ? r.desglose.length : inicioSupuestos;
+      $("desgloseLiqBasica").replaceChildren(...r.desglose.slice(0, corte).map(texto => {
+        const fila = document.createElement("li");
+        const rubro = texto.match(/^(.+): USD (\d+(?:\.\d+)?)$/);
+        if (!rubro) { fila.textContent = texto; return fila; }
+        const nombre = document.createElement("span");
+        const importe = document.createElement("strong");
+        nombre.textContent = rubro[1].replace(/ estimad[oa]s?/, "").replace(/ \([^)]*\)$/, "");
+        importe.textContent = usd(Number(rubro[2]));
+        fila.append(nombre, importe);
+        return fila;
+      }));
+      llenarLista($("listaSupuestosLiqBasica"), r.desglose.slice(corte));
+      $("supuestosLiqBasica").hidden = corte === r.desglose.length;
+      $("panelDetalle").hidden = $("supuestosLiqBasica").hidden;
+    }
     $("btnResumen").hidden = false;
     $("resultado").hidden = false;
     $("estadoVacio").hidden = true;
   } catch (e) {
-    mostrarError($("errorCalculo"), e.message);
+    if (version === versionFormulario) mostrarError($("errorCalculo"), e.message);
   }
 });
 
@@ -213,14 +288,115 @@ $("formulario").addEventListener("submit", async (evento) => {
 const nombresCalculo = {decimo_tercero: "Décimo tercero", decimo_cuarto: "Décimo cuarto",
   vacaciones: "Vacaciones", horas_extra: "Horas adicionales", liquidacion: "Liquidación estimada"};
 
-function actualizarAdjuntoAgente() {
-  $("usarCalculoAgente").disabled = !ultimoResultado;
-  if (!ultimoResultado) $("usarCalculoAgente").checked = false;
-  $("adjuntoAgente").textContent = ultimoResultado
-    ? `${nombresCalculo[ultimoResultado.tipo]}: ${usd(ultimoResultado.total)}. Marque la casilla si desea usar sus datos.`
-    : "Calcule un beneficio para poder adjuntarlo a la consulta.";
-  solicitudAgentePendiente = null;
-  $("confirmacionAgente").hidden = true;
+function mostrarBloquesExplicacion(calculo, explicacion, fuentes) {
+  const grupos = calculo.tipo === "liquidacion" ? [
+    {titulo: "Décimos", icono: "regalo", patron: /\bd[eé]cim|\bdecim[oa]/i, articulos: ["111", "113"]},
+    {titulo: "Vacaciones", icono: "vacaciones", patron: /\bvacacion/i, articulos: ["69", "71"]},
+    {titulo: "Terminación laboral", icono: "trabajo", patron: /\b(despido|desahucio|indemnizaci)/i, articulos: ["184", "185", "188"]},
+  ] : [];
+  const contenedor = $("bloquesExplicacion");
+  contenedor.replaceChildren();
+  const pasosUnicos = [...new Set(explicacion.pasos.map(paso => paso.trim()).filter(Boolean))];
+  const pendientes = new Set(pasosUnicos);
+  for (const grupo of grupos) {
+    const pasos = [...pendientes].filter(paso => grupo.patron.test(paso.split(":")[0]));
+    if (!pasos.length) continue;
+    const bloque = document.createElement("section");
+    const titulo = document.createElement("h3");
+    const icono = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    const uso = document.createElementNS("http://www.w3.org/2000/svg", "use");
+    icono.setAttribute("class", "icono");
+    icono.setAttribute("aria-hidden", "true");
+    uso.setAttribute("href", `#icono-${grupo.icono}`);
+    icono.append(uso);
+    titulo.append(icono, grupo.titulo);
+    bloque.append(titulo);
+    for (const paso of pasos) {
+      pendientes.delete(paso);
+      const parrafo = document.createElement("p");
+      parrafo.textContent = paso;
+      bloque.append(parrafo);
+    }
+    for (const articulo of grupo.articulos) {
+      if (!fuentes.some(fuente => fuente.articulo === articulo)) continue;
+      const cita = document.createElement("span");
+      cita.className = "articulo-explicacion";
+      cita.textContent = `Art. ${articulo}`;
+      bloque.append(cita);
+    }
+    contenedor.append(bloque);
+  }
+  if (!contenedor.childElementCount) {
+    const resumen = document.createElement("p");
+    resumen.className = "resumen-explicacion";
+    resumen.textContent = explicacion.explicacion;
+    contenedor.append(resumen);
+  }
+  const adicionales = [...pendientes].filter(paso =>
+    paso !== explicacion.explicacion.trim() &&
+    !(calculo.entradas?.modo === "basico" && /^(supuestos?|exclusiones)\b/i.test(paso)));
+  llenarLista($("pasosAdicionalesExplicacion"), adicionales);
+  $("pasosAdicionalesExplicacion").hidden = !adicionales.length;
+}
+
+$("btnExplicarCalculo").addEventListener("click", async () => {
+  const calculo = ultimoResultado;
+  const boton = $("btnExplicarCalculo");
+  if (!calculo || boton.disabled) return;
+  if (!$("explicacionCalculo").hidden) {
+    ocultar($("explicacionCalculo"), $("referenciasExplicacion"), $("avisoExplicacionCalculo"));
+    $("supuestosLiqBasica").open = false;
+    $("supuestosLiqBasica").hidden = !$("listaSupuestosLiqBasica").childElementCount;
+    $("panelDetalle").hidden = $("supuestosLiqBasica").hidden;
+    $("tituloFuentesSupuestos").textContent = "Ver supuestos del cálculo";
+    $("textoBotonExplicar").textContent = "Explicar cálculo";
+    boton.setAttribute("aria-expanded", "false");
+    return;
+  }
+  if ($("bloquesExplicacion").dataset.cargado === String(versionFormulario)) {
+    abrirExplicacion();
+    return;
+  }
+  ocultar($("errorExplicacionCalculo"));
+  const espera = $("esperaExplicacionCalculo");
+  espera.hidden = false;
+  boton.setAttribute("aria-busy", "true");
+  try {
+    const r = await enviar("/explicar", calculo, boton, "Preparando explicación…");
+    if (calculo !== ultimoResultado) return;
+    if (r.explicacion?.estado !== "ok") {
+      mostrarError($("errorExplicacionCalculo"), r.mensaje || "No pudimos preparar la explicación. Intente nuevamente.");
+      return;
+    }
+    llenarLista($("advertenciasExplicacionCalculo"), r.explicacion.advertencias);
+    $("advertenciasExplicacionCalculo").hidden = !r.explicacion.advertencias.length;
+    mostrarFuentes(r.fuentes, "listaFuentesExplicacionCalculo", "fuentesExplicacionCalculo");
+    $("avisoExplicacionCalculo").textContent = r.aviso;
+    mostrarBloquesExplicacion(calculo, r.explicacion, r.fuentes);
+    $("bloquesExplicacion").dataset.cargado = String(versionFormulario);
+    abrirExplicacion();
+  } catch (e) {
+    if (calculo === ultimoResultado) mostrarError($("errorExplicacionCalculo"), e.message);
+  } finally {
+    espera.hidden = true;
+    boton.removeAttribute("aria-busy");
+  }
+});
+
+function abrirExplicacion() {
+  $("panelDetalle").hidden = false;
+  $("explicacionCalculo").hidden = false;
+  const tieneFuentes = !$("fuentesExplicacionCalculo").hidden;
+  $("referenciasExplicacion").hidden = !tieneFuentes;
+  const tieneSupuestos = Boolean($("listaSupuestosLiqBasica").childElementCount);
+  $("supuestosLiqBasica").hidden = !tieneFuentes && !tieneSupuestos;
+  $("avisoExplicacionCalculo").hidden = false;
+  $("tituloFuentesSupuestos").textContent = tieneFuentes
+    ? (tieneSupuestos ? "Ver fuentes y supuestos" : "Ver fuentes")
+    : "Ver supuestos del cálculo";
+  $("textoBotonExplicar").textContent = "Ocultar explicación";
+  $("btnExplicarCalculo").setAttribute("aria-expanded", "true");
+  $("panelDetalle").scrollIntoView({block: "nearest"});
 }
 
 function datoPendienteLegible(texto) {
@@ -239,6 +415,7 @@ function mostrarRespuestaAgente(r) {
     pedir_datos: "Para continuar, complete o revise los datos que se indican a continuación.",
     limite: "No se pudo completar la consulta. Intente con una pregunta más concreta.",
     rechazado: "Puedo ayudarle con consultas sobre beneficios laborales de Ecuador. Reformule su pregunta dentro de ese tema.",
+    requiere_confirmacion: "Para revisar una estimación o descargar su resumen, use la tarjeta del resultado.",
   };
   $("mensajeRespuestaAgente").textContent = mensajes[r.estado] || r.mensaje;
   llenarLista($("faltantesAgente"), [...new Set((r.faltantes || []).map(datoPendienteLegible))]);
@@ -262,150 +439,99 @@ function mostrarRespuestaAgente(r) {
   });
   mostrarFuentes([...fuentes.values()], "listaFuentesAgente", "fuentesAgente");
   $("respuestaAgente").hidden = false;
-  llenarLista($("resumenConfirmacionAgente"), r.resumen_confirmacion || []);
-  $("confirmacionAgente").hidden = r.estado !== "requiere_confirmacion" || Boolean(r.resumen_pdf);
-  if (r.resumen_pdf) mostrarVistaResumen(r.resumen_pdf);
-}
-
-async function consultarAgente(cuerpo, boton) {
-  if (consultandoAgente) return;
-  consultandoAgente = true;
-  $("btnAgente").disabled = true;
-  $("btnConfirmarAgente").disabled = true;
-  ocultar($("errorAgente"), $("confirmacionAgente"), $("respuestaAgente"));
-  $("estadoAgente").textContent = "Consultando su pregunta…";
-  $("estadoAgente").hidden = false;
-  try {
-    const r = await enviar("/agente", cuerpo, boton, "Consultando…");
-    mostrarRespuestaAgente(r);
-    solicitudAgentePendiente = r.estado === "requiere_confirmacion" && !r.resumen_pdf ? cuerpo : null;
-  } catch (e) {
-    mostrarError($("errorAgente"), e.message);
-    if (solicitudAgentePendiente) $("confirmacionAgente").hidden = false;
-  } finally {
-    consultandoAgente = false;
-    $("estadoAgente").hidden = true;
-    $("btnAgente").disabled = false;
-    $("btnConfirmarAgente").disabled = false;
-  }
+  $("esperaRespuestaAgente").hidden = true;
+  $("fuentesAgente").open = false;
 }
 
 $("formAgente").addEventListener("submit", async (evento) => {
   evento.preventDefault();
+  const boton = $("btnAgente");
+  if (boton.disabled) return;
   const mensaje = $("mensajeAgente").value.trim();
   if (!mensaje) { mostrarError($("errorAgente"), "Escriba su consulta."); return; }
-  await consultarAgente({mensaje, calculo: $("usarCalculoAgente").checked ? ultimoResultado : null,
-    confirmar_liquidacion: false}, $("btnAgente"));
+  ocultar($("errorAgente"), $("respuestaAgente"));
+  $("esperaRespuestaAgente").hidden = false;
+  $("estadoAgente").hidden = false;
+  boton.setAttribute("aria-busy", "true");
+  try {
+    const r = await enviar("/agente", {mensaje}, boton, "Preparando respuesta…");
+    mostrarRespuestaAgente(r);
+  } catch (e) {
+    mostrarError($("errorAgente"), e.message);
+  } finally {
+    $("estadoAgente").hidden = true;
+    boton.removeAttribute("aria-busy");
+  }
 });
 
-$("btnConfirmarAgente").addEventListener("click", async () => {
-  if (!solicitudAgentePendiente) return;
-  await consultarAgente({...solicitudAgentePendiente, confirmar_liquidacion: true}, $("btnConfirmarAgente"));
-});
-
-$("btnCancelarAgente").addEventListener("click", () => {
-  solicitudAgentePendiente = null;
-  $("confirmacionAgente").hidden = true;
-  $("mensajeRespuestaAgente").textContent = "Se canceló el uso de los saldos. Puede realizar otra consulta.";
-});
-
-function actualizarBotonesResumen() {
-  $("btnResumen").disabled = gestionandoResumen || Boolean(vistaResumenActual);
-  $("btnConfirmarResumenPDF").disabled = gestionandoResumen || !vistaResumenActual;
-  $("btnCancelarResumenPDF").disabled = gestionandoResumen || !vistaResumenActual;
-}
-
-function mostrarVistaResumen(vista) {
-  ocultar($("estadoResumenPDF"));
-  vistaResumenActual = vista;
-  $("tituloResumenPDF").textContent = `${nombresCalculo[vista.calculo.tipo]}: ${usd(vista.calculo.total)}`;
-  $("mensajeResumenPDF").textContent = vista.mensaje;
-  $("vigenciaResumenPDF").textContent = `Esta solicitud vence en ${Math.ceil(vista.vence_en_segundos / 60)} minutos y solo puede usarse una vez.`;
-  $("avisoFuentesResumenPDF").textContent = vista.advertencia_fuentes || "Revise la versión y fecha de corte de las fuentes citadas. La aplicación orienta y no certifica reformas posteriores a ese corte.";
-  llenarLista($("datosResumenPDF"), vista.datos);
-  llenarLista($("detalleResumenPDF"), vista.calculo.desglose);
-  mostrarFuentes(vista.fuentes, "listaFuentesResumenPDF", "fuentesResumenPDF");
-  $("vistaResumenPDF").hidden = false;
-  $("errorResumenPDF").hidden = true;
-  actualizarBotonesResumen();
-  $("vistaResumenPDF").scrollIntoView({behavior: "smooth", block: "start"});
-}
-
-function finalizarVistaResumen(vista, mensaje) {
-  if (vistaResumenActual?.token !== vista.token) return;
-  vistaResumenActual = null;
-  ocultar($("vistaResumenPDF"), $("errorResumenPDF"));
-  $("datosResumenPDF").replaceChildren();
-  $("detalleResumenPDF").replaceChildren();
-  $("listaFuentesResumenPDF").replaceChildren();
-  $("vistaResumenPDF").querySelectorAll("details").forEach((detalle) => { detalle.open = false; });
-  $("estadoResumenPDF").textContent = mensaje;
-  $("estadoResumenPDF").hidden = false;
-}
+let vistaResumen = null;
 
 $("btnResumen").addEventListener("click", async () => {
-  if (!ultimoResultado || gestionandoResumen) return;
-  gestionandoResumen = true;
-  ocultar($("estadoResumenPDF"), $("vistaResumenPDF"));
-  actualizarBotonesResumen();
+  const calculo = ultimoResultado;
+  const boton = $("btnResumen");
+  if (!calculo || boton.disabled || vistaResumen) return;
+  ocultar($("estadoResumenPDF"), $("mensajeVistaResumen"), $("errorVistaResumen"));
   try {
-    const vista = await enviar("/resumen/preparar", {calculo: ultimoResultado}, $("btnResumen"), "Generando PDF…");
-    vistaResumenActual = vista;
-    gestionandoResumen = false;
-    await descargarResumenPDF();
+    const vista = await enviar("/resumen/preparar", {calculo}, boton, "Preparando vista previa…");
+    vistaResumen = vista;
+    $("confirmarDatosPDF").checked = false;
+    $("btnConfirmarResumenPDF").disabled = true;
+    $("totalVistaResumen").textContent = "Total: " + usd(vista.calculo.total);
+    llenarLista($("desgloseVistaResumen"), vista.calculo.desglose);
+    $("avisoVistaResumen").textContent = vista.advertencia_fuentes;
+    $("avisoVistaResumen").hidden = !vista.advertencia_fuentes;
+    $("vistaResumenPDF").hidden = false;
+    $("tituloVistaResumen").focus();
   } catch (e) {
-    vistaResumenActual = null;
-    mostrarError($("estadoResumenPDF"), e.message);
-  } finally {
-    gestionandoResumen = false;
-    actualizarBotonesResumen();
+    if (calculo === ultimoResultado) mostrarError($("estadoResumenPDF"), e.message);
   }
 });
 
-async function descargarResumenPDF() {
-  if (!vistaResumenActual || gestionandoResumen) return;
-  const vista = vistaResumenActual;
-  gestionandoResumen = true;
-  actualizarBotonesResumen();
-  ocultar($("errorResumenPDF"));
+async function resolverVistaResumen(confirmar) {
+  const vista = vistaResumen;
+  const aceptar = $("btnConfirmarResumenPDF");
+  const cancelar = $("btnCancelarResumenPDF");
+  const casilla = $("confirmarDatosPDF");
+  if (!vista || cancelar.disabled || (confirmar && !casilla.checked)) return;
+  casilla.disabled = true;
+  aceptar.disabled = cancelar.disabled = true;
+  ocultar($("errorVistaResumen"));
   try {
-    const r = await fetch("/resumen/confirmar", {method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({token: vista.token, confirmar: true})});
-    if (!r.ok) throw new Error(await mensajeDeError(r));
-    if (!(r.headers.get("Content-Type") || "").startsWith("application/pdf")) throw new Error("El servidor no devolvió un PDF válido.");
-    const archivo = await r.blob();
-    const url = URL.createObjectURL(archivo);
-    const enlace = document.createElement("a");
-    enlace.href = url; enlace.download = vista.nombre_archivo;
-    document.body.append(enlace); enlace.click(); enlace.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    limpiarConsultaAnterior();
-    finalizarVistaResumen(vista, "PDF generado. Revise la descarga del navegador. Puede continuar con su cálculo o preparar otro resumen.");
+    const respuesta = await fetch(confirmar ? "/resumen/confirmar" : "/resumen/cancelar", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(confirmar ? {token: vista.token, confirmar: true} : {token: vista.token}),
+    });
+    if (respuesta.ok || respuesta.status === 404 || (confirmar && respuesta.status === 503)) {
+      vistaResumen = null;
+      ocultar($("vistaResumenPDF"));
+    }
+    if (!respuesta.ok) throw new Error(await mensajeDeError(respuesta));
+    if (confirmar) {
+      if (!(respuesta.headers.get("Content-Type") || "").startsWith("application/pdf")) {
+        throw new Error("El servidor no devolvió un PDF válido.");
+      }
+      const url = URL.createObjectURL(await respuesta.blob());
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = vista.nombre_archivo;
+      document.body.append(enlace);
+      enlace.click();
+      enlace.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    mostrarError($("mensajeVistaResumen"), confirmar ? "PDF generado. Revise las descargas del navegador." : "Vista previa cancelada.");
+    ($("btnResumen").hidden ? $("mensajeAgente") : $("btnResumen")).focus();
   } catch (e) {
-    if (vistaResumenActual?.token === vista.token) vistaResumenActual = null;
-    ocultar($("vistaResumenPDF"));
-    mostrarError($("estadoResumenPDF"), `${e.message} Pulse «Descargar PDF» para intentarlo otra vez.`);
+    mostrarError($(vistaResumen ? "errorVistaResumen" : "mensajeVistaResumen"), e.message);
   } finally {
-    gestionandoResumen = false;
-    actualizarBotonesResumen();
+    casilla.disabled = cancelar.disabled = false;
+    aceptar.disabled = !casilla.checked;
   }
 }
 
-$("btnConfirmarResumenPDF").addEventListener("click", descargarResumenPDF);
-
-$("btnCancelarResumenPDF").addEventListener("click", async () => {
-  if (!vistaResumenActual || gestionandoResumen) return;
-  const vista = vistaResumenActual;
-  gestionandoResumen = true;
-  actualizarBotonesResumen();
-  try {
-    const r = await fetch("/resumen/cancelar", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({token: vista.token})});
-    if (!r.ok && r.status !== 404) throw new Error(await mensajeDeError(r));
-    finalizarVistaResumen(vista, "Resumen cancelado. No se generó un PDF. Puede preparar otro resumen cuando lo necesite.");
-  } catch (e) {
-    mostrarError($("errorResumenPDF"), e.message);
-  } finally {
-    gestionandoResumen = false;
-    actualizarBotonesResumen();
-  }
+$("confirmarDatosPDF").addEventListener("change", (evento) => {
+  $("btnConfirmarResumenPDF").disabled = !evento.target.checked || $("btnCancelarResumenPDF").disabled;
 });
+
+$("btnConfirmarResumenPDF").addEventListener("click", () => resolverVistaResumen(true));
+$("btnCancelarResumenPDF").addEventListener("click", () => resolverVistaResumen(false));
