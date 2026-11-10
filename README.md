@@ -28,6 +28,22 @@ cancelar la revisión antes de generar el archivo.
 
 **Integrantes:** Alexander Guerrero, Bladimir Velasco y Dorian Zambrano.
 
+## Aplicación en línea
+
+**URL pública:** https://calculadora-laboral.kindground-82e7e6d2.westus2.azurecontainerapps.io
+(comprobación de salud en `/health`).
+
+| Dato | Valor |
+| --- | --- |
+| Plataforma | Azure Container Apps (Azure for Students), West US 2 · 1 vCPU · 2 Gi · 0–1 réplicas |
+| Versión desplegada | commit `a96c0ce` de `main` (PR #73, #74 y #75), desplegado el 10/11/2026 |
+| Imagen | `ghcr.io/alexguerreror/calculadora-laboral-ec:a96c0ce2c4112f6be208e50db820bb187acd7fa1`, construida por `.github/workflows/imagen.yml` |
+| Claves | Secretos de la Container App; nunca en el repositorio ni en la imagen (ADR-003 y ADR-005) |
+| Pruebas contra la URL | 21/21 casos automáticos (10/11/2026, 11:57); detalle en [docs/08-pruebas.md](docs/08-pruebas.md) |
+
+La aplicación escala a cero cuando no recibe tráfico: la primera visita tarda unos
+segundos en arrancar y la primera consulta al asistente carga el modelo de embeddings.
+
 ## Problema que resuelve
 
 Los trabajadores consultados (12 de 15 en nuestro levantamiento) no saben cómo se calculan sus décimos, vacaciones, horas adicionales y liquidación. Hoy aceptan el monto que les indican sin poder verificarlo o usan calculadoras sin fuente. El sistema calcula cada valor con código verificado y explica el resultado en lenguaje sencillo, para trabajadores y pequeños empleadores.

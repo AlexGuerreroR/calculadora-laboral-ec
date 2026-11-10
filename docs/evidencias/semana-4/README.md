@@ -16,3 +16,13 @@ cantidades y textos sin valores secretos.
 | 6 · Prevenir y cerrar | gitleaks en GitHub Actions en cada push y pull request; 0 hallazgos | `.github/workflows/secretos.yml` (PR #72) |
 
 Puntaje de los retos (primer intento): 23/23.
+
+## Despliegue de la versión final (10/11/2026)
+
+Versión `a96c0ce` de `main` (PR #73, #74 y #75) desplegada en Azure Container Apps con la
+imagen `ghcr.io/alexguerreror/calculadora-laboral-ec:a96c0ce2c4112f6be208e50db820bb187acd7fa1`.
+
+| Evidencia | Archivo |
+|---|---|
+| Pruebas contra la URL: 21/21, con T12 que exige «15 de marzo» | `pruebas_produccion_21de21_20261110.png` y `eval/pruebas_produccion_20261110_1157.json` |
+| Corridas del día, fallo intermitente de T11 y su diagnóstico | `docs/08-pruebas.md`, sección Observaciones |

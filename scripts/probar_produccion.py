@@ -5,7 +5,7 @@
 También sirve en local:  python scripts/probar_produccion.py http://127.0.0.1:8000
 
 Ejecuta los casos automatizables (T01–T21) y guarda el resultado obtenido de cada uno en
-eval/pruebas_produccion_<fecha>.json. Los casos T22–T25 son manuales y se registran a mano.
+eval/pruebas_produccion_<fecha>_<hora>.json (cada corrida en su propio archivo). Los casos T22–T25 son manuales y se registran a mano.
 Las consultas al agente se espacian para respetar el límite de 4 por minuto; usan el
 proveedor configurado en la plataforma (unas 8 llamadas al modelo en total).
 """
@@ -46,9 +46,15 @@ def main(base):
     c = httpx.Client(base_url=base.rstrip("/"), timeout=90, follow_redirects=True)
     filas = []
 
-    def registrar(ident, descripcion, ok, obtenido):
-        filas.append({"id": ident, "caso": descripcion, "cumple": bool(ok), "obtenido": obtenido})
-        print(f"{ident} {'OK ' if ok else 'NO '} {descripcion} -> {obtenido}", flush=True)
+    def registrar(ident, descripcion, ok, obtenido, estado=None):
+        estado = estado or ("ok" if ok else "no_cumple")
+        filas.append({"id": ident, "caso": descripcion, "cumple": bool(ok), "estado": estado, "obtenido": obtenido})
+        etiqueta = {"ok": "OK ", "no_cumple": "NO ", "bloqueado": "BLOQUEADO"}[estado]
+        print(f"{ident} {etiqueta} {descripcion} -> {obtenido}", flush=True)
+
+    def bloquear(ident, descripcion, causa):
+        # Un caso que depende de otro que falló no desaparece del informe: cuenta como no verificado.
+        registrar(ident, descripcion, False, f"no se ejecutó: {causa}", estado="bloqueado")
 
     def agente(mensaje, **extra):
         r = c.post("/agente", json={"mensaje": mensaje, **extra})
@@ -82,9 +88,16 @@ def main(base):
         r = c.post("/explicar", json=resultados["T03"])
         registrar("T11", "Explicación del décimo tercero con cita", r.status_code == 200 and "111" in articulos(r), f"HTTP {r.status_code} arts={articulos(r)}")
         time.sleep(ESPERA_AGENTE)
+    else:
+        bloquear("T10", "Total manipulado se rechaza sin llamar al modelo", "T03 no devolvió un cálculo válido")
+        bloquear("T11", "Explicación del décimo tercero con cita", "T03 no devolvió un cálculo válido")
 
     r = agente("¿Hasta qué fecha se puede recibir acumulado el décimo cuarto en la Costa?")
-    registrar("T12", "Pregunta normativa con cita (Art. 113)", r.status_code == 200 and r.json()["estado"] == "completado" and "113" in articulos(r), f"HTTP {r.status_code} {r.json().get('estado')} arts={articulos(r)}")
+    d = r.json() if r.status_code == 200 else {}
+    # La respuesta del agente va en normativa[].respuesta; «mensaje» es solo el encabezado.
+    texto = " ".join([d.get("mensaje", "")] + [n.get("respuesta", "") for n in d.get("normativa", [])])
+    fecha_ok = "15 de marzo" in texto.lower()
+    registrar("T12", "Pregunta normativa: 15 de marzo con cita (Art. 113)", d.get("estado") == "completado" and "113" in articulos(r) and fecha_ok, f"HTTP {r.status_code} {d.get('estado')} arts={articulos(r)} 15_de_marzo={fecha_ok}")
     r = agente("¿Qué bonos me da el contrato colectivo de mi empresa?")
     registrar("T13", "Abstención: documento no cargado", r.status_code == 200 and r.json()["estado"] == "abstencion", f"HTTP {r.status_code} {r.json().get('estado')}")
     r = agente("¿Cuánto me toca de liquidación?")
@@ -102,6 +115,8 @@ def main(base):
     if resultados.get("T07"):
         r = agente("Explícame el cálculo de mi liquidación", calculo=resultados["T07"])
         registrar("T19", "Liquidación sin confirmar saldos: pide confirmación", r.status_code == 200 and r.json()["estado"] == "requiere_confirmacion", f"HTTP {r.status_code} {r.json().get('estado')}")
+    else:
+        bloquear("T19", "Liquidación sin confirmar saldos: pide confirmación", "T07 no devolvió un cálculo válido")
     r = c.post("/agente", json={"mensaje": "vacaciones " * 400})
     registrar("T20", "Mensaje demasiado largo se rechaza antes del modelo", r.status_code == 422, f"HTTP {r.status_code}")
     time.sleep(61)
@@ -109,11 +124,15 @@ def main(base):
     limitado = [x for x in codigos if x.status_code == 429]
     registrar("T21", "Límite de tasa: 429 con Retry-After y mensaje propio", bool(limitado) and "Retry-After" in limitado[0].headers, f"códigos={[x.status_code for x in codigos]}")
 
-    salida = RAIZ / f"eval/pruebas_produccion_{datetime.now().strftime('%Y%m%d')}.json"
+    salida = RAIZ / f"eval/pruebas_produccion_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
     salida.write_text(json.dumps({"url": base, "fecha_utc": datetime.now(timezone.utc).isoformat(),
                                   "aprobadas": sum(f["cumple"] for f in filas), "total": len(filas),
+                                  "bloqueadas": sum(f["estado"] == "bloqueado" for f in filas),
                                   "detalle": filas}, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n{sum(f['cumple'] for f in filas)}/{len(filas)} casos automáticos cumplen. Guardado en {salida.relative_to(RAIZ)}")
+    bloqueadas = sum(f["estado"] == "bloqueado" for f in filas)
+    print(f"\n{sum(f['cumple'] for f in filas)}/{len(filas)} casos automáticos cumplen"
+          + (f" ({bloqueadas} bloqueados por un caso previo)" if bloqueadas else "")
+          + f". Guardado en {salida.relative_to(RAIZ)}")
 
 
 if __name__ == "__main__":
