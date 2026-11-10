@@ -13,11 +13,16 @@ el servidor anterior si ocupa ese puerto. El script usa Python 3.14 externo,
 las dependencias locales y los modelos descargados, sin instalar ni consumir IA.
 Para otro puerto agregue `-Port 8001` al comando.
 
-El avance incluye cinco calculos, RAG con indice `data/chroma-2026`, asistente
-con fuentes y PDF de descarga directa. Las respuestas anteriores se limpian
-al descargar o cambiar de calculo. Las secciones historicas siguientes pueden
-describir la antigua vista previa del PDF o modelos anteriores; la configuracion
-de ejecucion actual usa Groq como principal y Gemini 3.6 Flash como respaldo.
+La aplicación calcula décimo tercero, décimo cuarto, vacaciones, horas
+suplementarias y extraordinarias, y liquidaciones. La liquidación tiene un
+modo básico para estimar con pocos datos y un modo avanzado para quienes
+conocen sus saldos pendientes. La aplicación usa el índice `data/chroma-2026`
+para consultar fuentes normativas. Groq es el proveedor principal y Gemini
+3.6 Flash es el respaldo.
+
+Para obtener un PDF, pulse **Preparar PDF** en el resultado. Revise el total
+y el desglose, marque la casilla de conformidad y pulse **Descargar**. Puede
+cancelar la revisión antes de generar el archivo.
 
 **Caso 07 · Calculadora Inteligente de Beneficios y Liquidaciones Laborales** · Grupo 7 · Seminario de Ingeniería de Software con IA Generativa, UNIANDES.
 
@@ -27,16 +32,19 @@ de ejecucion actual usa Groq como principal y Gemini 3.6 Flash como respaldo.
 
 Los trabajadores consultados (12 de 15 en nuestro levantamiento) no saben cómo se calculan sus décimos, vacaciones, horas adicionales y liquidación. Hoy aceptan el monto que les indican sin poder verificarlo o usan calculadoras sin fuente. El sistema calcula cada valor con código verificado y explica el resultado en lenguaje sencillo, para trabajadores y pequeños empleadores.
 
-## Estado: MVP con RAG conectado (semana 3 parcial)
+## Funcionalidades de la aplicación
 
-- **Calcula** (código determinista, sin IA): décimo tercero, décimo cuarto, vacaciones y horas suplementarias/extraordinarias. Estima liquidaciones por renuncia con desahucio o despido intempestivo con saldos informados explícitamente.
-- **Explica con RAG** el resultado ya calculado (`/explicar`): recupera los artículos necesarios, valida las citas del modelo y muestra los fragmentos y fuentes en la interfaz. Sin respaldo suficiente, se abstiene.
-- **Agente:** consulta normativa y utiliza ocho herramientas cerradas, con argumentos validados y límites. `agente_v4` conserva la pregunta original y `normativa_v4` explica las fuentes pertinentes sin hacer operaciones. Los importes requieren formulario; días anuales y exceso de jornada pueden calcularse en Python con datos explícitos declarados. Cada consulta es independiente.
-- **Resumen PDF:** el botón «Descargar PDF» prepara y descarga el documento con un solo clic. Si se solicita al agente, se muestra una vista previa con confirmación o cancelación. Ambos caminos usan un token de sesión de un solo uso; el modelo no confirma la descarga.
-- **Pendiente:** evaluación generativa completa del agente y validación final del producto.
-- **Despliegue previsto:** Render (semana 4).
+- **Cálculos en Python:** décimo tercero, décimo cuarto, vacaciones y horas suplementarias y extraordinarias.
+- **Liquidación estimada:** admite renuncia con desahucio y despido intempestivo. El modo básico usa la remuneración, las fechas, el motivo de salida, la región y la modalidad de pago de los décimos. Sugiere días de vacaciones que el usuario puede ajustar. El modo avanzado usa los saldos de nómina confirmados y los descuentos informados.
+- **Explicación del cálculo:** el botón «Explicar cálculo» muestra cómo se obtuvo el resultado y presenta las fuentes normativas recuperadas. Si falta respaldo suficiente, la aplicación se abstiene de dar una explicación.
+- **Asistente laboral:** responde consultas independientes. Si se solicita un monto y faltan datos, orienta al formulario correspondiente.
+- **Resumen PDF:** desde el resultado, pulse «Preparar PDF» para revisar el total y el desglose. Marque la casilla de conformidad para habilitar «Descargar», o pulse «Cancelar» para cerrar la revisión.
 
-## Estado real de la Entrega 3
+## Registro histórico de la Entrega 3
+Esta sección conserva el estado y las métricas que se registraron durante
+la Entrega 3. Los resultados corresponden a las versiones evaluadas en
+cada corrida. Las funciones de la versión actual se describen en
+«Funcionalidades de la aplicación».
 
 | Punto de la Entrega 3 | Estado | Dónde está |
 |---|---|---|
@@ -74,8 +82,10 @@ El frontend (HTML + JavaScript) habla solo con el backend FastAPI. El backend va
 | `POST /calculos/vacaciones` | Días y valor de vacaciones | No |
 | `POST /calculos/horas` | Horas suplementarias y extraordinarias | No |
 | `POST /calculos/liquidacion` | Rubros y total neto estimado de saldos confirmados | No |
+| `POST /calculos/liquidacion/basica` | Estima la liquidación con la remuneración, las fechas, el motivo de salida, la región y la modalidad de pago de los décimos | No |
+| `GET /calculos/liquidacion/basica/vacaciones` | Sugiere días de vacaciones a partir de las fechas de ingreso y salida | No |
 | `POST /explicar` | Explica un resultado; el servidor lo recalcula antes | Sí |
-| `POST /agente` | Consulta normativa y herramientas con datos confirmados | Sí |
+| `POST /agente` | Atiende consultas laborales y presenta fuentes normativas cuando hay respaldo suficiente | Sí |
 | `POST /resumen/preparar` | Prepara datos y fuentes para revisión, sin crear PDF | No |
 | `POST /resumen/confirmar` | Genera y descarga la instantánea aprobada una sola vez | No |
 | `POST /resumen/cancelar` | Invalida la solicitud pendiente | No |
@@ -196,7 +206,8 @@ Fuentes oficiales, vigencia y estrategia de fragmentación en [docs/04-fuentes.m
 
 ## Limitaciones conocidas
 
-- Liquidación: solo los dos motivos indicados. El usuario informa salario pendiente, base del décimo tercero, días pendientes de décimo cuarto y vacaciones, horas pendientes y descuentos. Los campos faltantes se rechazan; no se sustituyen por cero.
+- **Liquidación básica:** admite renuncia con desahucio y despido intempestivo. El monto es referencial. La sugerencia de vacaciones se basa en las fechas de ingreso y salida, y puede sustituirse por el saldo conocido. Para incluir salarios u horas pendientes y descuentos, use el modo avanzado.
+- **Liquidación avanzada:** admite los mismos motivos y requiere saldos confirmados de salario, décimos, vacaciones y horas pendientes, además de los descuentos. Escriba cero si el rubro ya fue pagado o no tiene saldo pendiente. Los campos vacíos se rechazan.
 - Desahucio por años completos: criterio conservado del ejercicio, pendiente de contraste actualizado. El motivo de salida no es determinado por la IA ni por la calculadora.
 - C10 conserva el saldo cero de vacaciones adicionales informado en el Excel; no se generaliza a otros trabajadores. La interfaz y el resultado muestran esta salvedad.
 - Horas adicionales: sueldo mensual y jornada completa, con cantidades agregadas informadas; no clasifica horarios ni comprueba límites diarios/semanales.
@@ -221,27 +232,26 @@ locales, sin volver a consumir API. El alcance está en `docs/07-evaluacion.md`.
 
 ### Consultar al agente
 
-En la interfaz, escriba una consulta laboral. Para usar un cálculo, complete el
-formulario y marque «Usar los datos de mi último cálculo». El agente no transforma
-números del texto libre en sueldos, fechas ni saldos: si faltan datos confirmados,
-pide usar el formulario. La liquidación permite revisar y confirmar sus saldos
-antes de que la herramienta del agente los utilice. Esta revisión no registra un
-finiquito ni realiza una acción externa.
+En la interfaz, escriba una consulta en el asistente laboral. El chat recibe
+solo el texto de la pregunta. Si solicita un monto y faltan datos, el asistente
+lo orienta al formulario correspondiente. Para entender un resultado ya
+calculado, pulse **Explicar cálculo** en la tarjeta del resultado.
 
-Herramientas: `consultar_normativa`, `calcular_decimos`, `calcular_vacaciones`,
-`calcular_horas`, `estimar_liquidacion`, `explicar_resultado`, `solicitar_datos` y
-`generar_resumen`. Esta última solo solicita la vista previa; la generación ocurre
-en un endpoint separado después del clic humano. No hay herramientas para
-ejecutar comandos, enviar, registrar, pagar o borrar.
+El servidor define ocho herramientas: `consultar_normativa`,
+`calcular_decimos`, `calcular_vacaciones`, `calcular_horas`,
+`estimar_liquidacion`, `explicar_resultado`, `solicitar_datos` y
+`generar_resumen`. Las herramientas de cálculo requieren datos confirmados.
+En la interfaz actual, el usuario realiza los cálculos en el formulario y
+prepara el PDF desde la tarjeta del resultado.
 
-Los límites viven en `config/parametros.yaml`, sección `agente`: seis vueltas,
-ocho solicitudes lógicas al modelo y cuatro herramientas por vuelta. Las
-solicitudes lógicas conservan los reintentos/corrección JSON del cliente, por lo
-que el número de peticiones HTTP al proveedor puede ser mayor. Se muestran solo
-resultados de herramientas y respuestas verificadas, no el texto final libre del
-modelo. La primera vuelta exige una herramienta; el contexto incluye explícitamente
-el ID del cálculo. El prompt activo del agente es `agente_v3`. Las guardas no
-sustituyen la evaluación de fidelidad y cobertura.
+Los límites se configuran en `config/parametros.yaml`, en la sección
+`agente`. Cada consulta admite hasta seis vueltas, ocho solicitudes lógicas
+al modelo y cuatro herramientas por vuelta. Los reintentos del cliente
+pueden aumentar el número de peticiones HTTP al proveedor.
+
+El prompt activo es `agente_v4`. La aplicación muestra los resultados de
+las herramientas y las respuestas que pasan las comprobaciones de fuentes
+y valores.
 
 Verificación local del agente y componentes afectados:
 
@@ -261,18 +271,31 @@ de todas las herramientas ni de las métricas de abstención/rechazo.
 
 ## Consideraciones éticas y de datos personales
 
-La aplicación orienta, no asesora: no dictamina conflictos laborales y deriva al Ministerio del Trabajo. No pide nombre, cédula ni datos de contacto. Al usar IA, la consulta, el cálculo adjunto y los fragmentos necesarios se envían al proveedor; no incluya datos personales en el texto libre. Las vistas previas del PDF se conservan temporalmente en memoria con caducidad; el PDF se devuelve al navegador sin guardarse en disco del servidor. Inventario actualizado en [docs/09-decisiones.md](docs/09-decisiones.md).
+La aplicación brinda orientación laboral y deriva al Ministerio del Trabajo
+cuando corresponde. Evite incluir nombres, cédulas o datos de contacto en
+sus consultas.
+
+Cuando se usa IA, el proveedor recibe los datos necesarios para cada tarea.
+El asistente recibe el texto de la consulta y, cuando corresponde, fragmentos
+de las fuentes normativas. Al pulsar **Explicar cálculo**, se envía por
+separado el resultado que el usuario pidió explicar y sus fuentes.
+
+Los datos preparados para el PDF se conservan temporalmente en la sesión.
+El servidor genera el archivo al confirmar la descarga y lo devuelve al
+navegador sin guardarlo en disco. Consulte el inventario de datos en
+[docs/09-decisiones.md](docs/09-decisiones.md).
 
 ### Generar un resumen PDF
 
-Hay dos formas de obtener el documento:
+1. En la tarjeta del resultado, pulse **Preparar PDF**.
+2. En **Revise los datos para el PDF**, compruebe el total y el desglose.
+3. Si está de acuerdo, marque la casilla de conformidad. Esto habilita el
+   botón **Descargar**. Para cerrar la revisión, pulse **Cancelar**.
 
-- **Desde el cálculo:** revise el resultado y pulse «Descargar PDF». Ese clic
-  solicita la preparación y confirma la descarga, sin abrir otra tarjeta de revisión.
-- **Desde el agente:** solicite el resumen con el cálculo adjunto. Se muestra
-  una vista previa con datos, total, desglose y fuentes. «Confirmar y descargar
-  PDF» genera el documento; «Cancelar resumen» invalida la solicitud sin generarlo.
-
+El navegador solicita los datos de revisión a `/resumen/preparar`. Al pulsar
+**Descargar**, envía el token y la confirmación a `/resumen/confirmar`. El
+servidor genera el PDF a partir de los datos preparados, sin llamar a la IA.
+El botón **Cancelar** invalida la solicitud mediante `/resumen/cancelar`.
 En ambos casos, el navegador llama primero a `/resumen/preparar` y después a
 `/resumen/confirmar` con el token y la aprobación. El servidor genera el PDF
 con los datos preparados, sin aceptar nuevos montos en la confirmación y sin
@@ -284,6 +307,11 @@ caducados se eliminan al procesar otra operación; reiniciar el proceso elimina
 todos. Para el MVP se requiere un proceso/worker: el almacén pendiente es local
 a ese proceso y no está compartido entre servidores. No hay historial de PDFs.
 Los límites de pendientes y solicitudes están en `config/parametros.yaml`.
+
+**Evidencia de validación.** El registro de 109 pruebas que figura abajo
+corresponde a una versión anterior. El flujo actual se verificó manualmente
+en la demo: «Preparar PDF» muestra el total y el desglose, la casilla habilita
+«Descargar» y «Cancelar» cierra la revisión sin generar el archivo.
 
 ReportLab está declarado en `requirements.txt` e instalado en `.deps-rag/` de
 esta copia (4.5.1). Comprobación de esta etapa:
