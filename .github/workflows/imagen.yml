@@ -1,0 +1,42 @@
+# Construye la imagen Docker de producción y la publica en GitHub Container Registry (privada).
+# Azure Container Apps la descarga desde ghcr.io (ADR-005). No usa claves de los proveedores:
+# las claves se configuran como secretos de la Container App.
+name: imagen
+on:
+  push:
+    branches: [main, "despliegue/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Liberar espacio en disco (la imagen con torch y el modelo pesa varios GB)
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+      - name: Nombre de la imagen (ghcr exige minúsculas)
+        run: echo "IMAGEN=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir y publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGEN }}:${{ github.sha }}
+            ${{ env.IMAGEN }}:${{ github.ref_name == 'main' && 'latest' || 'prueba' }}
