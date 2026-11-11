@@ -33,9 +33,6 @@ Este registro distingue la asistencia al desarrollo del comportamiento previsto 
 - **Verificación y correcciones:** todo el código se ejecutó en mi computadora (`pytest -q`, `uvicorn` y pruebas en `/docs` con el proveedor real). Se corrigieron, entre otros: la cita de la norma pedida al modelo (se quitó tras el aviso del docente del 22/10), los requisitos no funcionales (temperatura reemplazada por razonamiento y tokens ajustados con mediciones reales) y, a partir de la revisión de Alexander en el PR #55, el recálculo del resultado en el servidor y el manejo de la configuración ausente.
 - **Límite:** las respuestas del asistente no se usaron como fuente normativa; los valores legales provienen de las fuentes oficiales registradas en `docs/04-fuentes.md` y `config/parametros.yaml`.
 
-
-### Dorian Zambrano
-
 ### Dorian Zambrano
 
 - **Aportes.** Participé en la revisión de requisitos, fuentes y pull requests. En la PR #74 trabajé en el cálculo básico de liquidación, la sugerencia de días de vacaciones según las fechas de ingreso y salida, y el ajuste del PDF para identificar el modo básico y mostrar el total referencial.
