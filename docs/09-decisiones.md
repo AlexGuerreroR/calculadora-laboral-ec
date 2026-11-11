@@ -36,11 +36,12 @@ Este registro distingue la asistencia al desarrollo del comportamiento previsto 
 
 ### Dorian Zambrano
 
-Se registra su aporte a requisitos, fuentes y revisiones mediante PR. El usuario
-confirmó el 30/10/2026 que Dorian utilizó **ChatGPT**. No detalló qué tareas se
-apoyaron en ese asistente ni qué correcciones o validaciones realizó Dorian;
-esos puntos quedan por precisar por el integrante, sin atribuir automáticamente
-a la IA todos sus aportes ni registrar una revisión humana no confirmada.
+### Dorian Zambrano
+
+- **Aportes.** Participé en la revisión de requisitos, fuentes y pull requests. En la PR #74 trabajé en el cálculo básico de liquidación, la sugerencia de días de vacaciones según las fechas de ingreso y salida, y el ajuste del PDF para identificar el modo básico y mostrar el total referencial.
+- **Asistente utilizado.** ChatGPT (OpenAI).
+- **Usos.** Lo usé para revisar la lógica del cálculo básico, entender por qué Python no encontraba el módulo al ejecutar las pruebas y plantear casos para comprobar la sugerencia de vacaciones con el criterio 30/360.
+- **Verificación y correcciones.** Moví el módulo a `app/tools/` y agregué pruebas con distintas regiones y modalidades de pago de los décimos. Para verificar el ajuste de vacaciones, dejé dos casos en `tests/test_liquidacion_basica.py`: 14,96 días un día antes del aniversario laboral y 15,00 días al cumplirlo. También agregué una prueba que comprueba que el servidor recalcula el resultado y requiere confirmación antes de generar el PDF. GitHub Actions registró que las pruebas pasaron en el commit `c8707d3`.
 
 ### Tabla de aportes por integrante (semanas 1 a 4)
 
