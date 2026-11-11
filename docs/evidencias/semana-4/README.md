@@ -26,3 +26,8 @@ imagen `ghcr.io/alexguerreror/calculadora-laboral-ec:a96c0ce2c4112f6be208e50db82
 |---|---|
 | Pruebas contra la URL: 21/21, con T12 que exige «15 de marzo» | `pruebas_produccion_21de21_20261110.png` y `eval/pruebas_produccion_20261110_1157.json` |
 | Corridas del día, fallo intermitente de T11 y su diagnóstico | `docs/08-pruebas.md`, sección Observaciones |
+
+## Observaciones de la sustentación (7/11/2026)
+
+Cada observación del docente, con su estado y la evidencia de lo corregido:
+[observaciones_sustentacion.md](observaciones_sustentacion.md).
