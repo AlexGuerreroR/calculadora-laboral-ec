@@ -33,14 +33,31 @@ Este registro distingue la asistencia al desarrollo del comportamiento previsto 
 - **Verificación y correcciones:** todo el código se ejecutó en mi computadora (`pytest -q`, `uvicorn` y pruebas en `/docs` con el proveedor real). Se corrigieron, entre otros: la cita de la norma pedida al modelo (se quitó tras el aviso del docente del 22/10), los requisitos no funcionales (temperatura reemplazada por razonamiento y tokens ajustados con mediciones reales) y, a partir de la revisión de Alexander en el PR #55, el recálculo del resultado en el servidor y el manejo de la configuración ausente.
 - **Límite:** las respuestas del asistente no se usaron como fuente normativa; los valores legales provienen de las fuentes oficiales registradas en `docs/04-fuentes.md` y `config/parametros.yaml`.
 
-
 ### Dorian Zambrano
 
-Se registra su aporte a requisitos, fuentes y revisiones mediante PR. El usuario
-confirmó el 30/10/2026 que Dorian utilizó **ChatGPT**. No detalló qué tareas se
-apoyaron en ese asistente ni qué correcciones o validaciones realizó Dorian;
-esos puntos quedan por precisar por el integrante, sin atribuir automáticamente
-a la IA todos sus aportes ni registrar una revisión humana no confirmada.
+- **Aportes.** Participé en la revisión de requisitos, fuentes y pull requests. En la PR #74 trabajé en el cálculo básico de liquidación, la sugerencia de días de vacaciones según las fechas de ingreso y salida, y el ajuste del PDF para identificar el modo básico y mostrar el total referencial.
+- **Asistente utilizado.** ChatGPT (OpenAI).
+- **Usos.** Lo usé para revisar la lógica del cálculo básico, entender por qué Python no encontraba el módulo al ejecutar las pruebas y plantear casos para comprobar la sugerencia de vacaciones con el criterio 30/360.
+- **Verificación y correcciones.** Moví el módulo a `app/tools/` y agregué pruebas con distintas regiones y modalidades de pago de los décimos. Para verificar el ajuste de vacaciones, dejé dos casos en `tests/test_liquidacion_basica.py`: 14,96 días un día antes del aniversario laboral y 15,00 días al cumplirlo. También agregué una prueba que comprueba que el servidor recalcula el resultado y requiere confirmación antes de generar el PDF. GitHub Actions registró que las pruebas pasaron en el commit `c8707d3`.
+
+### Tabla de aportes por integrante (semanas 1 a 4)
+
+Elaborada a partir de los pull requests fusionados en `main` (autor de cada PR) y de
+las revisiones registradas en cada PR. Cada integrante debe confirmar su fila antes de la entrega.
+
+| Área | Alexander Guerrero | Bladimir Velasco | Dorian Zambrano |
+|---|---|---|---|
+| Semana 1 · Levantamiento y casos | Casos de referencia con fórmulas, documentos D4, configuración del repositorio (#46, #47) | Propuesta, resolución independiente de los diez casos | Requisitos y fuentes |
+| Semana 2 · Arquitectura e integración | Servicio de IA con reintentos y respaldo (#50), frontend inicial y mejoras de interfaz (#56, #57) | C4 niveles 1 y 2 (#44), system prompts v1–v3 y comparación (#48, #51, #52, #58), endpoint `/explicar` (#55), cambio a Groq con respaldo Gemini (#59) | ADR-001 y ADR-002 (#45), ADR-003 de claves y datos (#53), esquemas y cálculos de décimos y vacaciones (#49, #54) |
+| Semana 3 · RAG y agente | Integración del avance de semana 3: RAG, agente, cálculos y evidencias (#63) | Ficha RAG y 20 preguntas de evaluación (#60), ingesta del Código del Trabajo, ChromaDB y hit@5 (#61) | Revisión de pull requests |
+| Semana 4 · Despliegue y cierre | Rediseño de interfaz y orientación del asistente en el PR #74, revisión y fusión de #73, #75 y #76 | Corrida completa del agente y calibración (#65), gitleaks en CI (#72), plan de pruebas, matriz de riesgos y ADR-005 (#73), imagen Docker y Azure Container Apps (#75, fusionado por Alexander), pruebas contra la URL y registro del despliegue (#76), presentación | Cálculo básico de liquidación y vacaciones con base comercial 30/360 (#74) |
+
+### Declaración del grupo sobre el uso de IA
+
+- **Qué IA usamos:** ChatGPT/Codex (Alexander), Claude (Bladimir) y ChatGPT (Dorian).
+- **Para qué:** borradores de código, pruebas, prompts y documentación; análisis del material de clase y revisión de pull requests.
+- **Cómo lo verificamos:** pruebas automáticas en cada push (CI con cobertura mínima del 80 % y gitleaks), revisión de cada pull request por otro integrante, pruebas contra la URL desplegada (`docs/08-pruebas.md`) y evaluación manual de las respuestas del agente (`docs/07-evaluacion.md`). Los valores legales salen de las fuentes oficiales de `docs/04-fuentes.md`, no de respuestas de un asistente.
+- **Responsabilidad:** cada integrante puede explicar el código que integró; la IA no es autora del proyecto.
 
 ## Estado de implementación y revisión
 
